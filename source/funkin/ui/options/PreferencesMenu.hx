@@ -66,6 +66,9 @@ class PreferencesMenu extends Page
     createPrefItemCheckbox('Camera Zooming on Beat', 'Disable to stop the camera bouncing to the song', function(value:Bool):Void {
       Preferences.zoomCamera = value;
     }, Preferences.zoomCamera);
+    createPrefItemCheckbox('Play Miss Sound', 'Disable to stop the mute sound from playing when a miss occurs.', function(value:Bool):Void {
+      Preferences.playMissSound = value;
+    }, Preferences.playMissSound);
     createPrefItemCheckbox('Debug Display', 'Enable to show FPS and other debug stats', function(value:Bool):Void {
       Preferences.debugDisplay = value;
     }, Preferences.debugDisplay);

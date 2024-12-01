@@ -10,7 +10,7 @@ enum abstract ScriptEventType(String) from String to String
    * This event is not cancelable.
    */
   var CREATE = 'CREATE';
-
+  var INIT = 'INIT';
   /**
    * Called when the relevant object is destroyed.
    * This should perform relevant cleanup to ensure good performance.

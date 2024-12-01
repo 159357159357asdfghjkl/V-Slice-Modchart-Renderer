@@ -5,8 +5,9 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
+import funkin.play.modchart.util.FunkinActor;
 
-class NoteSplash extends FlxSprite
+class NoteSplash extends FunkinActor
 {
   static final ALPHA:Float = 0.6;
   static final FRAMERATE_DEFAULT:Int = 24;
@@ -20,12 +21,15 @@ class NoteSplash extends FlxSprite
     frameCollection.parent.persist = true;
   }
 
+  public var column:Int = 0;
+  public var defaultScale:Array<Float>;
+
   public function new()
   {
     super(0, 0);
 
     setup();
-
+    defaultScale = [scale.x, scale.y];
     this.alpha = ALPHA;
     this.animation.finishCallback = this.onAnimationFinished;
   }

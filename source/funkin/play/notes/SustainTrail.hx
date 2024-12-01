@@ -9,6 +9,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.tile.FlxDrawTrianglesItem;
 import flixel.math.FlxMath;
 import funkin.ui.options.PreferencesMenu;
+import funkin.play.modchart.shaders.ModchartHSVShader;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -35,6 +36,15 @@ class SustainTrail extends FlxSprite
   public var parentStrumline:Strumline;
 
   public var cover:NoteHoldCover = null;
+
+  public var column:Int = 0;
+  public var defaultScale:Array<Float>;
+  public var offsetX:Float;
+  public var offsetY:Float;
+  public var vwoosh:Bool;
+  public var defX:Float = 0;
+  public var defY:Float = 0;
+  public var hsvShader:ModchartHSVShader;
 
   /**
    * Set to `true` if the user hit the note and is currently holding the sustain.
@@ -110,8 +120,9 @@ class SustainTrail extends FlxSprite
     setupHoldNoteGraphic(noteStyle);
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
-    indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
+    indices = new DrawData<Int>(TRIANGLE_VERTEX_INDICES.length, true, TRIANGLE_VERTEX_INDICES);
 
+    defaultScale = [scale.x, scale.y];
     this.active = true; // This NEEDS to be true for the note to be drawn!
   }
 
@@ -153,6 +164,8 @@ class SustainTrail extends FlxSprite
     updateColorTransform();
 
     updateClipping();
+    hsvShader = new ModchartHSVShader();
+    this.shader = hsvShader.shader;
   }
 
   function getBaseScrollSpeed()
@@ -325,8 +338,9 @@ class SustainTrail extends FlxSprite
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
+    x += offsetX;
+    y += offsetY;
     if (alpha == 0 || graphic == null || vertices == null) return;
-
     for (camera in cameras)
     {
       if (!camera.visible || !camera.exists) continue;
@@ -368,6 +382,9 @@ class SustainTrail extends FlxSprite
     hitNote = false;
     missedNote = false;
     handledMiss = false;
+    this.hsvShader.hue = 1.0;
+    this.hsvShader.saturation = 1.0;
+    this.hsvShader.value = 1.0;
   }
 
   override public function destroy():Void

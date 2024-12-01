@@ -273,6 +273,8 @@ class Speaker extends FlxSprite implements IDialogueScriptedClass implements IRe
     }
   }
 
+  public function onInit(ecent:ScriptEvent):Void {}
+
   public function onDialogueStart(event:DialogueScriptEvent):Void {}
 
   public function onDialogueCompleteLine(event:DialogueScriptEvent):Void {}

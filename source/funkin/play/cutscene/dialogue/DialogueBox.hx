@@ -105,6 +105,8 @@ class DialogueBox extends FlxSpriteGroup implements IDialogueScriptedClass imple
     }
   }
 
+  public function onInit(event:ScriptEvent):Void {}
+
   public function onCreate(event:ScriptEvent):Void
   {
     this.globalOffsets = [0, 0];

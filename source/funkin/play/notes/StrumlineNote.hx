@@ -4,11 +4,12 @@ import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.graphics.FunkinSprite;
 import funkin.play.notes.NoteSprite;
+import funkin.play.modchart.shaders.ModchartHSVShader;
 
 /**
  * The actual receptor that you see on screen.
  */
-class StrumlineNote extends FunkinSprite
+class StrumlineNote extends funkin.play.modchart.util.FunkinActor
 {
   /**
    * Whether this strumline note is on the player's side or the opponent's side.
@@ -42,6 +43,10 @@ class StrumlineNote extends FunkinSprite
    */
   var confirmHoldTimer:Float = -1;
 
+  public var column:Int = 0;
+  public var defaultScale:Array<Float>;
+  public var hsvShader:ModchartHSVShader;
+
   public function new(noteStyle:NoteStyle, isPlayer:Bool, direction:NoteDirection)
   {
     super(0, 0);
@@ -51,10 +56,11 @@ class StrumlineNote extends FunkinSprite
     this.direction = direction;
 
     setup(noteStyle);
-
+    defaultScale = [scale.x, scale.y];
     this.animation.callback = onAnimationFrame;
     this.animation.finishCallback = onAnimationFinished;
-
+    hsvShader = new ModchartHSVShader();
+    this.shader = hsvShader.shader;
     // Must be true for animations to play.
     this.active = true;
   }

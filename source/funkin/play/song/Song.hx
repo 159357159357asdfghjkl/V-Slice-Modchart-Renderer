@@ -673,6 +673,8 @@ class Song implements IPlayStateScriptedClass implements IRegistryEntry<SongMeta
 
   public function onUpdate(event:UpdateScriptEvent):Void {};
 
+  public function onInit(event:ScriptEvent):Void {};
+
   static function _fetchData(id:String):Null<SongMetadata>
   {
     trace('Fetching song metadata for $id');

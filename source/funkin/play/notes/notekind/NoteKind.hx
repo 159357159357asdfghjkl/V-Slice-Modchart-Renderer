@@ -56,6 +56,8 @@ class NoteKind implements INoteScriptedClass
 
   public function onScriptEvent(event:ScriptEvent):Void {}
 
+  public function onInit(event:ScriptEvent):Void {}
+
   public function onCreate(event:ScriptEvent):Void {}
 
   public function onDestroy(event:ScriptEvent):Void {}

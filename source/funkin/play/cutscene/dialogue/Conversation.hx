@@ -115,6 +115,8 @@ class Conversation extends FlxSpriteGroup implements IDialogueScriptedClass impl
     }
   }
 
+  public function onInit(event:ScriptEvent):Void {}
+
   public function onCreate(event:ScriptEvent):Void
   {
     // Reset the progress in the dialogue.

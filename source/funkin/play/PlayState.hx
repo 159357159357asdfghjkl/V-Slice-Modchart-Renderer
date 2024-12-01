@@ -67,6 +67,8 @@ import lime.ui.Haptic;
 import openfl.display.BitmapData;
 import openfl.geom.Rectangle;
 import openfl.Lib;
+import funkin.play.modchart.Modchart;
+import funkin.play.modchart.events.ModEvents;
 #if FEATURE_DISCORD_RPC
 import funkin.api.discord.DiscordClient;
 #end
@@ -588,6 +590,8 @@ class PlayState extends MusicBeatSubState
 
   static final BACKGROUND_COLOR:FlxColor = FlxColor.BLACK;
 
+  public var modEvents:ModEvents;
+
   /**
    * Instantiate a new PlayState.
    * @param params The parameters used to initialize the PlayState.
@@ -705,7 +709,10 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
+    playerStrumline.modNumber = 2;
+    opponentStrumline.modNumber = 1; // for mods, no other use
 
+    modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
     #if FEATURE_DISCORD_RPC
     // Initialize Discord Rich Presence.
     initDiscord();
@@ -754,6 +761,11 @@ class PlayState extends MusicBeatSubState
     #end
 
     initialized = true;
+    var event:ScriptEvent = new ScriptEvent(INIT, false);
+    ScriptEventDispatcher.callEvent(currentSong, event);
+    ScriptEventDispatcher.callEvent(currentConversation, event);
+    ScriptEventDispatcher.callEvent(currentStage, event);
+    modEvents.sort(); // you can also sort it at anytime
 
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.
@@ -910,6 +922,8 @@ class PlayState extends MusicBeatSubState
 
       needsReset = false;
     }
+
+    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition);
 
     // Update the conductor.
     if (startingSong)

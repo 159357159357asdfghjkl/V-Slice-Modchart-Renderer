@@ -19,11 +19,17 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
   var glow:FlxSprite;
   var sparks:FlxSprite;
 
+  public var column:Int = 0;
+  public var offsetX:Float = 0;
+  public var offsetY:Float = 0;
+  public var defaultScale:Array<Float>;
+
   public function new()
   {
     super(0, 0);
 
     setup();
+    defaultScale = [scale.x, scale.y];
   }
 
   public static function preloadFrames():Void

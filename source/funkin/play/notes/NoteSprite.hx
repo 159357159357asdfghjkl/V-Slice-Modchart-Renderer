@@ -7,14 +7,18 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
 import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
+import funkin.play.modchart.shaders.ModchartHSVShader;
 
-class NoteSprite extends FunkinSprite
+class NoteSprite extends funkin.play.modchart.util.FunkinActor
 {
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 
   public var holdNoteSprite:SustainTrail;
 
-  var hsvShader:HSVShader;
+  public var hsvShader:ModchartHSVShader;
+
+  public var column:Int = 0;
+  public var defaultScale:Array<Float>;
 
   /**
    * The strum time at which the note should be hit, in milliseconds.
@@ -149,7 +153,7 @@ class NoteSprite extends FunkinSprite
     super(0, -9999);
     this.direction = direction;
 
-    this.hsvShader = new HSVShader();
+    this.hsvShader = new ModchartHSVShader();
 
     setupNoteGraphic(noteStyle);
   }
@@ -161,8 +165,8 @@ class NoteSprite extends FunkinSprite
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
-
-    this.shader = hsvShader;
+    defaultScale = [scale.x, scale.y];
+    this.shader = hsvShader.shader;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -242,12 +246,5 @@ class NoteSprite extends FunkinSprite
   public override function kill():Void
   {
     super.kill();
-  }
-
-  public override function destroy():Void
-  {
-    // This function should ONLY get called as you leave PlayState entirely.
-    // Otherwise, we want the game to keep reusing note sprites to save memory.
-    super.destroy();
   }
 }

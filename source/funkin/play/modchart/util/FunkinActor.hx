@@ -104,10 +104,10 @@ class FunkinActor extends FunkinSprite
         var rotatedRT:Vector3D = ModchartMath.rotateVector3(topRight, rotation.x, rotation.y, rotation.z);
         var rotatedLB:Vector3D = ModchartMath.rotateVector3(bottomLeft, rotation.x, rotation.y, rotation.z);
         var rotatedRB:Vector3D = ModchartMath.rotateVector3(bottomRight, rotation.x, rotation.y, rotation.z);
-        rotatedLT = ModchartMath.PerspectiveProjection(rotatedLT.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, rotation.w));
-        rotatedRT = ModchartMath.PerspectiveProjection(rotatedRT.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, rotation.w));
-        rotatedLB = ModchartMath.PerspectiveProjection(rotatedLB.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, rotation.w));
-        rotatedRB = ModchartMath.PerspectiveProjection(rotatedRB.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, rotation.w));
+        rotatedLT = ModchartMath.PerspectiveProjection(rotatedLT.add(new Vector3D(x, y, rotation.w - 1000))).subtract(new Vector3D(x, y, rotation.w));
+        rotatedRT = ModchartMath.PerspectiveProjection(rotatedRT.add(new Vector3D(x, y, rotation.w - 1000))).subtract(new Vector3D(x, y, rotation.w));
+        rotatedLB = ModchartMath.PerspectiveProjection(rotatedLB.add(new Vector3D(x, y, rotation.w - 1000))).subtract(new Vector3D(x, y, rotation.w));
+        rotatedRB = ModchartMath.PerspectiveProjection(rotatedRB.add(new Vector3D(x, y, rotation.w - 1000))).subtract(new Vector3D(x, y, rotation.w));
         var vertices:Vector<Float> = new Vector<Float>(8, false, [
           width / 2 + rotatedLT.x,
           height / 2 + rotatedLT.y,

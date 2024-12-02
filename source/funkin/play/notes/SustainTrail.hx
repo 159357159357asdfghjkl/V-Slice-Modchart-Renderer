@@ -10,6 +10,7 @@ import flixel.graphics.tile.FlxDrawTrianglesItem;
 import flixel.math.FlxMath;
 import funkin.ui.options.PreferencesMenu;
 import funkin.play.modchart.shaders.ModchartHSVShader;
+import openfl.geom.Vector3D;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -42,8 +43,6 @@ class SustainTrail extends FlxSprite
   public var offsetX:Float;
   public var offsetY:Float;
   public var vwoosh:Bool;
-  public var defX:Float = 0;
-  public var defY:Float = 0;
   public var hsvShader:ModchartHSVShader;
 
   /**

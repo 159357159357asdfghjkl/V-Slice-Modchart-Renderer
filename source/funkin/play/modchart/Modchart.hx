@@ -633,7 +633,7 @@ class Modchart
 
     if (getValue('tantipsyx') != 0) f += getValue('tantipsyx') * CalculateTipsyOffset(time, getValue('tantipsyxoffset'), getValue('tantipsyxspeed'), iCol, 1);
 
-    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 0 ? -1 : 1);
+    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 2 ? -1 : 1);
 
     if (getValue('tornado') != 0)
     {

@@ -3,6 +3,7 @@ package funkin.play.modchart;
 import flixel.FlxG;
 import funkin.play.notes.Strumline;
 import funkin.play.modchart.util.ModchartMath;
+import openfl.geom.Vector3D;
 
 using StringTools;
 
@@ -285,7 +286,9 @@ class Modchart
       'smoothy', // it's the first arrow effect of fnf lua, by kade
       'smoothxoffset',
       'smoothyoffset',
-      'mini'
+      'rotationx',
+      'rotationy',
+      'rotationz'
     ];
 
     var ONE:Array<String> = ['xmod', 'zoom', 'movew', 'stealthtype', 'stealthpastreceptors'];
@@ -945,6 +948,10 @@ class Modchart
       fDizzyRotation *= 180 / Math.PI;
       fRotation += fDizzyRotation;
     }
+    if (getValue('rotationz') != 0 && isHoldHead)
+    {
+      fRotation += getValue('rotationz') * 100;
+    }
     return fRotation;
   }
 
@@ -958,6 +965,10 @@ class Modchart
     {
       fRotation += getValue('roll') * fYOffset / 2;
     }
+    if (getValue('rotationx') != 0 && isHoldHead)
+    {
+      fRotation += getValue('rotationx') * 100;
+    }
     return fRotation;
   }
 
@@ -969,6 +980,10 @@ class Modchart
     if (getValue('twirl') != 0 && (getValue('twirlholds') != 0 || !isHoldHead))
     {
       fRotation += getValue('twirl') * fYOffset / 2;
+    }
+    if (getValue('rotationy') != 0 && isHoldHead)
+    {
+      fRotation += getValue('rotationy') * 100;
     }
     return fRotation;
   }
@@ -991,6 +1006,11 @@ class Modchart
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
     }
+
+    if (getValue('rotationz') != 0)
+    {
+      fRotation += getValue('rotationz') * 100;
+    }
     return fRotation;
   }
 
@@ -1011,6 +1031,10 @@ class Modchart
       fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
+    }
+    if (getValue('rotationx') != 0)
+    {
+      fRotation += getValue('rotationx') * 100;
     }
     return fRotation;
   }
@@ -1033,7 +1057,10 @@ class Modchart
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
     }
-
+    if (getValue('rotationy') != 0)
+    {
+      fRotation += getValue('rotationy') * 100;
+    }
     return fRotation;
   }
 
@@ -1200,6 +1227,22 @@ class Modchart
     fZoom *= getValue('zoom');
     fZoom *= getValue('zoom$iCol');
     return fZoom;
+  }
+
+  @:nullSafety
+  public function modifyPos(pos:Vector3D, xoff:Array<Float>):Void
+  {
+    if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
+    {
+      var centerX:Float = (xoff[3] + ARROW_SIZE - xoff[0]) / 2 + xoff[0] - ARROW_SIZE / 2;
+      var originPos:Vector3D = new Vector3D(centerX, FlxG.height / 2);
+      var s:Vector3D = pos.subtract(originPos);
+      var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
+      var newpos:Vector3D = out.add(originPos);
+      pos.x = newpos.x;
+      pos.y = newpos.y;
+      pos.z = newpos.z;
+    }
   }
 
   var opened:Bool = false;

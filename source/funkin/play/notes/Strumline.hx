@@ -400,7 +400,10 @@ class Strumline extends FlxSpriteGroup
       var ypos = this.y + yoff;
       var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, note.defaultScale);
       var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, ypos, zpos - 1000));
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+
+      mods.modifyPos(pos, xoffArray);
+      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
       note.scale.x = scale[0] * zoom / perspective.z;
       note.scale.y = scale[1] * zoom / perspective.z;
       note.skew.x = scale[2];
@@ -414,7 +417,6 @@ class Strumline extends FlxSpriteGroup
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),
         mods.GetRotationY(col, realofs, note.holdNoteSprite != null), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle,
         perspective.z));
-
       // If the note is miss
       var isOffscreen = Preferences.downscroll ? note.y > FlxG.height : note.y < -note.height;
       if (note.handledMiss && isOffscreen)
@@ -510,7 +512,9 @@ class Strumline extends FlxSpriteGroup
           holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
           holdNote.y = this.y + ypos;
         }
-        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, holdNote.y, zpos - 1000));
+        var pos:Vector3D = new Vector3D(xpos, holdNote.y, zpos);
+        mods.modifyPos(pos, xoffArray);
+        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
         holdNote.scale.x = scale[0] * zoom / perspective.z;
         holdNote.scale.y *= scale[1] * zoom / perspective.z;
         holdNote.x = perspective.x;
@@ -555,7 +559,9 @@ class Strumline extends FlxSpriteGroup
         var zpos = mods.GetZPos(col, 0, modNumber, xoffArray);
         var scale:Array<Float> = mods.GetScale(col, 0, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, 0, modNumber);
-        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, holdNote.y, zpos - 1000));
+        var pos:Vector3D = new Vector3D(xpos, holdNote.y, zpos);
+        mods.modifyPos(pos, xoffArray);
+        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
         holdNote.scale.x = scale[0] * zoom / perspective.z;
         holdNote.scale.y *= scale[1] * zoom / perspective.z;
         holdNote.x = perspective.x;
@@ -606,7 +612,9 @@ class Strumline extends FlxSpriteGroup
           holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
           holdNote.y = this.y + ypos;
         }
-        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, holdNote.y, zpos - 1000));
+        var pos:Vector3D = new Vector3D(xpos, holdNote.y, zpos);
+        mods.modifyPos(pos, xoffArray);
+        var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
         holdNote.scale.x = scale[0] * zoom / perspective.z;
         holdNote.scale.y *= scale[1] * zoom / perspective.z;
         holdNote.x = perspective.x;
@@ -638,7 +646,9 @@ class Strumline extends FlxSpriteGroup
       var ypos:Float = yoff + realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, strumNote.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
-      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, ypos, zpos - 1000));
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+      mods.modifyPos(pos, xoffArray);
+      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
       strumNote.rotation.copyFrom(new Vector3D(mods.ReceptorGetRotationX(col), mods.ReceptorGetRotationY(col),
         mods.ReceptorGetRotationZ(col) + strumNote.angle, perspective.z));
       strumNote.scale.x = scale[0] * zoom / perspective.z;
@@ -669,7 +679,9 @@ class Strumline extends FlxSpriteGroup
       var ypos = yoff + realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, splash.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
-      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, ypos, zpos - 1000));
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+      mods.modifyPos(pos, xoffArray);
+      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
       splash.scale.x = scale[0] * zoom / perspective.z;
       splash.scale.y = scale[1] * zoom / perspective.z;
       splash.x = perspective.x;
@@ -695,7 +707,9 @@ class Strumline extends FlxSpriteGroup
       var ypos = yoff + realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, cover.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
-      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(xpos, ypos, zpos - 1000));
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+      mods.modifyPos(pos, xoffArray);
+      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
       cover.scale.x = scale[0] * zoom / perspective.z;
       cover.scale.y = scale[1] * zoom / perspective.z;
       cover.x = perspective.x + cover.offsetX;

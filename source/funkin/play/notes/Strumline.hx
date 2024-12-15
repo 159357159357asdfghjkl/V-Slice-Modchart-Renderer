@@ -512,6 +512,7 @@ class Strumline extends FlxSpriteGroup
           holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
           holdNote.y = this.y + ypos;
         }
+
         var pos:Vector3D = new Vector3D(xpos, holdNote.y, zpos);
         mods.modifyPos(pos, xoffArray);
         var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
@@ -529,6 +530,7 @@ class Strumline extends FlxSpriteGroup
           holdNote.cover.kill();
         }
         holdNote.vwoosh = vwoosh;
+        holdNote.prevNote = notes.length > 0 ? notes.members[notes.length - 1] : null;
       }
       else if (conductorInUse.songPosition > holdNote.strumTime && holdNote.hitNote)
       {
@@ -559,6 +561,7 @@ class Strumline extends FlxSpriteGroup
         var zpos = mods.GetZPos(col, 0, modNumber, xoffArray);
         var scale:Array<Float> = mods.GetScale(col, 0, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, 0, modNumber);
+
         var pos:Vector3D = new Vector3D(xpos, holdNote.y, zpos);
         mods.modifyPos(pos, xoffArray);
         var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
@@ -578,6 +581,7 @@ class Strumline extends FlxSpriteGroup
           holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
         }
         holdNote.vwoosh = vwoosh;
+        holdNote.prevNote = notes.length > 0 ? notes.members[notes.length - 1] : null;
       }
       else
       {
@@ -601,7 +605,6 @@ class Strumline extends FlxSpriteGroup
         var zpos = mods.GetZPos(col, realofs, modNumber, xoffArray);
         var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-
         if (Preferences.downscroll)
         {
           holdNote.offsetY = -INITIAL_OFFSET - holdNote.height + STRUMLINE_SIZE / 2;
@@ -623,6 +626,7 @@ class Strumline extends FlxSpriteGroup
         holdNote.hsvShader.ALPHA = mods.GetAlpha(yposWithoutReverse, col, realofs);
         holdNote.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
         holdNote.vwoosh = vwoosh;
+        holdNote.prevNote = notes.length > 0 ? notes.members[notes.length - 1] : null;
       }
     }
 

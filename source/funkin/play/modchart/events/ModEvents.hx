@@ -15,10 +15,17 @@ typedef ExtraVars =
   @:optional var flip:Bool;
 }
 
-/**
- * A port of xero's Mirin Template
- * but only a part of mirin
- */
+typedef FuncExtraVars =
+{
+  @:optional var persist:Float; // false: 0.5
+  @:optional var defer:Bool;
+  @:optional var mode:Dynamic;
+  @:optional var m:Dynamic;
+  @:optional var time:Bool;
+  @:optional var step:Bool;
+  @:optional var flip:Bool;
+}
+
 class ModEvents
 {
   public var mods:Array<Map<String, Float>> = [];
@@ -26,6 +33,26 @@ class ModEvents
   public var modState:Array<Modchart> = [];
 
   final MAX_PN:Int = 8;
+  var poptions:Array<{get:(String) -> Float, set:(String, Float) -> Void}> = [];
+
+  function initPlrOptions()
+  {
+    for (pn in 0...MAX_PN)
+    {
+      var pn:Int = pn;
+      var mt =
+        {
+          get: function(k:String):Float {
+            return mods[pn][modState[pn].getName(k)];
+          },
+          set: function(k:String, v:Float):Void {
+            k = modState[pn].getName(k);
+            mods[pn][k] = v;
+          }
+        }
+      poptions[pn] = mt;
+    }
+  }
 
   public function new(state:Array<Modchart>)
   {
@@ -50,6 +77,7 @@ class ModEvents
       modState[i + 1] = state[1];
       i += 2;
     }
+    initPlrOptions();
   }
 
   var eases:Array<Map<String, Dynamic>> = [];
@@ -58,8 +86,8 @@ class ModEvents
   {
     var newLen:Float = len;
     var table:Map<String, Dynamic> = new Map<String, Dynamic>();
-    if (extra == null) extra = {plr: [1, 2]};
-    if (extra.plr == null) extra.plr = [1, 2];
+    if (extra == null) extra = {plr: [0, 1]};
+    if (extra.plr == null) extra.plr = [0, 1];
     if (easing(1) < 0.5) table.set('transient', 1);
     if (extra.mode != null || extra.m != null) newLen = len - beat;
     if (extra.flip == null) extra.flip = false;
@@ -82,7 +110,7 @@ class ModEvents
     for (i in plr)
     {
       var copy = table.copy();
-      copy.set('plr', i - 1);
+      copy.set('plr', i);
       eases.push(copy);
     }
   }
@@ -106,12 +134,124 @@ class ModEvents
     ease(beat, 0, ModEases.instant, modArr, extra);
   }
 
-  public function setValue(modName:String, val:Float, ?pn:Int)
+  var funcs:Array<Map<String, Dynamic>> = [];
+
+  public function func_function(self:Array<Dynamic>, ?extra:FuncExtraVars)
   {
-    modState[pn - 1].setValue(modName, val);
+    self[2] = self[1];
+    self[1] = null;
+    if (extra == null) extra = {defer: false};
+    if (extra.defer == null) extra.defer = false;
+    if (extra.mode != null && extra.persist != null) extra.persist -= self[0];
+    if (extra.persist != null)
+    {
+      var fn = self[2];
+      var final_time = self[0] + extra.persist;
+      self[2] = function(beat:Float) {
+        if (beat < final_time) fn(beat);
+      }
+    }
+    if (extra.time == null) extra.time = false;
+    if (extra.step == null) extra.step == false;
+    var table:Map<String, Dynamic> = new Map<String, Dynamic>();
+    table.set('beat', self[0]);
+    table.set('len', self[1]);
+    table.set('func', self[2]);
+    table.set('priority', (extra.defer == true ? -1 : 1) * funcs.length);
+    table.set('time', extra.time);
+    table.set('start_time', (extra.time == true ? self[0] : Conductor.instance.getBeatTimeInMs(self[0])));
+    funcs.push(table);
   }
 
-  var funcs:Array<Map<Dynamic, Dynamic>> = [];
+  public function func_perframe(self:Array<Dynamic>, ?can_use_poptions:Bool, ?extra:FuncExtraVars)
+  {
+    var table:Map<String, Dynamic> = new Map<String, Dynamic>();
+    if (extra == null) extra = {defer: false};
+    if (extra.time == null) extra.time = false;
+    if (extra.step == null) extra.step == false;
+    if (extra.defer == null) extra.defer = false;
+    if (can_use_poptions == null) can_use_poptions = false;
+    if (can_use_poptions == true)
+    {
+      table.set('mods', []);
+      for (pn in 0...MAX_PN)
+        table['mods'][pn] = [];
+    }
+    table.set('beat', self[0]);
+    table.set('len', self[1]);
+    table.set('func', self[2]);
+    table.set('time', extra.time);
+    table.set('step', extra.step);
+    table.set('priority', (extra.defer == true ? -1 : 1) * funcs.length);
+    table.set('start_time', (extra.time == true ? self[0] : Conductor.instance.getBeatTimeInMs(self[0])));
+    funcs.push(table);
+  }
+
+  public function func_ease(self:Array<Dynamic>, ?extra:FuncExtraVars)
+  {
+    if (extra == null) extra = {defer: false};
+    if (extra.mode != null || extra.m != null) self[1] = self[1] - self[0];
+    if (extra.time == null) extra.time = false;
+    if (extra.step == null) extra.step == false;
+    if (extra.defer == null) extra.defer = false;
+    if (extra.persist == null) extra.persist = 0;
+    var fn = self.pop();
+    var eas = self[2];
+    var start_percent:Float = 0;
+    var end_percent:Float = 1;
+    if (self.length >= 5)
+    {
+      start_percent = self[3];
+      self.splice(3, 1);
+    }
+    if (self.length >= 4)
+    {
+      end_percent = self[3];
+      self.splice(3, 1);
+    }
+    var end_beat = self[0] + self[1];
+
+    self[2] = function(beat:Float) {
+      var progress:Float = (beat - self[0]) / self[1];
+      if (extra.flip == true) progress = 1 - (beat - self[0]) / self[1];
+      fn(start_percent + (end_percent - start_percent) * eas(progress));
+    }
+
+    func_perframe(self, false, extra);
+    if (extra.persist != 0.5)
+    {
+      func_function([
+        end_beat,
+        function() {
+          fn(end_percent);
+        }
+      ],
+        {
+          persist: extra.persist,
+          defer: extra.defer,
+          mode: extra.mode
+        });
+    }
+  }
+
+  public function func(self:Array<Dynamic>, extra:FuncExtraVars)
+  {
+    if (self.length == 2) func_function(self, extra);
+    else if (self.length == 3) func_perframe(self, true, extra);
+    else
+      func_ease(self, extra);
+  }
+
+  public function setValue(modName:String, val:Float, ?pn:Int)
+  {
+    if (pn == null)
+    {
+      for (pn in 0...2)
+        modState[pn].setValue(modName, val);
+    }
+    else
+      modState[pn].setValue(modName, val);
+  }
 
   public function alias(table:Array<String>)
   {
@@ -127,16 +267,16 @@ class ModEvents
     eases.sort((a, b) -> {
       return a['start_time'] - b['start_time'];
     });
-    funcs.sort((a, b) -> {
-      if (a[0] == b[0])
+    Sort.stable_sort(funcs, (a:Map<String, Dynamic>, b:Map<String, Dynamic>) -> {
+      if (a['start_time'] == b['start_time'])
       {
         var x = a['priority'];
         var y = b['priority'];
-        return Std.int(x * x * y - x * y * y);
+        return x * x * y < x * y * y;
       }
       else
       {
-        return a[0] - b[0];
+        return a['start_time'] < b['start_time'];
       }
     });
   }
@@ -154,7 +294,11 @@ class ModEvents
   var eases_index:Int = 0;
   var active_eases:Array<Map<String, Dynamic>> = [];
   var funcs_index:Int = 0;
-  var active_funcs:Array<Map<String, Dynamic>> = [];
+  var active_funcs:Methods<Map<String, Dynamic>> = new Methods<Map<String, Dynamic>>((a, b) -> {
+    var x:Int = a['priority'];
+    var y:Int = b['priority'];
+    return x * x * y < x * y * y;
+  });
 
   public function update(beat:Float, step:Float, time:Float)
   {
@@ -164,7 +308,6 @@ class ModEvents
       var measure:Float = e['time'] ? time : (e['step'] ? step : beat);
       if (measure < e['beat']) break;
       var plr:Int = e['plr'];
-
       var idx:Int = 0;
       while (idx < e['mod'].length)
       {
@@ -174,11 +317,9 @@ class ModEvents
         e.set('__$mod', e['mod'][idx] - (e['relative'] == true ? 0 : e['_$mod']));
         idx += 2;
       }
-
       active_eases.push(e);
       eases_index++;
     }
-
     var active_eases_index:Int = 0;
     while (active_eases_index <= active_eases.length - 1)
     {
@@ -207,6 +348,42 @@ class ModEvents
           i += 2;
         }
         active_eases.splice(active_eases_index, 1);
+      }
+    }
+    while (funcs_index <= funcs.length - 1)
+    {
+      var e = funcs[funcs_index];
+      var measure:Float = e['time'] ? time : (e['step'] ? step : beat);
+      if (measure < e['beat']) break;
+      if (e['len'] == null)
+      {
+        e['func'](measure);
+      }
+      else if (measure < e['beat'] + e['len'])
+      {
+        active_funcs.add(e);
+      }
+      funcs_index++;
+    }
+    while (true)
+    {
+      var e:Map<String, Dynamic> = active_funcs.next();
+      if (e == null) break;
+      var measure:Float = e['time'] ? time : (e['step'] ? step : beat);
+      if (measure < e['beat'] + e['len'])
+      {
+        if (e['mods'] != null)
+        {
+          e['func'](measure, poptions);
+        }
+        else
+        {
+          e['func'](measure);
+        }
+      }
+      else
+      {
+        active_funcs.remove();
       }
     }
   }

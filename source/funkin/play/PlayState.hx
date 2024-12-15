@@ -713,6 +713,7 @@ class PlayState extends MusicBeatSubState
     opponentStrumline.modNumber = 1; // for mods, no other use
 
     modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
+
     #if FEATURE_DISCORD_RPC
     // Initialize Discord Rich Presence.
     initDiscord();
@@ -923,8 +924,6 @@ class PlayState extends MusicBeatSubState
       needsReset = false;
     }
 
-    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition);
-
     // Update the conductor.
     if (startingSong)
     {
@@ -1018,6 +1017,7 @@ class PlayState extends MusicBeatSubState
         #end
       }
     }
+    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition);
 
     // Cap health.
     if (health > Constants.HEALTH_MAX) health = Constants.HEALTH_MAX;

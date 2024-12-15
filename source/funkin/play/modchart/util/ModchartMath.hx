@@ -89,12 +89,13 @@ class ModchartMath
     var zRange:Float = zNear - zFar;
     var FOV:Float = 90.0;
     var tanHalfFOV:Float = Math.tan(rad * (FOV / 2));
+    var ar:Float = 1;
     var pos:Vector3D = new Vector3D(vec3.x, vec3.y, vec3.z / 1000).subtract(origin);
     if (pos.z > 0) pos.z = 0;
     var a:Float = (-zNear - zFar) / zRange;
     var b:Float = 2.0 * zFar * zNear / zRange;
     var newZPos:Float = a * -pos.z + b;
-    var newXPos:Float = pos.x / (1 / tanHalfFOV) / newZPos;
+    var newXPos:Float = pos.x / (1 / tanHalfFOV * ar) / newZPos;
     var newYPos:Float = pos.y / (1 / tanHalfFOV) / newZPos;
     var vector:Vector3D = new Vector3D(newXPos, newYPos, newZPos).add(origin);
     return vector;

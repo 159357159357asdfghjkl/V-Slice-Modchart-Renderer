@@ -26,7 +26,6 @@ class FunkinActor extends FunkinSprite
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var rotation:Vector3D = new Vector3D();
-  public var z:Float = 0;
 
   public function new(?x:Float, ?y:Float)
   {

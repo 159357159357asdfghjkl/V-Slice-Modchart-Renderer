@@ -10,7 +10,7 @@ import flixel.graphics.tile.FlxDrawTrianglesItem;
 import flixel.math.FlxMath;
 import funkin.ui.options.PreferencesMenu;
 import funkin.play.modchart.shaders.ModchartHSVShader;
-import openfl.geom.Vector3D;
+import funkin.play.modchart.util.ModchartMath;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -37,13 +37,6 @@ class SustainTrail extends FlxSprite
   public var parentStrumline:Strumline;
 
   public var cover:NoteHoldCover = null;
-
-  public var column:Int = 0;
-  public var defaultScale:Array<Float>;
-  public var offsetX:Float;
-  public var offsetY:Float;
-  public var vwoosh:Bool;
-  public var hsvShader:ModchartHSVShader;
 
   /**
    * Set to `true` if the user hit the note and is currently holding the sustain.
@@ -101,6 +94,13 @@ class SustainTrail extends FlxSprite
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
 
+  public var defaultScale:Array<Float>;
+  public var offsetX:Float;
+  public var offsetY:Float;
+  public var hsvShader:ModchartHSVShader;
+  public var vwoosh:Bool;
+  public var prevNote:NoteSprite;
+
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
    * @param NoteData
@@ -119,8 +119,7 @@ class SustainTrail extends FlxSprite
     setupHoldNoteGraphic(noteStyle);
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
-    indices = new DrawData<Int>(TRIANGLE_VERTEX_INDICES.length, true, TRIANGLE_VERTEX_INDICES);
-
+    indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
     defaultScale = [scale.x, scale.y];
     this.active = true; // This NEEDS to be true for the note to be drawn!
   }
@@ -340,6 +339,7 @@ class SustainTrail extends FlxSprite
     x += offsetX;
     y += offsetY;
     if (alpha == 0 || graphic == null || vertices == null) return;
+
     for (camera in cameras)
     {
       if (!camera.visible || !camera.exists) continue;

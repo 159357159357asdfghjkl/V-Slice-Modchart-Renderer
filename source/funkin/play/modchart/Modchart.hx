@@ -244,9 +244,7 @@ class Modchart
       'tandrunkyperiod',
       'vibratex',
       'vibratey',
-      'scale',
-      'scalex',
-      'scaley',
+      'vibratez',
       'squish',
       'stretch',
       'pulse',
@@ -282,16 +280,27 @@ class Modchart
       'dizzyholds',
       'twirlholds',
       'rollholds',
-      'smoothx', // it's the first arrow effect of fnf lua, by kade
-      'smoothy', // it's the first arrow effect of fnf lua, by kade
+      'smoothx',
+      'smoothy',
+      'smoothz',
       'smoothxoffset',
       'smoothyoffset',
+      'smoothzoffset',
       'rotationx',
       'rotationy',
       'rotationz'
     ];
 
-    var ONE:Array<String> = ['xmod', 'zoom', 'movew', 'stealthtype', 'stealthpastreceptors'];
+    var ONE:Array<String> = [
+      'xmod',
+      'zoom',
+      'movew',
+      'stealthtype',
+      'stealthpastreceptors',
+      'scale',
+      'scalex',
+      'scaley',
+    ];
     for (i in 0...4)
     {
       ZERO.push('reverse$i');
@@ -306,9 +315,9 @@ class Modchart
       ZERO.push('movezoffset1$i');
       ZERO.push('tiny$i');
       ZERO.push('bumpy$i');
-      ZERO.push('scalex$i');
-      ZERO.push('scaley$i');
-      ZERO.push('scale$i');
+      ONE.push('scalex$i');
+      ONE.push('scaley$i');
+      ONE.push('scale$i');
       ZERO.push('squish$i');
       ZERO.push('stretch$i');
       ZERO.push('noteskewx$i');
@@ -485,7 +494,7 @@ class Modchart
 
     if (getValue('boost') != 0)
     {
-      var fEffectHeight:Float = 720;
+      var fEffectHeight:Float = SCREEN_HEIGHT;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost') * (fNewYOffset - fYOffset);
       fAccelYAdjust = ModchartMath.clamp(fAccelYAdjust, -400, 400);
@@ -494,7 +503,7 @@ class Modchart
 
     if (getValue('brake') != 0)
     {
-      var fEffectHeight:Float = 720;
+      var fEffectHeight:Float = SCREEN_HEIGHT;
       var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake') * (fNewYOffset - fYOffset);
@@ -930,15 +939,35 @@ class Modchart
 
     if (getValue('tantipsyz') != 0) f += getValue('tantipsyz') * CalculateTipsyOffset(time, getValue('tantipsyzoffset'), getValue('tantipsyzspeed'), iCol, 1);
 
+    if (getValue('vibratez') != 0) f += (Math.random() - 0.5) * getValue('vibratez') * 20;
+
+    if (getValue('smoothz') != 0) f += 12 * getValue('smoothz') * ModchartMath.fastCos((Conductor.instance.currentBeatTime
+      + iCol * (0.25 + getValue('smoothzoffset'))) * Math.PI);
+
     return f;
   }
 
   public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false):Float
   {
     var fRotation:Float = 0;
-    if ((getValue('confusion') != 0 || getValue('confusionoffset') != 0 || getValue('confusion$iCol') != 0 || getValue('confusionoffset$iCol') != 0)
-      && !isHoldHead) fRotation += ReceptorGetRotationZ(iCol);
+    var beat:Float = Conductor.instance.currentBeatTime;
+    if (!isHoldHead)
+    {
+      if (getValue('confusion$iCol') != 0) fRotation += getValue('confusion$iCol') * 180.0 / Math.PI;
 
+      if (getValue('confusionoffset') != 0) fRotation += getValue('confusionoffset') * 180.0 / Math.PI;
+
+      if (getValue('confusionoffset$iCol') != 0) fRotation += getValue('confusionoffset$iCol') * 180.0 / Math.PI;
+
+      if (getValue('confusion') != 0)
+      {
+        var fConfRotation:Float = beat;
+        fConfRotation *= getValue('confusion');
+        fConfRotation %= 2 * Math.PI;
+        fConfRotation *= -180 / Math.PI;
+        fRotation += fConfRotation;
+      }
+    }
     if (getValue('dizzy') != 0 && (getValue('dizzyholds') != 0 || !isHoldHead))
     {
       var fSongBeat:Float = Conductor.instance.currentBeatTime;
@@ -948,7 +977,7 @@ class Modchart
       fDizzyRotation *= 180 / Math.PI;
       fRotation += fDizzyRotation;
     }
-    if (getValue('rotationz') != 0 && isHoldHead)
+    if (getValue('rotationz') != 0)
     {
       fRotation += getValue('rotationz') * 100;
     }
@@ -958,14 +987,29 @@ class Modchart
   public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false):Float
   {
     var fRotation:Float = 0;
-    if ((getValue('confusionx') != 0 || getValue('confusionxoffset') != 0 || getValue('confusionx$iCol') != 0 || getValue('confusionxoffset$iCol') != 0)
-      && !isHoldHead) fRotation += ReceptorGetRotationX(iCol);
+    var beat:Float = Conductor.instance.currentBeatTime;
+    if (!isHoldHead)
+    {
+      if (getValue('confusionx$iCol') != 0) fRotation += getValue('confusionx$iCol') * 180.0 / Math.PI;
 
+      if (getValue('confusionxoffset') != 0) fRotation += getValue('confusionxoffset') * 180.0 / Math.PI;
+
+      if (getValue('confusionxoffset$iCol') != 0) fRotation += getValue('confusionxoffset$iCol') * 180.0 / Math.PI;
+
+      if (getValue('confusionx') != 0)
+      {
+        var fConfRotation:Float = beat;
+        fConfRotation *= getValue('confusionx');
+        fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
+        fConfRotation *= -180 / Math.PI;
+        fRotation += fConfRotation;
+      }
+    }
     if (getValue('roll') != 0 && (getValue('rollholds') != 0 || !isHoldHead))
     {
       fRotation += getValue('roll') * fYOffset / 2;
     }
-    if (getValue('rotationx') != 0 && isHoldHead)
+    if (getValue('rotationx') != 0)
     {
       fRotation += getValue('rotationx') * 100;
     }
@@ -975,13 +1019,29 @@ class Modchart
   public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false):Float
   {
     var fRotation:Float = 0;
-    if ((getValue('confusiony') != 0 || getValue('confusionyoffset') != 0 || getValue('confusiony$iCol') != 0 || getValue('confusionyoffset$iCol') != 0)
-      && !isHoldHead) fRotation += ReceptorGetRotationY(iCol);
+    var beat:Float = Conductor.instance.currentBeatTime;
+    if (!isHoldHead)
+    {
+      if (getValue('confusiony$iCol') != 0) fRotation += getValue('confusiony$iCol') * 180.0 / Math.PI;
+
+      if (getValue('confusionyoffset') != 0) fRotation += getValue('confusionyoffset') * 180.0 / Math.PI;
+
+      if (getValue('confusionyoffset$iCol') != 0) fRotation += getValue('confusionyoffset$iCol') * 180.0 / Math.PI;
+
+      if (getValue('confusiony') != 0)
+      {
+        var fConfRotation:Float = beat;
+        fConfRotation *= getValue('confusiony');
+        fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
+        fConfRotation *= -180 / Math.PI;
+        fRotation += fConfRotation;
+      }
+    }
     if (getValue('twirl') != 0 && (getValue('twirlholds') != 0 || !isHoldHead))
     {
       fRotation += getValue('twirl') * fYOffset / 2;
     }
-    if (getValue('rotationy') != 0 && isHoldHead)
+    if (getValue('rotationy') != 0)
     {
       fRotation += getValue('rotationy') * 100;
     }
@@ -1070,16 +1130,16 @@ class Modchart
     return getValue('hidden') * getValue('sudden');
 
   function GetHiddenEndLine():Float
-    return FlxG.height / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -1.0, -1.25) + FlxG.height / 2 * getValue('hiddenoffset');
+    return SCREEN_HEIGHT / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -1.0, -1.25) + SCREEN_HEIGHT / 2 * getValue('hiddenoffset');
 
   function GetHiddenStartLine():Float
-    return FlxG.height / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 0.0, -0.25) + FlxG.height / 2 * getValue('hiddenoffset');
+    return SCREEN_HEIGHT / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 0.0, -0.25) + SCREEN_HEIGHT / 2 * getValue('hiddenoffset');
 
   function GetSuddenEndLine():Float
-    return FlxG.height / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -0.0, 0.25) + FlxG.height / 2 * getValue('suddenoffset');
+    return SCREEN_HEIGHT / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -0.0, 0.25) + SCREEN_HEIGHT / 2 * getValue('suddenoffset');
 
   function GetSuddenStartLine():Float
-    return FlxG.height / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 1.0, 1.25) + FlxG.height / 2 * getValue('suddenoffset');
+    return SCREEN_HEIGHT / 2 + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 1.0, 1.25) + SCREEN_HEIGHT / 2 * getValue('suddenoffset');
 
   public function ReceptorGetAlpha(iCol:Int):Float
   {
@@ -1096,7 +1156,7 @@ class Modchart
 
   public function ArrowGetPercentVisible(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float):Float
   {
-    var fDistFromCenterLine:Float = fYPosWithoutReverse - FlxG.height * 0.5;
+    var fDistFromCenterLine:Float = fYPosWithoutReverse - SCREEN_HEIGHT * 0.5;
 
     var fYPos:Float;
     if (getValue('stealthtype') != 0) fYPos = fYOffset;
@@ -1156,8 +1216,8 @@ class Modchart
     var x:Float = defaultScale[0];
     var y:Float = defaultScale[1];
 
-    x += getValue('scale') + getValue('scale$iCol') + getValue('scalex$iCol') + getValue('scalex');
-    y += getValue('scale') + getValue('scale$iCol') + getValue('scaley$iCol') + getValue('scaley');
+    x *= getValue('scale') * getValue('scale$iCol') * getValue('scalex$iCol') * getValue('scalex');
+    y *= getValue('scale') * getValue('scale$iCol') * getValue('scaley$iCol') * getValue('scaley');
 
     // an optimization of troll engine's squish and stretch
     var stretch:Float = getValue("stretch") + getValue('stretch$iCol');
@@ -1235,7 +1295,7 @@ class Modchart
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
       var centerX:Float = (xoff[3] + ARROW_SIZE - xoff[0]) / 2 + xoff[0] - ARROW_SIZE / 2;
-      var originPos:Vector3D = new Vector3D(centerX, FlxG.height / 2);
+      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);

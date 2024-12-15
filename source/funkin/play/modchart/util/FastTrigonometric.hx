@@ -112,7 +112,7 @@ class FastTrigonometric
 
   /**
    * Default tangent function, the same as `Math.tan`
-   * @param x
+   * @param x angle
    * @return Float
    */
   inline public static function tan(x:Float):Float

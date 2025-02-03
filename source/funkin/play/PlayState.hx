@@ -709,8 +709,6 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
-    playerStrumline.modNumber = 2;
-    opponentStrumline.modNumber = 1; // for mods, no other use
 
     modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
 
@@ -766,7 +764,7 @@ class PlayState extends MusicBeatSubState
     ScriptEventDispatcher.callEvent(currentSong, event);
     ScriptEventDispatcher.callEvent(currentConversation, event);
     ScriptEventDispatcher.callEvent(currentStage, event);
-    modEvents.sort(); // you can also sort it at anytime
+    modEvents.onStart(); // you can also sort it at anytime
 
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.
@@ -845,6 +843,7 @@ class PlayState extends MusicBeatSubState
 
     super.update(elapsed);
 
+    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition / 1000);
     var list = FlxG.sound.list;
     updateHealthBar();
     updateScoreText();
@@ -1017,7 +1016,6 @@ class PlayState extends MusicBeatSubState
         #end
       }
     }
-    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition);
 
     // Cap health.
     if (health > Constants.HEALTH_MAX) health = Constants.HEALTH_MAX;
@@ -1817,9 +1815,9 @@ class PlayState extends MusicBeatSubState
     var noteStyle:NoteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleId);
     if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
 
-    playerStrumline = new Strumline(noteStyle, !isBotPlayMode);
+    playerStrumline = new Strumline(noteStyle, !isBotPlayMode, 1);
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
-    opponentStrumline = new Strumline(noteStyle, false);
+    opponentStrumline = new Strumline(noteStyle, false, 0);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);
     add(opponentStrumline);

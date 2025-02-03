@@ -11,6 +11,9 @@ import flixel.math.FlxMath;
 import funkin.ui.options.PreferencesMenu;
 import funkin.play.modchart.shaders.ModchartHSVShader;
 import funkin.play.modchart.util.ModchartMath;
+import openfl.geom.Vector3D;
+import flixel.math.FlxPoint;
+import funkin.play.modchart.util.ModchartMath;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -33,6 +36,7 @@ class SustainTrail extends FlxSprite
   public var noteDirection:NoteDirection = 0;
   public var sustainLength(default, set):Float = 0; // millis
   public var fullSustainLength:Float = 0;
+  public var modNumber:Int;
   public var noteData:Null<SongNoteData>;
   public var parentStrumline:Strumline;
 
@@ -99,7 +103,13 @@ class SustainTrail extends FlxSprite
   public var offsetY:Float;
   public var hsvShader:ModchartHSVShader;
   public var vwoosh:Bool;
-  public var prevNote:NoteSprite;
+
+  public var SCALE:Vector3D = new Vector3D();
+  public var skew(default, null):FlxPoint = FlxPoint.get();
+  public var rotation:Vector3D = new Vector3D();
+  public var z:Float = 0;
+
+  public var isChartingState:Bool = false;
 
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
@@ -107,7 +117,7 @@ class SustainTrail extends FlxSprite
    * @param SustainLength Length in milliseconds.
    * @param fileName
    */
-  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle)
+  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle, modNumber:Int)
   {
     super(0, 0);
 
@@ -115,7 +125,9 @@ class SustainTrail extends FlxSprite
     this.sustainLength = sustainLength;
     this.fullSustainLength = sustainLength;
     this.noteDirection = noteDirection;
+    this.modNumber = modNumber;
 
+    hsvShader = new ModchartHSVShader();
     setupHoldNoteGraphic(noteStyle);
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
@@ -162,7 +174,7 @@ class SustainTrail extends FlxSprite
     updateColorTransform();
 
     updateClipping();
-    hsvShader = new ModchartHSVShader();
+
     this.shader = hsvShader.shader;
   }
 
@@ -176,6 +188,7 @@ class SustainTrail extends FlxSprite
   override function update(elapsed)
   {
     super.update(elapsed);
+    updateClipping();
     if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0))
     {
       triggerRedraw();
@@ -218,12 +231,137 @@ class SustainTrail extends FlxSprite
     origin.set(width * 0.5, height * 0.5);
   }
 
-  /**
-   * Sets up new vertex and UV data to clip the trail.
-   * If flipY is true, top and bottom bounds swap places.
-   * @param songTime	The time to clip the note at, in milliseconds.
-   */
-  public function updateClipping(songTime:Float = 0):Void
+  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float)
+  {
+    var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
+    var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
+    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+    var pn:Int = modNumber;
+    var xoffArray:Array<Float> = [];
+    for (i in 0...4)
+      xoffArray.push((parentStrumline?.x ?? 0.0) + i * Strumline.NOTE_SPACING);
+    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column) ?? 0.0;
+    var pos:Vector3D = new Vector3D(xoff + parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
+      yoff + parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray) ?? 0.0, parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+    if (parentStrumline != null) parentStrumline.mods.modifyPos(pos, xoffArray);
+    var scaledPos:Vector3D = ModchartMath.scaleVector3(pos, SCALE.x, SCALE.y, SCALE.z);
+    var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, skew.x, skew.y);
+    var rotatedPos:Vector3D = ModchartMath.rotateVector3(skewedPos, rotation.x, rotation.y, rotation.z);
+    var finalPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, z));
+    finalPos.incrementBy(new Vector3D(offsetX, offsetY));
+    return finalPos;
+  }
+
+  public function updateClipping():Void
+  {
+    if (isChartingState) updateClippingOld();
+    else
+      updateClippingNew();
+  }
+
+  public function updateClippingNew():Void
+  {
+    if (graphic == null)
+    {
+      return;
+    }
+
+    var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength + strumTime, parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
+    if (clipHeight <= 0.1)
+    {
+      visible = false;
+      return;
+    }
+    else
+    {
+      visible = true;
+    }
+
+    var bottomHeight:Float = graphic.height * zoom * endOffset;
+    var partHeight:Float = clipHeight - bottomHeight;
+
+    var roughness:Float = 0.6;
+    var length:Int = Std.int(fullSustainLength / (roughness * 100));
+
+    for (i in 0...length)
+    {
+      var a:Int = i * 2;
+      var time:Float = strumTime + (fullSustainLength / length * i);
+      if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+      {
+        var diff:Float = Conductor.instance.songPosition - strumTime;
+        time = strumTime + (sustainLength / length * i) + diff;
+      }
+      var pos1:Vector3D = getPosWithOffset(0, 0, time);
+      var pos2:Vector3D = getPosWithOffset(graphicWidth, 0, time);
+      vertices[a * 2] = pos1.x;
+      vertices[a * 2 + 1] = pos1.y;
+      vertices[(a + 1) * 2] = pos2.x;
+      vertices[(a + 1) * 2 + 1] = pos2.y;
+    }
+
+    var end:Int = (length - 1) * 2;
+    var next:Int = length * 2;
+    vertices[next * 2] = vertices[end * 2];
+    vertices[next * 2 + 1] = vertices[end * 2 + 1];
+    vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
+    vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
+    var time:Float = strumTime + fullSustainLength;
+    var diff:Float = Conductor.instance.songPosition - strumTime;
+    if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+    {
+      time = strumTime + sustainLength + diff;
+    }
+    var bottomnext:Int = (length + 1) * 2;
+    var pos1:Vector3D = getPosWithOffset(0, 0, time);
+    var pos2:Vector3D = getPosWithOffset(graphicWidth, 0, time);
+    vertices[bottomnext * 2] = pos1.x;
+    vertices[bottomnext * 2 + 1] = pos1.y;
+    vertices[(bottomnext + 1) * 2] = pos2.x;
+    vertices[(bottomnext + 1) * 2 + 1] = pos2.y;
+
+    for (i in 0...length)
+    {
+      var a:Int = i * 2;
+      uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
+      uvtData[a * 2 + 1] = ModchartMath.lerp(1 / (i + 1), (-partHeight) / graphic.height / zoom, 0);
+      uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
+      uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
+    }
+
+    uvtData[next * 2] = 1 / 4 * (noteDirection % 4) + 1 / 8;
+    uvtData[next * 2 + 1] = if (partHeight > 0)
+    {
+      0;
+    }
+    else
+    {
+      (bottomHeight - clipHeight) / zoom / graphic.height;
+    };
+    uvtData[(next + 1) * 2] = uvtData[next * 2] + 1 / 8;
+    uvtData[(next + 1) * 2 + 1] = uvtData[next * 2 + 1];
+    uvtData[bottomnext * 2] = uvtData[next * 2];
+    uvtData[bottomnext * 2 + 1] = bottomClip;
+    uvtData[(bottomnext + 1) * 2] = uvtData[(next + 1) * 2];
+    uvtData[(bottomnext + 1) * 2 + 1] = uvtData[bottomnext * 2 + 1];
+
+    var indices:Array<Int> = [];
+    for (i in 0...end)
+    {
+      indices.push(i);
+      indices.push(i + 1);
+      indices.push(i + 2);
+    }
+    indices.push(next);
+    indices.push(next + 1);
+    indices.push(next + 2);
+    indices.push(next + 1);
+    indices.push(next + 2);
+    indices.push(next + 3);
+    this.indices = new DrawData<Int>(indices.length, true, indices);
+  }
+
+  public function updateClippingOld(songTime:Float = 0):Void
   {
     if (graphic == null)
     {
@@ -336,8 +474,6 @@ class SustainTrail extends FlxSprite
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    x += offsetX;
-    y += offsetY;
     if (alpha == 0 || graphic == null || vertices == null) return;
 
     for (camera in cameras)
@@ -352,6 +488,16 @@ class SustainTrail extends FlxSprite
     #if FLX_DEBUG
     if (FlxG.debugger.drawDebug) drawDebug();
     #end
+  }
+
+  public function desaturate():Void
+  {
+    this.hsvShader.saturation = 0.2;
+  }
+
+  public function setHue(hue:Float):Void
+  {
+    this.hsvShader.hue = hue;
   }
 
   public override function kill():Void
@@ -391,6 +537,9 @@ class SustainTrail extends FlxSprite
     vertices = null;
     indices = null;
     uvtData = null;
+    SCALE = null;
+    skew = null;
+    rotation = null;
     processedGraphic.destroy();
 
     super.destroy();

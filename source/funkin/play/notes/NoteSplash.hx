@@ -5,7 +5,7 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
-import funkin.play.modchart.util.FunkinActor;
+import funkin.play.modchart.sprites.FunkinActor;
 
 class NoteSplash extends FunkinActor
 {

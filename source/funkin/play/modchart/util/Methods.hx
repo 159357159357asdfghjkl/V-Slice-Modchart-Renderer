@@ -10,9 +10,7 @@ class Methods<T>
   private var listn:Int = 0;
   private var swapn:Int = 0;
   private var reverse_comparator:(T, T) -> Bool;
-
-  // make it public so you can set and get the value lol
-  public var comparator:(T, T) -> Bool;
+  private var comparator:(T, T) -> Bool;
 
   public function add(obj:T):Void
   {

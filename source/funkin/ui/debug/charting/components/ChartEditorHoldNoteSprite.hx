@@ -45,9 +45,10 @@ class ChartEditorHoldNoteSprite extends SustainTrail
   {
     var noteStyle = NoteStyleRegistry.instance.fetchDefault();
 
-    super(0, 100, noteStyle);
+    super(0, 100, noteStyle, modNumber);
 
     this.parentState = parent;
+    this.isChartingState = true;
   }
 
   @:nullSafety(Off)

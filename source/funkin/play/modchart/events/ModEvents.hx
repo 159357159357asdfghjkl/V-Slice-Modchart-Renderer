@@ -262,10 +262,10 @@ class ModEvents
     }
   }
 
-  public function sort()
+  function sort()
   {
-    eases.sort((a, b) -> {
-      return a['start_time'] - b['start_time'];
+    Sort.stable_sort(eases, (a:Map<String, Dynamic>, b:Map<String, Dynamic>) -> {
+      return a['start_time'] < b['start_time'];
     });
     Sort.stable_sort(funcs, (a:Map<String, Dynamic>, b:Map<String, Dynamic>) -> {
       if (a['start_time'] == b['start_time'])
@@ -279,6 +279,11 @@ class ModEvents
         return a['start_time'] < b['start_time'];
       }
     });
+  }
+
+  public function onStart():Void
+  {
+    sort();
   }
 
   function touch_mod(mod:String, ?pn:Int)
@@ -328,6 +333,7 @@ class ModEvents
       var measure:Float = e['time'] ? time : (e['step'] ? step : beat);
       if (measure < e['beat'] + e['len'])
       {
+        // lime.app.Application.current.window.alert("test"); // idk why trace don't work
         var e3:Float = e['flip'] == true ? 1 - e['ease']((measure - e['beat']) / e['len']) : e['ease']((measure - e['beat']) / e['len']);
         var i:Int = 0;
         while (i < e['mod'].length)
@@ -344,6 +350,7 @@ class ModEvents
         while (i < e['mod'].length)
         {
           var mod = e['mod'][i + 1];
+          mods[plr][mod] = e['__$mod'];
           touch_mod(mod, plr);
           i += 2;
         }

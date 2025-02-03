@@ -9,7 +9,7 @@ import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
 import funkin.play.modchart.shaders.ModchartHSVShader;
 
-class NoteSprite extends funkin.play.modchart.util.FunkinActor
+class NoteSprite extends funkin.play.modchart.sprites.FunkinActor
 {
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 

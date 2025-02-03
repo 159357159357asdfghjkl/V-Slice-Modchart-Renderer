@@ -40,10 +40,10 @@ class Modchart
   var tipsyResult:Array<Float> = [];
   var beatFactor:Array<Float> = [];
 
-  function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool, off:Float = 0):Float
+  function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
   {
     var vwoosh:Float = 1.0;
-    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset + off) * vwoosh * (Preferences.downscroll ? 1 : -1);
+    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh * (Preferences.downscroll ? 1 : -1);
   }
 
   function CalculateDrunkAngle(time:Float, speed:Float, col:Int, offset:Float, col_frequency:Float, y_offset:Float, period:Float, offset_frequency:Float):Float
@@ -261,6 +261,7 @@ class Modchart
       'zoomy',
       'tinyx',
       'tinyy',
+      'tinyz',
       'confusionx',
       'confusionxoffset',
       'confusiony',
@@ -278,17 +279,11 @@ class Modchart
       'dark',
       'cosecant',
       'dizzyholds',
-      'twirlholds',
-      'rollholds',
-      'smoothx',
-      'smoothy',
-      'smoothz',
-      'smoothxoffset',
-      'smoothyoffset',
-      'smoothzoffset',
       'rotationx',
       'rotationy',
-      'rotationz'
+      'rotationz',
+      'skewx',
+      'skewy'
     ];
 
     var ONE:Array<String> = [
@@ -300,6 +295,7 @@ class Modchart
       'scale',
       'scalex',
       'scaley',
+      'scalez',
     ];
     for (i in 0...4)
     {
@@ -317,6 +313,7 @@ class Modchart
       ZERO.push('bumpy$i');
       ONE.push('scalex$i');
       ONE.push('scaley$i');
+      ONE.push('scalez$i');
       ONE.push('scale$i');
       ZERO.push('squish$i');
       ZERO.push('stretch$i');
@@ -324,6 +321,7 @@ class Modchart
       ZERO.push('noteskewy$i');
       ZERO.push('tinyx$i');
       ZERO.push('tinyy$i');
+      ZERO.push('tinyz$i');
       ZERO.push('confusionx$i');
       ZERO.push('confusiony$i');
       ZERO.push('confusion$i');
@@ -455,7 +453,7 @@ class Modchart
     UpdateBeat(dim_z, getValue('beatzoffset'), getValue('beatzmult'));
   }
 
-  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int, off:Float = 0):Float
+  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int):Float
   {
     var speeds:Float = speed;
     var xmod:Float = getValue('xmod');
@@ -489,7 +487,7 @@ class Modchart
 
       fScrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
     }
-    var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh, off);
+    var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh);
     var fYAdjust:Float = 0;
 
     if (getValue('boost') != 0)
@@ -554,8 +552,6 @@ class Modchart
     f += ARROW_SIZE * getValue('movex${iCol}') + getValue('movexoffset$iCol') + getValue('movexoffset1$iCol');
 
     f += ARROW_SIZE * getValue('movex') + getValue('movexoffset') + getValue('movexoffset1');
-
-    if (getValue('vibratex') != 0) f += (Math.random() - 0.5) * getValue('vibratex') * 20;
 
     if (getValue('drunk') != 0) f += getValue('drunk') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkspeed'), iCol, getValue('drunkoffset'),
       0.2, fYOffset, getValue('drunkperiod'), 10)) * ARROW_SIZE * 0.5;
@@ -632,7 +628,7 @@ class Modchart
       f += getValue('bounce') * ARROW_SIZE * 0.5 * fBounceAmt;
     }
 
-    if (getValue('xmode') != 0) f += getValue('xmode') * (pn == 1 ? fYOffset : -fYOffset);
+    if (getValue('xmode') != 0) f += getValue('xmode') * (pn == 0 ? fYOffset : -fYOffset);
 
     if (getValue('tiny') != 0)
     {
@@ -645,7 +641,7 @@ class Modchart
 
     if (getValue('tantipsyx') != 0) f += getValue('tantipsyx') * CalculateTipsyOffset(time, getValue('tantipsyxoffset'), getValue('tantipsyxspeed'), iCol, 1);
 
-    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 2 ? -1 : 1);
+    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 1 ? -1 : 1);
 
     if (getValue('tornado') != 0)
     {
@@ -695,9 +691,8 @@ class Modchart
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX, fMaxX);
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornado');
     }
-    if (getValue('smoothx') != 0) f += 12 * getValue('smoothx') * ModchartMath.fastCos((Conductor.instance.currentBeatTime
-      + iCol * (0.25 + getValue('smoothxoffset'))) * Math.PI);
 
+    f -= getValue('skewx') * 100;
     return f;
   }
 
@@ -716,8 +711,6 @@ class Modchart
     f += ARROW_SIZE * getValue('movey$iCol') + getValue('moveyoffset$iCol') + getValue('moveyoffset1$iCol');
 
     f += ARROW_SIZE * getValue('movey') + getValue('moveyoffset') + getValue('moveyoffset1');
-
-    if (getValue('vibratey') != 0) f += (Math.random() - 0.5) * getValue('vibratey') * 20;
 
     if (getValue('attenuatey') != 0) f += getValue('attenuatey') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
 
@@ -809,9 +802,7 @@ class Modchart
       1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalyoffset'), getValue('tandigitalyperiod')),
       getValue('cosecant'))) / (getValue('tandigitalysteps') + 1);
 
-    if (getValue('smoothy') != 0) f += 12 * getValue('smoothy') * ModchartMath.fastCos((Conductor.instance.currentBeatTime
-      + iCol * (0.25 + getValue('smoothyoffset'))) * Math.PI);
-
+    f -= getValue('skewy') * 100;
     return f;
   }
 
@@ -939,11 +930,6 @@ class Modchart
 
     if (getValue('tantipsyz') != 0) f += getValue('tantipsyz') * CalculateTipsyOffset(time, getValue('tantipsyzoffset'), getValue('tantipsyzspeed'), iCol, 1);
 
-    if (getValue('vibratez') != 0) f += (Math.random() - 0.5) * getValue('vibratez') * 20;
-
-    if (getValue('smoothz') != 0) f += 12 * getValue('smoothz') * ModchartMath.fastCos((Conductor.instance.currentBeatTime
-      + iCol * (0.25 + getValue('smoothzoffset'))) * Math.PI);
-
     return f;
   }
 
@@ -1005,7 +991,7 @@ class Modchart
         fRotation += fConfRotation;
       }
     }
-    if (getValue('roll') != 0 && (getValue('rollholds') != 0 || !isHoldHead))
+    if (getValue('roll') != 0)
     {
       fRotation += getValue('roll') * fYOffset / 2;
     }
@@ -1037,7 +1023,7 @@ class Modchart
         fRotation += fConfRotation;
       }
     }
-    if (getValue('twirl') != 0 && (getValue('twirlholds') != 0 || !isHoldHead))
+    if (getValue('twirl') != 0)
     {
       fRotation += getValue('twirl') * fYOffset / 2;
     }
@@ -1211,13 +1197,15 @@ class Modchart
     return ModchartMath.clamp(ModchartMath.scale(fPercentVisible, 1, 0.5, 0, 1.3), 0, 1);
   }
 
-  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>):Array<Float>
+  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>, isHoldBody:Bool = false):Array<Float>
   {
     var x:Float = defaultScale[0];
     var y:Float = defaultScale[1];
+    var z:Float = 1;
 
     x *= getValue('scale') * getValue('scale$iCol') * getValue('scalex$iCol') * getValue('scalex');
     y *= getValue('scale') * getValue('scale$iCol') * getValue('scaley$iCol') * getValue('scaley');
+    z *= getValue('scale') * getValue('scale$iCol') * getValue('scalez$iCol') * getValue('scalez');
 
     // an optimization of troll engine's squish and stretch
     var stretch:Float = getValue("stretch") + getValue('stretch$iCol');
@@ -1232,13 +1220,20 @@ class Modchart
     x *= Math.pow(0.5, getValue('tinyx$iCol'));
     y *= Math.pow(0.5, getValue('tinyy'));
     y *= Math.pow(0.5, getValue('tinyy$iCol'));
+    z *= Math.pow(0.5, getValue('tinyz'));
+    z *= Math.pow(0.5, getValue('tinyz$iCol'));
 
     // skewx skewy
-    var skewx:Float = getValue('noteskewx') + getValue('noteskewx$iCol');
-    var skewy:Float = getValue('noteskewy') + getValue('noteskewy$iCol');
-    skewx *= 50;
-    skewy *= 50;
-    return [x, y, skewx, skewy];
+    var skewx:Float = 0;
+    var skewy:Float = 0;
+    if (!isHoldBody)
+    {
+      skewx += getValue('noteskewx') + getValue('noteskewx$iCol');
+      skewy += getValue('noteskewy') + getValue('noteskewy$iCol');
+    }
+    skewx += getValue('skewx');
+    skewy += getValue('skewy');
+    return [x, y, skewx, skewy, z];
   }
 
   public function GetZoom(iCol:Int, fYOffset:Float, pn:Int):Float

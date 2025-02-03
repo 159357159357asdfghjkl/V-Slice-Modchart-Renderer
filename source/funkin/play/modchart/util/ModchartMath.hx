@@ -4,7 +4,7 @@ import openfl.geom.Vector3D;
 import funkin.play.notes.Strumline;
 
 /**
- * These math functions is useful for modifiers.
+ * These math functions is useful for the whole modchart system.
  * You can also use it at other place
 **/
 class ModchartMath
@@ -21,7 +21,7 @@ class ModchartMath
 
   public static final MAX_NOTE_ROW:Int = 1 << 30;
 
-  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float
+  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float // same as FlxMath.remapToRange
     return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
 
   inline public static function clamp(val:Float, low:Float, high:Float):Float
@@ -36,7 +36,7 @@ class ModchartMath
     return n;
   }
 
-  inline public static function lerp(x:Float, l:Float, h:Float):Float
+  inline public static function lerp(x:Float, l:Float, h:Float):Float // FlxMath.lerp but x is the first argument
     return x * (h - l) + l;
 
   inline public static function mod(x:Float, y:Float):Float
@@ -108,18 +108,24 @@ class ModchartMath
 
   // we only use these functions, others temporarily don't use
   inline public static function fastSin(x:Float):Float
-    return FastTrigonometric.fastSin(x);
+    return Trigonometric.fastSin(x);
 
   inline public static function fastCos(x:Float):Float
-    return FastTrigonometric.fastCos(x);
+    return Trigonometric.fastCos(x);
 
   inline public static function fastCsc(x:Float):Float
-    return FastTrigonometric.fastCsc(x);
+    return Trigonometric.fastCsc(x);
 
   inline public static function fastTan(x:Float):Float
-    return FastTrigonometric.fastTan(x);
+    return Trigonometric.fastTan(x);
 
-  public static function rotateVector3(out:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
+  inline public static function transform(v:Vector3D, a:Array<Array<Float>>):Vector3D
+  {
+    return new Vector3D(a[0][0] * v.x + a[1][0] * v.y + a[2][0] * v.z + a[3][0] * v.w, a[0][1] * v.x + a[1][1] * v.y + a[2][1] * v.z + a[3][1] * v.w,
+      a[0][2] * v.x + a[1][2] * v.y + a[2][2] * v.z + a[3][2] * v.w, a[0][3] * v.x + a[1][3] * v.y + a[2][3] * v.z + a[3][3] * v.w);
+  }
+
+  public static function rotateVector3(vec:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
   {
     rX *= Math.PI / 180;
     rY *= Math.PI / 180;
@@ -132,26 +138,32 @@ class ModchartMath
     var cZ:Float = fastCos(rZ);
     var sZ:Float = fastSin(rZ);
 
-    var mat:Array<Float> = [
-      cZ * cY,
-      cZ * sY * sX + sZ * cX,
-      cZ * sY * cX + sZ * (-sX),
-      0,
-      (-sZ) * cY,
-      (-sZ) * sY * sX + cZ * cX,
-      (-sZ) * sY * cX + cZ * (-sX),
-      0,
-      -sY,
-      cY * sX,
-      cY * cX,
-      0,
-      0,
-      0,
-      0,
-      1,
+    var mat:Array<Array<Float>> = [
+      [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
+      [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
+      [-sY, cY * sX, cY * cX, 0],
+      [0, 0, 0, 1],
     ];
-    var matToVec:Vector3D = new Vector3D(mat[0 * 4 + 0] * out.x + mat[1 * 4 + 0] * out.y + mat[2 * 4 + 0] * out.z,
-      mat[0 * 4 + 1] * out.x + mat[1 * 4 + 1] * out.y + mat[2 * 4 + 1] * out.z, mat[0 * 4 + 2] * out.x + mat[1 * 4 + 2] * out.y + mat[2 * 4 + 2] * out.z);
+    var matToVec:Vector3D = transform(vec, mat);
+    return matToVec;
+  }
+
+  public static function skewVector2(vec:Vector3D, sx:Float, sy:Float):Vector3D
+  {
+    var mat:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+    mat[1][0] = sx;
+    mat[0][1] = sy;
+    var matToVec:Vector3D = transform(vec, mat);
+    return matToVec;
+  }
+
+  public static function scaleVector3(vec:Vector3D, sx:Float, sy:Float, sz:Float):Vector3D
+  {
+    var mat:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+    mat[0][0] = sx;
+    mat[1][1] = sy;
+    mat[2][2] = sz;
+    var matToVec:Vector3D = transform(vec, mat);
     return matToVec;
   }
 }

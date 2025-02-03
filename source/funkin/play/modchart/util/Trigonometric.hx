@@ -1,13 +1,9 @@
 package funkin.play.modchart.util;
 
 /**
- * FastTrigonometric is a class that has many trigonometric functions
- * It uses look-up table method to make the calculation fast but less accurate
- * This class contains some functions that haxe/std/Math don't have
- * Besides fast trigonometric functions, there are also have default trigonometric functions
- * You can freely use it
+ * All the trigonometric functions is here
  */
-class FastTrigonometric
+class Trigonometric
 {
   static final PI:Float = 3.141592653589793;
   static var sine_table_size:Int = 1024;
@@ -16,11 +12,6 @@ class FastTrigonometric
   static var sine_table:Array<Float> = [];
   static var table_is_inited:Bool = false;
 
-  /**
-   * Sine function but faster
-   * @param x angle
-   * @return Float
-   */
   inline public static function fastSin(x:Float):Float
   {
     if (table_is_inited == false)
@@ -52,93 +43,72 @@ class FastTrigonometric
     return result;
   }
 
-  /**
-   * Cosine function but faster
-   * @param x  angle
-   * @return Float
-   */
   inline public static function fastCos(x:Float):Float
     return fastSin(x + 0.5 * PI);
 
-  /**
-   * Tangent function but faster
-   * @param x angle
-   * @return Float
-   */
   inline public static function fastTan(x:Float):Float
     return fastSin(x) / fastCos(x);
 
-  /**
-   * Cotangent function but faster
-   * @param x angle
-   * @return Float
-   */
   inline public static function fastCot(x:Float):Float
     return fastCos(x) / fastSin(x);
 
-  /**
-   * Secant function but faster
-   * @param x angle
-   * @return Float
-   */
   inline public static function fastSec(x:Float):Float
     return 1 / fastCos(x);
 
-  /**
-   * Cosecant function but faster
-   * @param x angle
-   * @return Float
-   */
   inline public static function fastCsc(x:Float):Float
     return 1 / fastSin(x);
 
-  // DEFAULT FUNCTIONS
-
-  /**
-   * Default sine function, the same as `Math.sin`
-   * @param x angle
-   * @return Float
-   */
   inline public static function sin(x:Float):Float
     return Math.sin(x);
 
-  /**
-   * Default cosine function, the same as `Math.cos`
-   * @param x angle
-   * @return Float
-   */
   inline public static function cos(x:Float):Float
     return Math.cos(x);
 
-  /**
-   * Default tangent function, the same as `Math.tan`
-   * @param x angle
-   * @return Float
-   */
   inline public static function tan(x:Float):Float
     return Math.tan(x);
 
-  /**
-   * Default cotangent function, more accurate than `fastCot` but less speed
-   * @param x angle
-   * @return Float
-   */
   inline public static function cot(x:Float):Float
     return Math.cos(x) / Math.sin(x);
 
-  /**
-   * Default secant function, more accurate than `fastSec` but less speed
-   * @param x angle
-   * @return Float
-   */
   inline public static function sec(x:Float):Float
     return 1 / Math.cos(x);
 
-  /**
-   * Default cosecant function, more accurate than `fastCsc` but less speed
-   * @param x angle
-   * @return Float
-   */
   inline public static function csc(x:Float):Float
     return 1 / Math.sin(x);
+
+  inline public static function sinh(x:Float):Float
+    return (Math.exp(x) - Math.exp(-x)) / 2;
+
+  inline public static function cosh(x:Float):Float
+    return (Math.exp(x) + Math.exp(-x)) / 2;
+
+  inline public static function tanh(x:Float):Float
+    return sinh(x) / cosh(x);
+
+  inline public static function coth(x:Float):Float
+    return cosh(x) / sinh(x);
+
+  inline public static function sech(x:Float):Float
+    return 1 / cosh(x);
+
+  inline public static function csch(x:Float):Float
+    return 1 / sinh(x);
+
+  inline public static function asin(x:Float):Float
+    return Math.asin(x);
+
+  inline public static function acos(x:Float):Float
+    return Math.acos(x);
+
+  inline public static function atan(x:Float):Float
+    return Math.atan(x);
+
+  inline public static function acot(x:Float):Float
+    return Math.atan(1 / x);
+
+  inline public static function asec(x:Float):Float
+    return Math.acos(1 / x);
+
+  inline public static function acsc(x:Float):Float
+    return Math.asin(1 / x);
 }

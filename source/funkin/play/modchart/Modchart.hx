@@ -43,7 +43,7 @@ class Modchart
   function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
   {
     var vwoosh:Float = 1.0;
-    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh * (Preferences.downscroll ? 1 : -1);
+    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh;
   }
 
   function CalculateDrunkAngle(time:Float, speed:Float, col:Int, offset:Float, col_frequency:Float, y_offset:Float, period:Float, offset_frequency:Float):Float
@@ -518,13 +518,14 @@ class Modchart
     {
       fYAdjust += getValue('parabolay') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE);
     }
-    fYAdjust *= Preferences.downscroll ? -1 : 1;
     fYOffset += fYAdjust;
 
     if (getValue('boomerang') != 0) fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * getValue('boomerang');
 
     fYOffset *= fScrollSpeed;
+    fYOffset *= Preferences.downscroll ? 1 : -1;
     fYOffset *= ModchartMath.scale(GetReversePercentForColumn(iCol), 0, 1, 1, -1);
+
     return fYOffset;
   }
 
@@ -696,16 +697,17 @@ class Modchart
     return f;
   }
 
-  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, WithReverse:Bool = true):Float
+  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, WithReverse:Bool = true):Float
   {
     var f:Float = fYOffset;
     var time:Float = (Conductor.instance.songPosition / 1000);
 
     if (WithReverse)
     {
+      var yReversedOffset:Float = SCREEN_HEIGHT - height - Constants.STRUMLINE_Y_OFFSET * 2;
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
-      var fShift:Float = fPercentReverse * 514;
-      fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, 514 / 2);
+      var fShift:Float = fPercentReverse * yReversedOffset;
+      fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, yReversedOffset / 2);
       f += fShift;
     }
     f += ARROW_SIZE * getValue('movey$iCol') + getValue('moveyoffset$iCol') + getValue('moveyoffset1$iCol');

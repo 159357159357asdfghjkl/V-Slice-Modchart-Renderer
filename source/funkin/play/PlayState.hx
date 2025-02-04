@@ -1831,7 +1831,7 @@ class PlayState extends MusicBeatSubState
 
     // Position the opponent strumline on the left half of the screen
     opponentStrumline.x = Constants.STRUMLINE_X_OFFSET;
-    opponentStrumline.y = Preferences.downscroll ? FlxG.height - opponentStrumline.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+    opponentStrumline.y = Preferences.downscroll ? FlxG.height - playerStrumline.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
     opponentStrumline.zIndex = 1000;
     opponentStrumline.cameras = [camHUD];
 

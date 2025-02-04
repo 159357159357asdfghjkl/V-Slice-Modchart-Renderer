@@ -242,7 +242,8 @@ class SustainTrail extends FlxSprite
       xoffArray.push((parentStrumline?.x ?? 0.0) + i * Strumline.NOTE_SPACING);
     var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column) ?? 0.0;
     var pos:Vector3D = new Vector3D(xoff + parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
-      yoff + parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray) ?? 0.0, parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+      yoff + parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
+      parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     if (parentStrumline != null) parentStrumline.mods.modifyPos(pos, xoffArray);
     var scaledPos:Vector3D = ModchartMath.scaleVector3(pos, SCALE.x, SCALE.y, SCALE.z);
     var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, skew.x, skew.y);
@@ -283,7 +284,7 @@ class SustainTrail extends FlxSprite
     var roughness:Float = 0.6;
     var length:Int = Std.int(fullSustainLength / (roughness * 100));
 
-    for (i in 0...length)
+    for (i in 0...length + 1)
     {
       var a:Int = i * 2;
       var time:Float = strumTime + (fullSustainLength / length * i);
@@ -300,19 +301,19 @@ class SustainTrail extends FlxSprite
       vertices[(a + 1) * 2 + 1] = pos2.y;
     }
 
-    var end:Int = (length - 1) * 2;
-    var next:Int = length * 2;
+    var end:Int = length * 2;
+    var next:Int = (length + 1) * 2;
     vertices[next * 2] = vertices[end * 2];
     vertices[next * 2 + 1] = vertices[end * 2 + 1];
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
-    var time:Float = strumTime + fullSustainLength;
+    var time:Float = strumTime + fullSustainLength + 70;
     var diff:Float = Conductor.instance.songPosition - strumTime;
     if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
     {
-      time = strumTime + sustainLength + diff;
+      time = strumTime + 50 + sustainLength + diff;
     }
-    var bottomnext:Int = (length + 1) * 2;
+    var bottomnext:Int = (length + 2) * 2;
     var pos1:Vector3D = getPosWithOffset(0, 0, time);
     var pos2:Vector3D = getPosWithOffset(graphicWidth, 0, time);
     vertices[bottomnext * 2] = pos1.x;
@@ -320,11 +321,11 @@ class SustainTrail extends FlxSprite
     vertices[(bottomnext + 1) * 2] = pos2.x;
     vertices[(bottomnext + 1) * 2 + 1] = pos2.y;
 
-    for (i in 0...length)
+    for (i in 0...length + 1)
     {
       var a:Int = i * 2;
       uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
-      uvtData[a * 2 + 1] = ModchartMath.lerp(1 / (i + 1), (-partHeight) / graphic.height / zoom, 0);
+      uvtData[a * 2 + 1] = ModchartMath.lerp(1 / (i + 1), (-partHeight) / graphic.height / zoom, 0) * (flipY ? -1 : 1);
       uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
       uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
     }

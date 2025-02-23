@@ -106,8 +106,6 @@ class SustainTrail extends FlxSprite
 
   public var SCALE:Vector3D = new Vector3D();
   public var skew(default, null):FlxPoint = FlxPoint.get();
-  public var rotation:Vector3D = new Vector3D();
-  public var z:Float = 0;
 
   public var isChartingState:Bool = false;
 
@@ -241,16 +239,22 @@ class SustainTrail extends FlxSprite
     for (i in 0...4)
       xoffArray.push((parentStrumline?.x ?? 0.0) + i * Strumline.NOTE_SPACING);
     var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column) ?? 0.0;
-    var pos:Vector3D = new Vector3D(xoff + parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
-      yoff + parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
+    var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+    var noteBeat:Float = conductorInUse.getBeatTimeInMs(strumTime);
+    var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true) ?? 0.0,
+      parentStrumline?.mods?.GetRotationY(column, yOffset, true) ?? 0.0,
+      (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true) ?? 0.0) + this.angle);
     if (parentStrumline != null) parentStrumline.mods.modifyPos(pos, xoffArray);
-    var scaledPos:Vector3D = ModchartMath.scaleVector3(pos, SCALE.x, SCALE.y, SCALE.z);
+    var realPos:Vector3D = new Vector3D(xoff, yoff);
+    var scaledPos:Vector3D = ModchartMath.scaleVector3(realPos, SCALE.x, SCALE.y, SCALE.z);
     var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, skew.x, skew.y);
     var rotatedPos:Vector3D = ModchartMath.rotateVector3(skewedPos, rotation.x, rotation.y, rotation.z);
-    var finalPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(x, y, z - 1000))).subtract(new Vector3D(x, y, z));
-    finalPos.incrementBy(new Vector3D(offsetX, offsetY));
-    return finalPos;
+    var zPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(x, y, pos.z - 1000))).subtract(new Vector3D(x, y, pos.z));
+    zPos.incrementBy(pos);
+    zPos.incrementBy(new Vector3D(offsetX, offsetY));
+    return zPos;
   }
 
   public function updateClipping():Void
@@ -281,9 +285,8 @@ class SustainTrail extends FlxSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
-    var roughness:Float = 0.6;
-    var length:Int = Std.int(fullSustainLength / (roughness * 100));
-
+    var length:Int = Std.int(fullSustainLength / 50);
+    var halfWidth:Float = graphicWidth / 2;
     for (i in 0...length + 1)
     {
       var a:Int = i * 2;
@@ -293,11 +296,11 @@ class SustainTrail extends FlxSprite
         var diff:Float = Conductor.instance.songPosition - strumTime;
         time = strumTime + (sustainLength / length * i) + diff;
       }
-      var pos1:Vector3D = getPosWithOffset(0, 0, time);
-      var pos2:Vector3D = getPosWithOffset(graphicWidth, 0, time);
-      vertices[a * 2] = pos1.x;
+      var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);
+      var pos2:Vector3D = getPosWithOffset(halfWidth, 0, time);
+      vertices[a * 2] = pos1.x + halfWidth * SCALE.x;
       vertices[a * 2 + 1] = pos1.y;
-      vertices[(a + 1) * 2] = pos2.x;
+      vertices[(a + 1) * 2] = pos2.x + halfWidth * SCALE.x;
       vertices[(a + 1) * 2 + 1] = pos2.y;
     }
 
@@ -314,11 +317,11 @@ class SustainTrail extends FlxSprite
       time = strumTime + 50 + sustainLength + diff;
     }
     var bottomnext:Int = (length + 2) * 2;
-    var pos1:Vector3D = getPosWithOffset(0, 0, time);
-    var pos2:Vector3D = getPosWithOffset(graphicWidth, 0, time);
-    vertices[bottomnext * 2] = pos1.x;
+    var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);
+    var pos2:Vector3D = getPosWithOffset(halfWidth, 0, time);
+    vertices[bottomnext * 2] = pos1.x + halfWidth * SCALE.x;
     vertices[bottomnext * 2 + 1] = pos1.y;
-    vertices[(bottomnext + 1) * 2] = pos2.x;
+    vertices[(bottomnext + 1) * 2] = pos2.x + halfWidth * SCALE.x;
     vertices[(bottomnext + 1) * 2 + 1] = pos2.y;
 
     for (i in 0...length + 1)
@@ -540,7 +543,6 @@ class SustainTrail extends FlxSprite
     uvtData = null;
     SCALE = null;
     skew = null;
-    rotation = null;
     processedGraphic.destroy();
 
     super.destroy();

@@ -6,6 +6,7 @@ import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
 import funkin.play.modchart.sprites.FunkinActor;
+import funkin.play.modchart.shaders.ModchartHSVShader;
 
 class NoteSplash extends FunkinActor
 {
@@ -21,6 +22,7 @@ class NoteSplash extends FunkinActor
     frameCollection.parent.persist = true;
   }
 
+  public var hsvShader:ModchartHSVShader;
   public var column:Int = 0;
   public var defaultScale:Array<Float>;
 
@@ -31,6 +33,8 @@ class NoteSplash extends FunkinActor
     setup();
     defaultScale = [scale.x, scale.y];
     this.alpha = ALPHA;
+    this.hsvShader = new ModchartHSVShader();
+    this.shader = hsvShader.shader;
     this.animation.finishCallback = this.onAnimationFinished;
   }
 
@@ -93,5 +97,13 @@ class NoteSplash extends FunkinActor
   {
     // *lightning* *zap* *crackle*
     this.kill();
+  }
+
+  public override function revive():Void
+  {
+    super.revive();
+    this.hsvShader.hue = 1.0;
+    this.hsvShader.saturation = 1.0;
+    this.hsvShader.value = 1.0;
   }
 }

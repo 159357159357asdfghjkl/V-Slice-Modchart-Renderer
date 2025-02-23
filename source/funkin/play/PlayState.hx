@@ -711,6 +711,13 @@ class PlayState extends MusicBeatSubState
     initPopups();
 
     modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
+    var event:ScriptEvent = new ScriptEvent(INIT, false);
+    ScriptEventDispatcher.callEvent(currentSong, event);
+    ScriptEventDispatcher.callEvent(currentConversation, event);
+    ScriptEventDispatcher.callEvent(currentStage, event);
+    modEvents.onStart();
+    opponentStrumline.mods.initMods();
+    playerStrumline.mods.initMods();
 
     #if FEATURE_DISCORD_RPC
     // Initialize Discord Rich Presence.
@@ -760,11 +767,6 @@ class PlayState extends MusicBeatSubState
     #end
 
     initialized = true;
-    var event:ScriptEvent = new ScriptEvent(INIT, false);
-    ScriptEventDispatcher.callEvent(currentSong, event);
-    ScriptEventDispatcher.callEvent(currentConversation, event);
-    ScriptEventDispatcher.callEvent(currentStage, event);
-    modEvents.onStart(); // you can also sort it at anytime
 
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.

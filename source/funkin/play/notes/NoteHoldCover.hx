@@ -7,6 +7,9 @@ import funkin.util.assets.FlxAnimationUtil;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
+import funkin.play.modchart.shaders.ModchartHSVShader;
+import flixel.math.FlxPoint;
+import openfl.geom.Vector3D;
 
 class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 {
@@ -17,18 +20,20 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
   public var holdNote:SustainTrail;
 
   var glow:FlxSprite;
-  var sparks:FlxSprite;
 
   public var column:Int = 0;
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var defaultScale:Array<Float>;
+  public var hsvShader:ModchartHSVShader;
 
   public function new()
   {
     super(0, 0);
 
     setup();
+    this.hsvShader = new ModchartHSVShader();
+    this.shader = hsvShader.shader;
     defaultScale = [scale.x, scale.y];
   }
 
@@ -110,7 +115,6 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
     this.visible = false;
 
     if (glow != null) glow.visible = false;
-    if (sparks != null) sparks.visible = false;
   }
 
   public override function revive():Void
@@ -119,9 +123,10 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 
     this.visible = true;
     this.alpha = 1.0;
-
+    this.hsvShader.hue = 1.0;
+    this.hsvShader.saturation = 1.0;
+    this.hsvShader.value = 1.0;
     if (glow != null) glow.visible = true;
-    if (sparks != null) sparks.visible = true;
   }
 
   public function onAnimationFinished(animationName:String):Void

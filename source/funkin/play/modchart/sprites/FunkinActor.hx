@@ -12,9 +12,6 @@ import openfl.geom.Vector3D;
 import funkin.graphics.FunkinSprite;
 import funkin.play.modchart.util.ModchartMath;
 
-/**
- * for note and receptor
- */
 class FunkinActor extends FunkinSprite
 {
   public var skew(default, null):FlxPoint = FlxPoint.get();

@@ -61,7 +61,7 @@ class Modchart
     return Math.PI * (y_offset + (1.0 * offset)) / (ARROW_SIZE + (period * ARROW_SIZE));
   }
 
-  function initMods()
+  function initDefaultMods()
   {
     var ZERO:Array<String> = [
       'boost',
@@ -283,7 +283,8 @@ class Modchart
       'rotationy',
       'rotationz',
       'skewx',
-      'skewy'
+      'skewy',
+      'hidenoteflash'
     ];
 
     var ONE:Array<String> = [
@@ -342,19 +343,14 @@ class Modchart
 
     defaults.set('cmod', -1);
     defaults.set('mmod', 10);
-
-    modList = defaults.copy();
-
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
-
     // in the groove 2 mod name
     altname.set('accel', 'boost');
     altname.set('decel', 'brake');
     altname.set('drift', 'drunk');
     altname.set('float', 'tipsy');
-
     // notitg names
     altname.set('glitchytan', 'cosecant');
     altname.set('x', 'movex');
@@ -374,6 +370,9 @@ class Modchart
     altname.set('tantipsyxspacing', 'tantipsyxoffset');
     altname.set('tantipsyzspacing', 'tantipsyzoffset');
   }
+
+  public function initMods()
+    modList = defaults.copy();
 
   public function getModTable()
     return modList;
@@ -487,7 +486,7 @@ class Modchart
 
       fScrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
     }
-    var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh);
+    var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh) * -1;
     var fYAdjust:Float = 0;
 
     if (getValue('boost') != 0)
@@ -523,8 +522,8 @@ class Modchart
     if (getValue('boomerang') != 0) fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * getValue('boomerang');
 
     fYOffset *= fScrollSpeed;
-    fYOffset *= Preferences.downscroll ? 1 : -1;
     fYOffset *= ModchartMath.scale(GetReversePercentForColumn(iCol), 0, 1, 1, -1);
+    fYOffset *= (Preferences.downscroll ? -1 : 1);
 
     return fYOffset;
   }
@@ -546,7 +545,7 @@ class Modchart
     return f;
   }
 
-  public function GetXPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>):Float
+  public function GetXPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, isNote:Bool = false):Float
   {
     var time:Float = (Conductor.instance.songPosition / 1000);
     var f:Float = 0;
@@ -694,6 +693,9 @@ class Modchart
     }
 
     f -= getValue('skewx') * 100;
+
+    if (isNote) f += getValue('skewx') * fYOffset;
+
     return f;
   }
 
@@ -1302,11 +1304,11 @@ class Modchart
     }
   }
 
-  var opened:Bool = false;
+  public var opened:Bool = false;
 
   public function new()
   {
-    initMods();
+    initDefaultMods();
     opened = true;
   }
 }

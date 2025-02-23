@@ -13,6 +13,7 @@ typedef ExtraVars =
   @:optional var step:Bool;
   @:optional var relative:Bool;
   @:optional var flip:Bool;
+  @:optional var startVal:Float;
 }
 
 typedef FuncExtraVars =
@@ -59,13 +60,6 @@ class ModEvents
     var i:Int = 0;
     while (i < MAX_PN)
     {
-      mods[i] = state[0].getModTable();
-      mods[i + 1] = state[1].getModTable();
-      i += 2;
-    }
-    var i:Int = 0;
-    while (i < MAX_PN)
-    {
       default_mods[i] = state[0].defaults.copy();
       default_mods[i + 1] = state[1].defaults.copy();
       i += 2;
@@ -78,6 +72,19 @@ class ModEvents
       i += 2;
     }
     initPlrOptions();
+  }
+
+  public function setdefault(modArray:Array<Dynamic>)
+  {
+    for (pn in 0...MAX_PN)
+    {
+      var i:Int = 0;
+      while (i < modArray.length)
+      {
+        modState[pn].defaults[modArray[i + 1]] = modArray[i];
+        i += 2;
+      }
+    }
   }
 
   var eases:Array<Map<String, Dynamic>> = [];
@@ -98,6 +105,7 @@ class ModEvents
     table.set('ease', easing);
     table.set('flip', extra.flip);
     table.set('mod', modArray);
+    table.set('startVal', extra.startVal);
 
     if (extra.time == null) extra.time = false;
     if (extra.step == null) extra.step == false;
@@ -242,17 +250,6 @@ class ModEvents
       func_ease(self, extra);
   }
 
-  public function setValue(modName:String, val:Float, ?pn:Int)
-  {
-    if (pn == null)
-    {
-      for (pn in 0...2)
-        modState[pn].setValue(modName, val);
-    }
-    else
-      modState[pn].setValue(modName, val);
-  }
-
   public function alias(table:Array<String>)
   {
     if (table.length == 2)
@@ -307,6 +304,13 @@ class ModEvents
 
   public function update(beat:Float, step:Float, time:Float)
   {
+    var i:Int = 0;
+    while (i < MAX_PN)
+    {
+      mods[i] = modState[i].getModTable();
+      mods[i + 1] = modState[i + 1].getModTable();
+      i += 2;
+    }
     while (eases_index <= eases.length - 1)
     {
       var e:Map<String, Dynamic> = eases[eases_index];
@@ -318,7 +322,7 @@ class ModEvents
       {
         var mod = e['mod'][idx + 1];
         e['mod'][idx + 1] = modState[plr].getName(mod);
-        e.set('_$mod', mods.copy()[plr].copy()[mod]);
+        e.set('_$mod', (e['startVal'] != null ? e['startVal'] : mods.copy()[plr].copy()[mod]));
         e.set('__$mod', e['mod'][idx] - (e['relative'] == true ? 0 : e['_$mod']));
         idx += 2;
       }
@@ -350,7 +354,7 @@ class ModEvents
         while (i < e['mod'].length)
         {
           var mod = e['mod'][i + 1];
-          mods[plr][mod] = e['__$mod'];
+          mods[plr][mod] = e['_$mod'] + e['__$mod'];
           touch_mod(mod, plr);
           i += 2;
         }

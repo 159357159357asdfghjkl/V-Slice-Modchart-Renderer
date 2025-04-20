@@ -393,17 +393,14 @@ class Strumline extends FlxSpriteGroup
       var col:Int = note.noteData.getDirection();
       var xoff:Float = this.x + (col * NOTE_SPACING);
       note.offsetX = -NUDGE;
-
       var realofs = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, vwoosh, col);
-      var yoff = mods.GetYPos(col, realofs, modNumber, xoffArray, height);
       var zpos = mods.GetZPos(col, realofs, modNumber, xoffArray);
       var xpos = xoff + mods.GetXPos(col, realofs, modNumber, xoffArray, true);
       note.offsetY = -INITIAL_OFFSET;
-      var ypos = this.y + yoff;
+      var ypos = this.y + mods.GetYPos(col, realofs, modNumber, xoffArray, height);
       var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, note.defaultScale);
       var zoom:Float = mods.GetZoom(col, realofs, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-
       mods.modifyPos(pos, xoffArray);
       note.SCALE.x = scale[0] * zoom;
       note.SCALE.y = scale[1] * zoom;
@@ -418,7 +415,8 @@ class Strumline extends FlxSpriteGroup
       note.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
       var noteBeat:Float = Conductor.instance.getBeatTimeInMs(note.strumTime);
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),
-        mods.GetRotationY(col, realofs, note.holdNoteSprite != null), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle, 1));
+        mods.GetRotationY(col, realofs, note.holdNoteSprite != null),
+        mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle));
       // If the note is miss
       var isOffscreen = Preferences.downscroll ? note.y > FlxG.height : note.y < -note.height;
       if (note.handledMiss && isOffscreen)
@@ -492,9 +490,8 @@ class Strumline extends FlxSpriteGroup
         var zoom:Float = mods.GetZoom(col, realofs, modNumber);
         holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
         var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        mods.modifyPos(pos, xoffArray);
-        holdNote.x = pos.x;
-        holdNote.y = pos.y;
+        holdNote.vert.x = pos.x;
+        holdNote.vert.y = pos.y;
         holdNote.SCALE.x = scale[0] * zoom;
         holdNote.SCALE.y = scale[1] * zoom;
         holdNote.SCALE.z = scale[4];
@@ -527,9 +524,8 @@ class Strumline extends FlxSpriteGroup
         var col:Int = holdNote.noteData.getDirection();
         holdNote.offsetX = STRUMLINE_SIZE / 2 - holdNote.width / 2;
         var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        mods.modifyPos(pos, xoffArray);
-        holdNote.x = pos.x;
-        holdNote.y = pos.y;
+        holdNote.vert.x = pos.x;
+        holdNote.vert.y = pos.y;
         var scale:Array<Float> = mods.GetScale(col, 0, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, 0, modNumber);
         holdNote.SCALE.x = scale[0] * zoom;
@@ -557,9 +553,8 @@ class Strumline extends FlxSpriteGroup
         var zoom:Float = mods.GetZoom(col, realofs, modNumber);
         holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
         var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        mods.modifyPos(pos, xoffArray);
-        holdNote.x = pos.x;
-        holdNote.y = pos.y;
+        holdNote.vert.x = pos.x;
+        holdNote.vert.y = pos.y;
         holdNote.SCALE.x = scale[0] * zoom;
         holdNote.SCALE.y = scale[1] * zoom;
         holdNote.SCALE.z = scale[4];
@@ -589,7 +584,7 @@ class Strumline extends FlxSpriteGroup
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
       mods.modifyPos(pos, xoffArray);
       strumNote.rotation.copyFrom(new Vector3D(mods.ReceptorGetRotationX(col), mods.ReceptorGetRotationY(col),
-        mods.ReceptorGetRotationZ(col) + strumNote.angle, 1));
+        mods.ReceptorGetRotationZ(col) + strumNote.angle));
       strumNote.SCALE.x = scale[0] * zoom;
       strumNote.SCALE.y = scale[1] * zoom;
       strumNote.SCALE.z = scale[4];

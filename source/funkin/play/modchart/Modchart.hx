@@ -37,7 +37,6 @@ class Modchart
   var dim_z:Int = 2;
   var expandSeconds:Float = 0;
   var tanExpandSeconds:Float = 0;
-  var tipsyResult:Array<Float> = [];
   var beatFactor:Array<Float> = [];
 
   function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
@@ -245,8 +244,6 @@ class Modchart
       'vibratex',
       'vibratey',
       'vibratez',
-      'squish',
-      'stretch',
       'pulse',
       'pulseinner',
       'pulseouter',
@@ -284,7 +281,19 @@ class Modchart
       'rotationz',
       'skewx',
       'skewy',
-      'hidenoteflash'
+      'hidenoteflash',
+      'spiralx',
+      'spiralxoffset',
+      'spiralxperiod',
+      'spiraly',
+      'spiralyoffset',
+      'spiralyperiod',
+      'spiralz',
+      'spiralzoffset',
+      'spiralzperiod',
+      'granulate',
+      'gayholds',
+      'useoptionalmods'
     ];
 
     var ONE:Array<String> = [
@@ -316,8 +325,6 @@ class Modchart
       ONE.push('scaley$i');
       ONE.push('scalez$i');
       ONE.push('scale$i');
-      ZERO.push('squish$i');
-      ZERO.push('stretch$i');
       ZERO.push('noteskewx$i');
       ZERO.push('noteskewy$i');
       ZERO.push('tinyx$i');
@@ -369,10 +376,18 @@ class Modchart
     altname.set('tantipsyspacing', 'tantipsyoffset');
     altname.set('tantipsyxspacing', 'tantipsyxoffset');
     altname.set('tantipsyzspacing', 'tantipsyzoffset');
+    altname.set('grain', 'granulate');
   }
 
   public function initMods()
+  {
     modList = defaults.copy();
+    if (getValue('useoptionalmods') != 0)
+    {
+      modList.set('spin', 0);
+      modList.set('wiggle', 0);
+    }
+  }
 
   public function getModTable()
     return modList;
@@ -692,6 +707,11 @@ class Modchart
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornado');
     }
 
+    if (getValue('spiralx') != 0) f += fYOffset * getValue('spiralx') * ModchartMath.fastCos(fYOffset
+      + getValue('spiralxoffset') * (1 + getValue('spiralxperiod')));
+
+    f += GetExtraModsEffect(fYOffset, iCol, pn, xOffset).x;
+
     f -= getValue('skewx') * 100;
 
     if (isNote) f += getValue('skewx') * fYOffset;
@@ -806,6 +826,10 @@ class Modchart
       1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalyoffset'), getValue('tandigitalyperiod')),
       getValue('cosecant'))) / (getValue('tandigitalysteps') + 1);
 
+    if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastCos(fYOffset
+      + getValue('spiralyoffset') * (1 + getValue('spiralyperiod')));
+
+    f += GetExtraModsEffect(fYOffset, iCol, pn, xOffset).y;
     f -= getValue('skewy') * 100;
     return f;
   }
@@ -934,6 +958,11 @@ class Modchart
 
     if (getValue('tantipsyz') != 0) f += getValue('tantipsyz') * CalculateTipsyOffset(time, getValue('tantipsyzoffset'), getValue('tantipsyzspeed'), iCol, 1);
 
+    if (getValue('spiralz') != 0) f += fYOffset * getValue('spiralz') * ModchartMath.fastCos(fYOffset
+      + getValue('spiralzoffset') * (1 + getValue('spiralzperiod')));
+
+    f += GetExtraModsEffect(fYOffset, iCol, pn, xOffset).z;
+
     return f;
   }
 
@@ -953,15 +982,14 @@ class Modchart
       {
         var fConfRotation:Float = beat;
         fConfRotation *= getValue('confusion');
-        fConfRotation %= 2 * Math.PI;
+        fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
         fConfRotation *= -180 / Math.PI;
         fRotation += fConfRotation;
       }
     }
     if (getValue('dizzy') != 0 && (getValue('dizzyholds') != 0 || !isHoldHead))
     {
-      var fSongBeat:Float = Conductor.instance.currentBeatTime;
-      var fDizzyRotation = noteBeat - fSongBeat;
+      var fDizzyRotation:Float = beat - noteBeat;
       fDizzyRotation *= getValue('dizzy');
       fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
       fDizzyRotation *= 180 / Math.PI;
@@ -1052,11 +1080,10 @@ class Modchart
     {
       var fConfRotation:Float = beat;
       fConfRotation *= getValue('confusion');
-      fConfRotation %= 2 * Math.PI;
+      fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
     }
-
     if (getValue('rotationz') != 0)
     {
       fRotation += getValue('rotationz') * 100;
@@ -1211,14 +1238,6 @@ class Modchart
     y *= getValue('scale') * getValue('scale$iCol') * getValue('scaley$iCol') * getValue('scaley');
     z *= getValue('scale') * getValue('scale$iCol') * getValue('scalez$iCol') * getValue('scalez');
 
-    // an optimization of troll engine's squish and stretch
-    var stretch:Float = getValue("stretch") + getValue('stretch$iCol');
-    var squish:Float = getValue("squish") + getValue('squish$iCol');
-    x *= ModchartMath.lerp(squish, 1, 2);
-    x *= ModchartMath.lerp(stretch, 1, 0.5);
-    y *= ModchartMath.lerp(stretch, 1, 2);
-    y *= ModchartMath.lerp(squish, 1, 0.5);
-
     // notitg's tinyx tinyy mod
     x *= Math.pow(0.5, getValue('tinyx'));
     x *= Math.pow(0.5, getValue('tinyx$iCol'));
@@ -1288,13 +1307,32 @@ class Modchart
     return fZoom;
   }
 
+  function GetExtraModsEffect(fYOffset:Float, iCol:Int, pn:Int, xoff:Array<Float>):Vector3D
+  {
+    var pos:Vector3D = new Vector3D();
+    if (getValue('useoptionalmods') != 0)
+    {
+      if (getValue('spin') != 0)
+      {
+        pos.x -= xoff[iCol];
+        pos.x += FlxG.width / 2 - ARROW_SIZE / 2;
+        pos.x += (xoff[iCol] - (FlxG.width / 2 - ARROW_SIZE / 2)) * ModchartMath.fastSin(Conductor.instance.songPosition / Conductor.instance.beatLengthMs * Math.PI) * getValue('spin');
+      }
+      if (getValue('wiggle') != 0)
+      {
+        pos.x += ModchartMath.fastSin((fYOffset / SCREEN_HEIGHT) * (Math.PI * 3 + Math.PI * 3 * getValue('wigglespeed'))) * (getValue('wiggle') * 250);
+      }
+    }
+    return pos;
+  }
+
   @:nullSafety
   public function modifyPos(pos:Vector3D, xoff:Array<Float>):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
       var centerX:Float = (xoff[3] + ARROW_SIZE - xoff[0]) / 2 + xoff[0] - ARROW_SIZE / 2;
-      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2);
+      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2 - ARROW_SIZE / 2);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);

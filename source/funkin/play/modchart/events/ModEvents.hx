@@ -3,6 +3,7 @@ package funkin.play.modchart.events;
 import funkin.play.modchart.events.ModEases.Ease;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.*;
+import funkin.play.modchart.events.templates.*;
 
 typedef ExtraVars =
 {
@@ -55,6 +56,8 @@ class ModEvents
     }
   }
 
+  public var trollModMgr:TrollEngineModchartScripts;
+
   public function new(state:Array<Modchart>)
   {
     var i:Int = 0;
@@ -72,6 +75,9 @@ class ModEvents
       i += 2;
     }
     initPlrOptions();
+    var reversedState:Array<Modchart> = state.copy();
+    reversedState.reverse();
+    trollModMgr = new TrollEngineModchartScripts(this, reversedState);
   }
 
   public function setdefault(modArray:Array<Dynamic>)
@@ -242,7 +248,7 @@ class ModEvents
     }
   }
 
-  public function func(self:Array<Dynamic>, extra:FuncExtraVars)
+  public function func(self:Array<Dynamic>, ?extra:FuncExtraVars)
   {
     if (self.length == 2) func_function(self, extra);
     else if (self.length == 3) func_perframe(self, true, extra);

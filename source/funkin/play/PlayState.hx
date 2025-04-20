@@ -709,7 +709,6 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
-
     modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
     var event:ScriptEvent = new ScriptEvent(INIT, false);
     ScriptEventDispatcher.callEvent(currentSong, event);
@@ -718,6 +717,7 @@ class PlayState extends MusicBeatSubState
     modEvents.onStart();
     opponentStrumline.mods.initMods();
     playerStrumline.mods.initMods();
+
 
     #if FEATURE_DISCORD_RPC
     // Initialize Discord Rich Presence.

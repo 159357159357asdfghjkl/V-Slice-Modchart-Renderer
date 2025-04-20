@@ -44,10 +44,10 @@ class FunkinActor extends FunkinSprite
         if (!camera.visible || camera.alpha == 0) continue;
         var wid:Float = frame.frame.width;
         var h:Float = frame.frame.height;
-        var topLeft:Vector3D = new Vector3D(-wid / 2, -h / 2, z);
-        var topRight:Vector3D = new Vector3D(wid / 2, -h / 2, z);
-        var bottomLeft:Vector3D = new Vector3D(-wid / 2, h / 2, z);
-        var bottomRight:Vector3D = new Vector3D(wid / 2, h / 2, z);
+        var topLeft:Vector3D = new Vector3D(-wid / 2, -h / 2);
+        var topRight:Vector3D = new Vector3D(wid / 2, -h / 2);
+        var bottomLeft:Vector3D = new Vector3D(-wid / 2, h / 2);
+        var bottomRight:Vector3D = new Vector3D(wid / 2, h / 2);
         var scaledLT:Vector3D = ModchartMath.scaleVector3(topLeft, SCALE.x, SCALE.y, SCALE.z);
         var scaledRT:Vector3D = ModchartMath.scaleVector3(topRight, SCALE.x, SCALE.y, SCALE.z);
         var scaledLB:Vector3D = ModchartMath.scaleVector3(bottomLeft, SCALE.x, SCALE.y, SCALE.z);

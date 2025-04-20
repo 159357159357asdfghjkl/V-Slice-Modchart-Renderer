@@ -186,6 +186,7 @@ class SustainTrail extends FlxSprite
   override function update(elapsed)
   {
     super.update(elapsed);
+    x = y = 0;
     updateClipping();
     if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0))
     {
@@ -229,6 +230,8 @@ class SustainTrail extends FlxSprite
     origin.set(width * 0.5, height * 0.5);
   }
 
+  public var vert:Vector3D = new Vector3D();
+
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float)
   {
     var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
@@ -242,17 +245,41 @@ class SustainTrail extends FlxSprite
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+    var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
+    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column) ?? 0.0;
+    var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
+      parentStrumline?.mods?.GetZPos(column, noteYOffset, pn, xoffArray) ?? 0.0);
+    var strumPos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, 0, pn, xoffArray) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, 0, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
+      parentStrumline?.mods?.GetZPos(column, 0, pn, xoffArray) ?? 0.0);
+    var pos2:Vector3D = notePos.clone();
+    var pos3:Vector3D = strumPos.clone();
+    pos2.x *= effect;
+    pos2.z *= effect;
+    pos3.x *= effect;
+    pos3.z *= effect;
+    pos.x *= effect;
+    pos.z *= effect;
+    var offset:Vector3D = new Vector3D(pos2.x - notePos.x, 0, pos2.z - notePos.z);
+    if (hitNote && !missedNote)
+    {
+      offset.x = pos3.x - strumPos.x;
+      offset.z = pos3.z - strumPos.z;
+    }
     var noteBeat:Float = conductorInUse.getBeatTimeInMs(strumTime);
     var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true) ?? 0.0,
       parentStrumline?.mods?.GetRotationY(column, yOffset, true) ?? 0.0,
       (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true) ?? 0.0) + this.angle);
-    if (parentStrumline != null) parentStrumline.mods.modifyPos(pos, xoffArray);
+    var fullPos:Vector3D = pos.add(vert);
+    if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, xoffArray);
     var realPos:Vector3D = new Vector3D(xoff, yoff);
     var scaledPos:Vector3D = ModchartMath.scaleVector3(realPos, SCALE.x, SCALE.y, SCALE.z);
     var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, skew.x, skew.y);
     var rotatedPos:Vector3D = ModchartMath.rotateVector3(skewedPos, rotation.x, rotation.y, rotation.z);
-    var zPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(x, y, pos.z - 1000))).subtract(new Vector3D(x, y, pos.z));
-    zPos.incrementBy(pos);
+    var zPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(fullPos.x, fullPos.y, fullPos.z - 1000))).subtract(fullPos);
+    zPos.incrementBy(new Vector3D(fullPos.x, fullPos.y));
+    zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
     return zPos;
   }
@@ -285,7 +312,10 @@ class SustainTrail extends FlxSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
-    var length:Int = Std.int(fullSustainLength / 50);
+    var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
+    var length:Int = Std.int(fullSustainLength / (50 * (1 + grain))); // each part's length
+    if (grain < 0) length = Std.int(fullSustainLength / (60 / (1 + Math.abs(grain))));
+    if (length == 0) length = 1;
     var halfWidth:Float = graphicWidth / 2;
     for (i in 0...length + 1)
     {
@@ -310,11 +340,12 @@ class SustainTrail extends FlxSprite
     vertices[next * 2 + 1] = vertices[end * 2 + 1];
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
-    var time:Float = strumTime + fullSustainLength + 70;
+    var capHeight:Float = 70.0;
+    var time:Float = strumTime + sustainLength + capHeight;
     var diff:Float = Conductor.instance.songPosition - strumTime;
     if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
     {
-      time = strumTime + 50 + sustainLength + diff;
+      time = strumTime + capHeight + sustainLength + diff;
     }
     var bottomnext:Int = (length + 2) * 2;
     var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);

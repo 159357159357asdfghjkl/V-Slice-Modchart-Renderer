@@ -39,7 +39,7 @@ class Modchart
   var tanExpandSeconds:Float = 0;
   var beatFactor:Array<Float> = [];
 
-  function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
+  public function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
   {
     var vwoosh:Float = 1.0;
     return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh;
@@ -293,7 +293,8 @@ class Modchart
       'spiralzperiod',
       'granulate',
       'gayholds',
-      'useoptionalmods'
+      'useoptionalmods',
+      'arrowpath'
     ];
 
     var ONE:Array<String> = [
@@ -338,6 +339,7 @@ class Modchart
       ZERO.push('confusionoffset$i');
       ZERO.push('dark$i');
       ZERO.push('stealth$i');
+      ZERO.push('arrowpath$i');
       ONE.push('movew$i');
       ONE.push('zoom$i');
     }

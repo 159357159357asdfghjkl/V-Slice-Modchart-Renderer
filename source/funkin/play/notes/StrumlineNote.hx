@@ -9,7 +9,7 @@ import funkin.play.modchart.shaders.ModchartHSVShader;
 /**
  * The actual receptor that you see on screen.
  */
-class StrumlineNote extends funkin.play.modchart.sprites.FunkinActor
+class StrumlineNote extends funkin.play.modchart.objects.FunkinActor
 {
   /**
    * Whether this strumline note is on the player's side or the opponent's side.
@@ -44,6 +44,7 @@ class StrumlineNote extends funkin.play.modchart.sprites.FunkinActor
   var confirmHoldTimer:Float = -1;
 
   public var column:Int = 0;
+  public var parentStrumline:Strumline;
   public var defaultScale:Array<Float>;
   public var hsvShader:ModchartHSVShader;
 

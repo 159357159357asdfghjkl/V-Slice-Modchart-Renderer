@@ -9,7 +9,7 @@ import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
 import funkin.play.modchart.shaders.ModchartHSVShader;
 
-class NoteSprite extends funkin.play.modchart.sprites.FunkinActor
+class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 {
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 
@@ -17,7 +17,7 @@ class NoteSprite extends funkin.play.modchart.sprites.FunkinActor
 
   public var hsvShader:ModchartHSVShader;
 
-  public var column:Int = 0;
+  public var parentStrumline:Strumline;
   public var defaultScale:Array<Float>;
 
   /**

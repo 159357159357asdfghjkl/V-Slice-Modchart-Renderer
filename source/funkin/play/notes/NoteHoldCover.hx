@@ -10,8 +10,11 @@ import flixel.FlxSprite;
 import funkin.play.modchart.shaders.ModchartHSVShader;
 import flixel.math.FlxPoint;
 import openfl.geom.Vector3D;
+import funkin.play.modchart.objects.FunkinActor;
+import flixel.math.FlxPoint;
+import flixel.graphics.FlxGraphic;
 
-class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
+class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
 {
   static final FRAMERATE_DEFAULT:Int = 24;
 
@@ -19,12 +22,16 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 
   public var holdNote:SustainTrail;
 
-  var glow:FlxSprite;
+  var glow:FunkinActor;
 
   public var column:Int = 0;
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var defaultScale:Array<Float>;
+  public var skew:Vector3D = new Vector3D();
+  public var rotation:Vector3D = new Vector3D();
+  public var SCALE:Vector3D = new Vector3D(1, 1);
+  public var z:Float = 0;
   public var hsvShader:ModchartHSVShader;
 
   public function new()
@@ -32,9 +39,21 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
     super(0, 0);
 
     setup();
-    this.hsvShader = new ModchartHSVShader();
-    this.shader = hsvShader.shader;
+
     defaultScale = [scale.x, scale.y];
+  }
+
+  override public function draw():Void
+  {
+    super.draw();
+  }
+
+  function createGraphic()
+  {
+    for (i in frames.frames)
+    {
+      // var graphic:FlxGraphic = FlxGraphic.fromFrame(i, true, )
+    }
   }
 
   public static function preloadFrames():Void
@@ -63,8 +82,18 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
    */
   function setup():Void
   {
-    glow = new FlxSprite();
+    glow = new FunkinActor(0, 0, true);
     add(glow);
+    glow.z = this.z;
+    glow.SCALE.x = this.SCALE.x;
+    glow.SCALE.y = this.SCALE.y;
+    glow.rotation.x = this.rotation.x;
+    glow.rotation.y = this.rotation.y;
+    glow.rotation.z = this.rotation.z;
+    // glow.offsetX = this.offsetX;
+    // glow.offsetY = this.offsetY;
+    glow.skew.x = this.skew.x;
+    glow.skew.y = this.skew.y;
     if (glowFrames == null) preloadFrames();
     glow.frames = glowFrames;
 
@@ -78,7 +107,8 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
     }
 
     glow.animation.finishCallback = this.onAnimationFinished;
-
+    this.hsvShader = new ModchartHSVShader();
+    glow.shader = hsvShader.shader;
     if (glow.animation.getAnimationList().length < 3 * 4)
     {
       trace('WARNING: NoteHoldCover failed to initialize all animations.');
@@ -88,6 +118,19 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
   public override function update(elapsed):Void
   {
     super.update(elapsed);
+    if (glow != null)
+    {
+      glow.z = this.z;
+      glow.SCALE.x = this.SCALE.x;
+      glow.SCALE.y = this.SCALE.y;
+      glow.rotation.x = this.rotation.x;
+      glow.rotation.y = this.rotation.y;
+      glow.rotation.z = this.rotation.z;
+      glow.offsetX = this.offsetX;
+      glow.offsetY = this.offsetY;
+      glow.skew.x = this.skew.x;
+      glow.skew.y = this.skew.y;
+    }
   }
 
   public function playStart():Void

@@ -16,53 +16,42 @@ class TrollEngineModchartScripts
   var eases:Map<String, Ease> = [
     'instant' => ModEases.instant,
     'linear' => ModEases.linear,
-    'inquad' => ModEases.inQuad,
-    'outquad' => ModEases.outQuad,
-    'inoutquad' => ModEases.inOutQuad,
-    'incubic' => ModEases.inCubic,
-    'outcubic' => ModEases.outCubic,
-    'inoutcubic' => ModEases.inOutCubic,
-    'inquart' => ModEases.inQuart,
-    'outquart' => ModEases.outQuart,
-    'inoutquart' => ModEases.inOutQuart,
-    'inquint' => ModEases.inQuint,
-    'outquint' => ModEases.outQuint,
-    'inoutquint' => ModEases.inOutQuint,
-    'inexpo' => ModEases.inExpo,
-    'outexpo' => ModEases.outExpo,
-    'inoutexpo' => ModEases.inOutExpo,
-    'incirc' => ModEases.inCirc,
-    'outcirc' => ModEases.outCirc,
-    'inoutcirc' => ModEases.inOutCirc,
-    'inbounce' => ModEases.inBounce,
-    'outbounce' => ModEases.outBounce,
-    'inoutbounce' => ModEases.inOutBounce,
-    'insine' => ModEases.inSine,
-    'outsine' => ModEases.outSine,
-    'inoutsine' => ModEases.inOutSine,
-    'inelastic' => ModEases.inElastic,
-    'outelastic' => ModEases.outElastic,
-    'inoutelastic' => ModEases.inOutElastic,
-    'inback' => ModEases.inBack,
-    'outback' => ModEases.outBack,
-    'inoutback' => ModEases.inOutBack,
-    'bounce' => ModEases.bounce,
-    'tri' => ModEases.tri,
-    'bell' => ModEases.bell,
-    'pop' => ModEases.pop,
-    'tap' => ModEases.tap,
-    'pulse' => ModEases.pulse,
-    'spike' => ModEases.spike,
-    'inverse' => ModEases.inverse,
-    'popelasticinternal' => ModEases.popElasticInternal,
-    'tapelasticinternal' => ModEases.tapElasticInternal,
-    'pulseelasticinternal' => ModEases.pulseElasticInternal,
-    'insmoothstep' => ModEases.inSmoothStep,
-    'outsmoothstep' => ModEases.outSmoothStep,
-    'inoutsmoothstep' => ModEases.inOutSmoothStep,
-    'insmootherstep' => ModEases.inSmootherStep,
-    'outsmootherstep' => ModEases.outSmootherStep,
-    'inoutsmootherstep' => ModEases.inOutSmootherStep
+    'quadin' => ModEases.inQuad,
+    'quadout' => ModEases.outQuad,
+    'quadinout' => ModEases.inOutQuad,
+    'cubein' => ModEases.inCubic,
+    'cubeout' => ModEases.outCubic,
+    'cubeinout' => ModEases.inOutCubic,
+    'quartin' => ModEases.inQuart,
+    'quartout' => ModEases.outQuart,
+    'quartinout' => ModEases.inOutQuart,
+    'quintin' => ModEases.inQuint,
+    'quintout' => ModEases.outQuint,
+    'quintinout' => ModEases.inOutQuint,
+    'expoin' => ModEases.inExpo,
+    'expoout' => ModEases.outExpo,
+    'expoinout' => ModEases.inOutExpo,
+    'circin' => ModEases.inCirc,
+    'circout' => ModEases.outCirc,
+    'circinout' => ModEases.inOutCirc,
+    'bouncein' => ModEases.inBounce,
+    'bounceout' => ModEases.outBounce,
+    'bounceinout' => ModEases.inOutBounce,
+    'sinein' => ModEases.inSine,
+    'sineout' => ModEases.outSine,
+    'sineinout' => ModEases.inOutSine,
+    'elasticin' => ModEases.inElastic,
+    'elasticout' => ModEases.outElastic,
+    'elasticinout' => ModEases.inOutElastic,
+    'backin' => ModEases.inBack,
+    'backout' => ModEases.outBack,
+    'backinout' => ModEases.inOutBack,
+    'smoothstepin' => ModEases.inSmoothStep,
+    'smoothstepout' => ModEases.outSmoothStep,
+    'smoothstepinout' => ModEases.inOutSmoothStep,
+    'smootherstepin' => ModEases.inSmootherStep,
+    'smootherstepout' => ModEases.outSmootherStep,
+    'smootherstepinout' => ModEases.inOutSmootherStep
   ];
 
   function getEaseByString(ease:String)
@@ -112,12 +101,12 @@ class TrollEngineModchartScripts
     }
     if (player == -1)
     {
-      modEvents.ease(step / 4, endStep / 4, style, [target, modName], {mode: 'end', startVal: (startVal != null ? startVal : null)});
+      modEvents.ease(step / 4, endStep / 4, easeFunc, [target, modName], {mode: 'end', startVal: (startVal != null ? startVal : null)});
     }
     else
     {
       player = ModchartMath.iClamp(player, 0, 1);
-      modEvents.ease(step / 4, endStep / 4, style, [target, modName], {mode: 'end', plr: [player], startVal: (startVal != null ? startVal : null)});
+      modEvents.ease(step / 4, endStep / 4, easeFunc, [target, modName], {mode: 'end', plr: [player], startVal: (startVal != null ? startVal : null)});
     }
   }
 

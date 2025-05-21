@@ -20,6 +20,13 @@ import funkin.play.notes.notekind.NoteKindManager;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
+import flixel.FlxG;
+import flixel.math.FlxMath;
+import openfl.Vector;
+import openfl.geom.Vector3D;
+import openfl.display.BitmapData;
+import openfl.display.GraphicsPathCommand;
+import openfl.geom.Matrix;
 
 /**
  * A group of sprites which handles the receptor, the note splashes, and the notes (with sustains) for a given player.
@@ -115,11 +122,13 @@ class Strumline extends FlxSpriteGroup
   public var modNumber:Int;
 
   public var defaultHeight:Float = 0.0;
+  public var xoffArray:Array<Float> = [];
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, modNumber:Int)
   {
     super();
-
+    for (col in 0...4)
+      xoffArray.push(this.x + col * NOTE_SPACING);
     this.isPlayer = isPlayer;
     this.noteStyle = noteStyle;
     this.modNumber = modNumber;
@@ -161,6 +170,7 @@ class Strumline extends FlxSpriteGroup
     for (i in 0...KEY_COUNT)
     {
       var child:StrumlineNote = new StrumlineNote(noteStyle, isPlayer, DIRECTIONS[i]);
+      child.parentStrumline = this;
       child.x = getXPos(DIRECTIONS[i]);
       child.x += INITIAL_OFFSET;
       child.y = 0;
@@ -199,6 +209,60 @@ class Strumline extends FlxSpriteGroup
     #if FEATURE_GHOST_TAPPING
     updateGhostTapTimer(elapsed);
     #end
+  }
+
+  override public function draw():Void
+  {
+    super.draw();
+    var currentBeat:Float = conductorInUse.currentBeatTime;
+    var bitmap = new openfl.display.Shape();
+    var length = -2000.0;
+    var subdivisions = 80;
+    var boundary = 300;
+    for (column in 0...4)
+    {
+      var defaults:Vector3D = new Vector3D(xoffArray[column], this.y);
+      var commands = new Vector<Int>();
+      var data = new Vector<Float>();
+      var player = modNumber;
+      var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+      if (alpha <= 0) continue;
+      var path1 = new Vector3D(mods.GetXPos(column, 0, modNumber, xoffArray), mods.GetYPos(column, 0, modNumber, xoffArray, defaultHeight),
+        mods.GetZPos(column, 0, modNumber, xoffArray)).add(defaults);
+      path1 = ModchartMath.PerspectiveProjection(path1.subtract(new Vector3D(0, 0, -1000))).subtract(path1);
+      path1 = ModchartMath.skewVector2(path1, strumlineNotes.members[column].skew.x, strumlineNotes.members[column].skew.y);
+      path1 = ModchartMath.rotateVector3(path1, strumlineNotes.members[column].rotation.x, strumlineNotes.members[column].rotation.y,
+        strumlineNotes.members[column].rotation.z);
+      bitmap.graphics.lineStyle(1, 0xFFFFFF, 1);
+      commands.push(GraphicsPathCommand.MOVE_TO);
+      data.push(path1.x);
+      data.push(path1.y);
+      for (i in 0...subdivisions)
+      {
+        var yoff:Float = mods.CalculateNoteYPos(conductorInUse, length / subdivisions * (i + 1), false);
+        var path2 = new Vector3D(mods.GetXPos(column, yoff, modNumber, xoffArray), mods.GetYPos(column, yoff, modNumber, xoffArray, defaultHeight),
+          mods.GetZPos(column, yoff, modNumber, xoffArray)).add(defaults);
+        path2 = ModchartMath.PerspectiveProjection(path2.subtract(new Vector3D(0, 0, -1000))).subtract(path2);
+        path2 = ModchartMath.skewVector2(path2, strumlineNotes.members[column].skew.x, strumlineNotes.members[column].skew.y);
+        path2 = ModchartMath.rotateVector3(path2, strumlineNotes.members[column].rotation.x, strumlineNotes.members[column].rotation.y,
+          strumlineNotes.members[column].rotation.z);
+        if (FlxMath.inBounds(path2.x, -boundary, FlxG.width + boundary) && FlxMath.inBounds(path2.y, -boundary, FlxG.height + boundary))
+        {
+          commands.push(GraphicsPathCommand.LINE_TO);
+          data.push(path2.x);
+          data.push(path2.y);
+        }
+      }
+      bitmap.graphics.drawPath(commands, data);
+      var bitmapData = new BitmapData(FlxG.width, FlxG.height, true, 0);
+      bitmapData.draw(bitmap);
+      for (camera in cameras)
+      {
+        camera.canvas.graphics.beginBitmapFill(bitmapData, new Matrix());
+        camera.canvas.graphics.drawRect(0, 0, FlxG.width, FlxG.height);
+        camera.canvas.graphics.endFill();
+      }
+    }
   }
 
   #if FEATURE_GHOST_TAPPING
@@ -380,15 +444,12 @@ class Strumline extends FlxSpriteGroup
 
       onNoteIncoming.dispatch(noteSprite);
     }
-    var xoffArray:Array<Float> = [];
-    for (col in 0...4)
-      xoffArray.push(this.x + col * NOTE_SPACING);
+
     var height:Float = defaultHeight;
     // Update rendering of notes.
     for (note in notes.members)
     {
       if (note == null || !note.alive) continue;
-
       var vwoosh:Bool = note.holdNoteSprite == null;
       var col:Int = note.noteData.getDirection();
       var xoff:Float = this.x + (col * NOTE_SPACING);
@@ -415,8 +476,7 @@ class Strumline extends FlxSpriteGroup
       note.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
       var noteBeat:Float = Conductor.instance.getBeatTimeInMs(note.strumTime);
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),
-        mods.GetRotationY(col, realofs, note.holdNoteSprite != null),
-        mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle));
+        mods.GetRotationY(col, realofs, note.holdNoteSprite != null), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle));
       // If the note is miss
       var isOffscreen = Preferences.downscroll ? note.y > FlxG.height : note.y < -note.height;
       if (note.handledMiss && isOffscreen)
@@ -634,11 +694,16 @@ class Strumline extends FlxSpriteGroup
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
       mods.modifyPos(pos, xoffArray);
-      var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
-      cover.scale.x = scale[0] * zoom / perspective.z;
-      cover.scale.y = scale[1] * zoom / perspective.z;
-      cover.x = perspective.x + cover.offsetX;
-      cover.y = perspective.y + cover.offsetY;
+      cover.x = pos.x;
+      cover.y = pos.y;
+      cover.z = pos.z;
+      // var perspective = ModchartMath.PerspectiveProjection(new Vector3D(pos.x, pos.y, pos.z - 1000));
+      // cover.scale.x = scale[0] * zoom / perspective.z;
+      // cover.scale.y = scale[1] * zoom / perspective.z;
+      // cover.x = perspective.x + cover.offsetX;
+      // cover.y = perspective.y + cover.offsetY;
+      cover.SCALE.x = scale[0] * zoom;
+      cover.SCALE.y = scale[1] * zoom;
       var isHidden:Float = mods.getValue('hidenoteflash');
       cover.visible = (mods.opened == true && isHidden != 0) ? false : true;
       cover.hsvShader.ALPHA = mods.ReceptorGetAlpha(col);
@@ -914,7 +979,7 @@ class Strumline extends FlxSpriteGroup
     {
       var noteKindStyle:NoteStyle = NoteKindManager.getNoteStyle(note.kind, this.noteStyle.id) ?? this.noteStyle;
       noteSprite.setupNoteGraphic(noteKindStyle);
-
+      noteSprite.parentStrumline = this;
       noteSprite.direction = note.getDirection();
       noteSprite.noteData = note;
 
@@ -1073,6 +1138,7 @@ class Strumline extends FlxSpriteGroup
       // The note sprite pool is full and all note splashes are active.
       // We have to create a new note.
       result = new SustainTrail(0, 0, noteStyle, modNumber);
+      result.parentStrumline = this;
       this.holdNotes.add(result);
     }
 

@@ -1,4 +1,4 @@
-package funkin.play.modchart.sprites;
+package funkin.play.modchart.objects;
 
 import flixel.math.FlxPoint;
 import openfl.geom.Matrix;
@@ -18,12 +18,15 @@ class FunkinActor extends FunkinSprite
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var rotation:Vector3D = new Vector3D();
-  public var SCALE:Vector3D = new Vector3D();
+  public var SCALE:Vector3D = new Vector3D(1, 1);
   public var z:Float = 0;
 
-  public function new(?x:Float, ?y:Float)
+  var havePreDraw:Bool = false;
+
+  public function new(?x:Float, ?y:Float, preDraw:Bool = false)
   {
     super(0, 0);
+    havePreDraw = preDraw;
   }
 
   override public function destroy():Void
@@ -36,7 +39,9 @@ class FunkinActor extends FunkinSprite
 
   override function draw():Void
   {
+    if (havePreDraw) super.draw();
     if (alpha == 0 || graphic == null || !exists || !visible) return;
+
     for (camera in cameras)
     {
       if (camera.exists && camera != null)
@@ -96,6 +101,7 @@ class FunkinActor extends FunkinSprite
         camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
       }
     }
+
     #if FLX_DEBUG
     if (FlxG.debugger.drawDebug) drawDebug();
     #end

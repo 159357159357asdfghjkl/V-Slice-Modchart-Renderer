@@ -124,7 +124,6 @@ class SustainTrail extends FlxSprite
     this.fullSustainLength = sustainLength;
     this.noteDirection = noteDirection;
     this.modNumber = modNumber;
-
     hsvShader = new ModchartHSVShader();
     setupHoldNoteGraphic(noteStyle);
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
@@ -238,9 +237,7 @@ class SustainTrail extends FlxSprite
     var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
     var pn:Int = modNumber;
-    var xoffArray:Array<Float> = [];
-    for (i in 0...4)
-      xoffArray.push((parentStrumline?.x ?? 0.0) + i * Strumline.NOTE_SPACING);
+    var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
     var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column) ?? 0.0;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
@@ -312,9 +309,10 @@ class SustainTrail extends FlxSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
+    var roughness:Float = 50.0;
     var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
-    var length:Int = Std.int(fullSustainLength / (50 * (1 + grain))); // each part's length
-    if (grain < 0) length = Std.int(fullSustainLength / (60 / (1 + Math.abs(grain))));
+    var length:Int = Std.int(fullSustainLength / (roughness * (1 + grain))); // each part's length
+    if (grain < 0) length = Std.int(fullSustainLength / (roughness / (1 + Math.abs(grain))));
     if (length == 0) length = 1;
     var halfWidth:Float = graphicWidth / 2;
     for (i in 0...length + 1)

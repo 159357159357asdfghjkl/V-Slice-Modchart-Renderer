@@ -34,6 +34,8 @@ class ModEvents
   public var default_mods:Array<Map<String, Float>> = [];
   public var modState:Array<Modchart> = [];
 
+  public var stepMode:Bool = false; // troll
+
   final MAX_PN:Int = 8;
   var poptions:Array<{get:(String) -> Float, set:(String, Float) -> Void}> = [];
 
@@ -104,6 +106,16 @@ class ModEvents
     if (easing(1) < 0.5) table.set('transient', 1);
     if (extra.mode != null || extra.m != null) newLen = len - beat;
     if (extra.flip == null) extra.flip = false;
+    if (extra.time == null) extra.time = false;
+    if (extra.step == null) extra.step == false;
+    if (extra.relative == null) extra.relative = false;
+    if (extra.time == true) extra.step = false;
+    if (extra.step == true) extra.time = false;
+    if (stepMode)
+    {
+      extra.step = true;
+      extra.time = false;
+    }
     table.set('time', extra.time);
     table.set('len', newLen);
     table.set('start_time', table['time'] ? beat : Conductor.instance.getBeatTimeInMs(beat));
@@ -112,13 +124,8 @@ class ModEvents
     table.set('flip', extra.flip);
     table.set('mod', modArray);
     table.set('startVal', extra.startVal);
-
-    if (extra.time == null) extra.time = false;
-    if (extra.step == null) extra.step == false;
-    if (extra.relative == null) extra.relative = false;
-    if (extra.time == true) extra.step = false;
-    if (extra.step == true) extra.time = false;
     table.set('relative', extra.relative);
+
     table.set('step', extra.step);
     var plr:Array<Int> = extra.plr;
     for (i in plr)
@@ -167,12 +174,18 @@ class ModEvents
     }
     if (extra.time == null) extra.time = false;
     if (extra.step == null) extra.step == false;
+    if (stepMode)
+    {
+      extra.step = true;
+      extra.time = false;
+    }
     var table:Map<String, Dynamic> = new Map<String, Dynamic>();
     table.set('beat', self[0]);
     table.set('len', self[1]);
     table.set('func', self[2]);
     table.set('priority', (extra.defer == true ? -1 : 1) * funcs.length);
     table.set('time', extra.time);
+    table.set('step', extra.step);
     table.set('start_time', (extra.time == true ? self[0] : Conductor.instance.getBeatTimeInMs(self[0])));
     funcs.push(table);
   }
@@ -190,6 +203,11 @@ class ModEvents
       table.set('mods', []);
       for (pn in 0...MAX_PN)
         table['mods'][pn] = [];
+    }
+    if (stepMode)
+    {
+      extra.step = true;
+      extra.time = false;
     }
     table.set('beat', self[0]);
     table.set('len', self[1]);
@@ -209,6 +227,11 @@ class ModEvents
     if (extra.step == null) extra.step == false;
     if (extra.defer == null) extra.defer = false;
     if (extra.persist == null) extra.persist = 0;
+    if (stepMode)
+    {
+      extra.step = true;
+      extra.time = false;
+    }
     var fn = self.pop();
     var eas = self[2];
     var start_percent:Float = 0;

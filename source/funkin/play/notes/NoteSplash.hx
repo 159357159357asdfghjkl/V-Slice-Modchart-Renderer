@@ -5,10 +5,9 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.FlxG;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
-import funkin.play.modchart.objects.FunkinActor;
 import funkin.play.modchart.shaders.ModchartHSVShader;
 
-class NoteSplash extends FunkinActor
+class NoteSplash extends FlxSprite
 {
   static final ALPHA:Float = 0.6;
   static final FRAMERATE_DEFAULT:Int = 24;
@@ -24,6 +23,8 @@ class NoteSplash extends FunkinActor
 
   public var hsvShader:ModchartHSVShader;
   public var column:Int = 0;
+  public var offsetX:Float = 0;
+  public var offsetY:Float = 0;
   public var defaultScale:Array<Float>;
 
   public function new()

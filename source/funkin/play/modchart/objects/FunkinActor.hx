@@ -21,12 +21,9 @@ class FunkinActor extends FunkinSprite
   public var SCALE:Vector3D = new Vector3D(1, 1);
   public var z:Float = 0;
 
-  var havePreDraw:Bool = false;
-
-  public function new(?x:Float, ?y:Float, preDraw:Bool = false)
+  public function new(?x:Float, ?y:Float)
   {
     super(0, 0);
-    havePreDraw = preDraw;
   }
 
   override public function destroy():Void
@@ -39,7 +36,6 @@ class FunkinActor extends FunkinSprite
 
   override function draw():Void
   {
-    if (havePreDraw) super.draw();
     if (alpha == 0 || graphic == null || !exists || !visible) return;
 
     for (camera in cameras)

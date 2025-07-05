@@ -13,6 +13,7 @@ import funkin.play.modchart.shaders.ModchartHSVShader;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
 import flixel.math.FlxPoint;
+import funkin.play.notes.NoteSprite;
 import funkin.play.modchart.util.ModchartMath;
 
 /**
@@ -92,6 +93,7 @@ class SustainTrail extends FlxSprite
    */
   public var bottomClip:Float = 0.9;
 
+  public var parent:NoteSprite;
   public var isPixel:Bool;
   public var noteStyleOffsets:Array<Float>;
 
@@ -238,12 +240,12 @@ class SustainTrail extends FlxSprite
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
     var pn:Int = modNumber;
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
-    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column) ?? 0.0;
+    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, parent?.strumTime ?? 0) ?? 0.0;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
-    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column) ?? 0.0;
+    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, parent?.strumTime ?? 0) ?? 0.0;
     var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, noteYOffset, pn, xoffArray) ?? 0.0);
@@ -309,9 +311,9 @@ class SustainTrail extends FlxSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
-    var roughness:Float = 50.0;
+    var roughness:Float = 30.0;
     var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
-    var length:Int = Std.int(fullSustainLength / (roughness * (1 + grain))); // each part's length
+    var length:Int = Std.int(fullSustainLength / (roughness * (1 + grain)));
     if (grain < 0) length = Std.int(fullSustainLength / (roughness / (1 + Math.abs(grain))));
     if (length == 0) length = 1;
     var halfWidth:Float = graphicWidth / 2;
@@ -321,8 +323,7 @@ class SustainTrail extends FlxSprite
       var time:Float = strumTime + (fullSustainLength / length * i);
       if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
       {
-        var diff:Float = Conductor.instance.songPosition - strumTime;
-        time = strumTime + (sustainLength / length * i) + diff;
+        time = Conductor.instance.songPosition + (sustainLength / length * i);
       }
       var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Vector3D = getPosWithOffset(halfWidth, 0, time);
@@ -338,12 +339,12 @@ class SustainTrail extends FlxSprite
     vertices[next * 2 + 1] = vertices[end * 2 + 1];
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
-    var capHeight:Float = 70.0;
-    var time:Float = strumTime + sustainLength + capHeight;
+    var capHeight:Float = 70; // / parentStrumline?.scrollSpeed ?? 1.0 * Constants.PIXELS_PER_MS;
+    var time:Float = strumTime + fullSustainLength + capHeight;
     var diff:Float = Conductor.instance.songPosition - strumTime;
     if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
     {
-      time = strumTime + capHeight + sustainLength + diff;
+      time = Conductor.instance.songPosition + capHeight + sustainLength;
     }
     var bottomnext:Int = (length + 2) * 2;
     var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);

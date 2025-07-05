@@ -401,12 +401,12 @@ class Modchart
 
   public function setValue(s:String, val:Float):Void
   {
-    if (modList.exists(s) || altname.exists(s)) modList.set(getName(s), val);
+    modList.set(getName(s), val);
   }
 
   public function getValue(s:String):Float
   {
-    var val:Float = (modList.exists(s) || altname.exists(s)) ? modList.get(getName(s)) : 0;
+    var val:Float = modList.get(getName(s));
     return val;
   }
 
@@ -417,7 +417,7 @@ class Modchart
     if (!modList.exists(name))
     {
       trace('Error! Maybe the name is wrong');
-      return null;
+      return '';
     }
     return name;
   }
@@ -469,7 +469,7 @@ class Modchart
     UpdateBeat(dim_z, getValue('beatzoffset'), getValue('beatzmult'));
   }
 
-  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int):Float
+  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int, parentTime:Float):Float
   {
     var speeds:Float = speed;
     var xmod:Float = getValue('xmod');
@@ -493,7 +493,7 @@ class Modchart
 
     if (getValue('randomspeed') > 0)
     {
-      var noteBeat:Float = Conductor.instance.getBeatTimeInMs(time);
+      var noteBeat:Float = (parentTime / 1000) * (Conductor.instance.bpm / 60);
       var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
 
       for (i in 0...3)
@@ -991,7 +991,7 @@ class Modchart
     }
     if (getValue('dizzy') != 0 && (getValue('dizzyholds') != 0 || !isHoldHead))
     {
-      var fDizzyRotation:Float = beat - noteBeat;
+      var fDizzyRotation = noteBeat - beat;
       fDizzyRotation *= getValue('dizzy');
       fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
       fDizzyRotation *= 180 / Math.PI;
@@ -1334,7 +1334,7 @@ class Modchart
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
       var centerX:Float = (xoff[3] + ARROW_SIZE - xoff[0]) / 2 + xoff[0] - ARROW_SIZE / 2;
-      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2 - ARROW_SIZE / 2);
+      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);

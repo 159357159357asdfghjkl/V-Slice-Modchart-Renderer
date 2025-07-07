@@ -13,7 +13,6 @@ import funkin.play.modchart.shaders.ModchartHSVShader;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
 import flixel.math.FlxPoint;
-import funkin.play.notes.NoteSprite;
 import funkin.play.modchart.util.ModchartMath;
 
 /**
@@ -93,7 +92,6 @@ class SustainTrail extends FlxSprite
    */
   public var bottomClip:Float = 0.9;
 
-  public var parent:NoteSprite;
   public var isPixel:Bool;
   public var noteStyleOffsets:Array<Float>;
 
@@ -231,8 +229,6 @@ class SustainTrail extends FlxSprite
     origin.set(width * 0.5, height * 0.5);
   }
 
-  public var vert:Vector3D = new Vector3D();
-
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float)
   {
     var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
@@ -240,12 +236,12 @@ class SustainTrail extends FlxSprite
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
     var pn:Int = modNumber;
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
-    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, parent?.strumTime ?? 0) ?? 0.0;
+    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, strumTime) ?? 0.0;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
-    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, parent?.strumTime ?? 0) ?? 0.0;
+    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, strumTime) ?? 0.0;
     var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, noteYOffset, pn, xoffArray) ?? 0.0);
@@ -266,11 +262,11 @@ class SustainTrail extends FlxSprite
       offset.x = pos3.x - strumPos.x;
       offset.z = pos3.z - strumPos.z;
     }
-    var noteBeat:Float = conductorInUse.getBeatTimeInMs(strumTime);
+    var noteBeat:Float = (strumTime / 1000) * (Conductor.instance.bpm / 60);
     var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true) ?? 0.0,
       parentStrumline?.mods?.GetRotationY(column, yOffset, true) ?? 0.0,
       (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true) ?? 0.0) + this.angle);
-    var fullPos:Vector3D = pos.add(vert);
+    var fullPos:Vector3D = pos;
     if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, xoffArray);
     var realPos:Vector3D = new Vector3D(xoff, yoff);
     var scaledPos:Vector3D = ModchartMath.scaleVector3(realPos, SCALE.x, SCALE.y, SCALE.z);
@@ -327,9 +323,9 @@ class SustainTrail extends FlxSprite
       }
       var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Vector3D = getPosWithOffset(halfWidth, 0, time);
-      vertices[a * 2] = pos1.x + halfWidth * SCALE.x;
+      vertices[a * 2] = pos1.x + halfWidth;
       vertices[a * 2 + 1] = pos1.y;
-      vertices[(a + 1) * 2] = pos2.x + halfWidth * SCALE.x;
+      vertices[(a + 1) * 2] = pos2.x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2.y;
     }
 
@@ -349,9 +345,9 @@ class SustainTrail extends FlxSprite
     var bottomnext:Int = (length + 2) * 2;
     var pos1:Vector3D = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Vector3D = getPosWithOffset(halfWidth, 0, time);
-    vertices[bottomnext * 2] = pos1.x + halfWidth * SCALE.x;
+    vertices[bottomnext * 2] = pos1.x + halfWidth;
     vertices[bottomnext * 2 + 1] = pos1.y;
-    vertices[(bottomnext + 1) * 2] = pos2.x + halfWidth * SCALE.x;
+    vertices[(bottomnext + 1) * 2] = pos2.x + halfWidth;
     vertices[(bottomnext + 1) * 2 + 1] = pos2.y;
 
     for (i in 0...length + 1)

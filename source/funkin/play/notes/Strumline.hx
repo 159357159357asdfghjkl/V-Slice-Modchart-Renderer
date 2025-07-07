@@ -122,13 +122,11 @@ class Strumline extends FlxSpriteGroup
   public var modNumber:Int;
 
   public var defaultHeight:Float = 0.0;
-  public var xoffArray:Array<Float> = [];
+  public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, modNumber:Int)
   {
     super();
-    for (col in 0...4)
-      xoffArray.push(this.x + col * NOTE_SPACING);
 
     this.isPlayer = isPlayer;
     this.noteStyle = noteStyle;
@@ -439,7 +437,6 @@ class Strumline extends FlxSpriteGroup
       if (note.length > 0)
       {
         noteSprite.holdNoteSprite = buildHoldNoteSprite(note);
-        noteSprite.holdNoteSprite.parent = noteSprite;
       }
 
       nextNoteIndex = noteIndex + 1; // Increment the nextNoteIndex rather than splicing the array, because splicing is slow.
@@ -448,6 +445,10 @@ class Strumline extends FlxSpriteGroup
     }
 
     var height:Float = defaultHeight;
+
+    // this solves tons of things
+    var differencesBetweenFNFandNotITG:Vector3D = new Vector3D(this.x + NOTE_SPACING * 1.5, this.y); // i'm fucked with this shit
+
     // Update rendering of notes.
     for (note in notes.members)
     {
@@ -455,11 +456,13 @@ class Strumline extends FlxSpriteGroup
       var vwoosh:Bool = note.holdNoteSprite == null;
       var col:Int = note.noteData.getDirection();
       note.offsetX = -NUDGE;
+      note.offsetY = -INITIAL_OFFSET;
+      note.offsetX += differencesBetweenFNFandNotITG.x;
+      note.offsetY += differencesBetweenFNFandNotITG.y;
       var realofs = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, vwoosh, col, note.strumTime);
       var zpos = mods.GetZPos(col, realofs, modNumber, xoffArray);
-      var xpos = this.x + (col * NOTE_SPACING) + mods.GetXPos(col, realofs, modNumber, xoffArray, true);
-      note.offsetY = -INITIAL_OFFSET;
-      var ypos = this.y + mods.GetYPos(col, realofs, modNumber, xoffArray, height);
+      var xpos = mods.GetXPos(col, realofs, modNumber, xoffArray, true);
+      var ypos = mods.GetYPos(col, realofs, modNumber, xoffArray, height);
       var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, note.defaultScale);
       var zoom:Float = mods.GetZoom(col, realofs, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
@@ -541,18 +544,18 @@ class Strumline extends FlxSpriteGroup
       {
         // Hold note was dropped before completing, keep it in its clipped state.
         holdNote.visible = true;
-
+        holdNote.x = holdNote.y = 0;
         var yOffset:Float = (holdNote.fullSustainLength - holdNote.sustainLength) * Constants.PIXELS_PER_MS;
         var vwoosh:Bool = false;
         holdNote.offsetX = STRUMLINE_SIZE / 2 - holdNote.width / 2;
+        holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
+        holdNote.offsetX += differencesBetweenFNFandNotITG.x;
+        holdNote.offsetY += differencesBetweenFNFandNotITG.y;
         var col:Int = holdNote.noteData.getDirection();
-        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote?.parent?.strumTime ?? 0);
+        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote.strumTime);
         var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-        holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
-        var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        holdNote.vert.x = pos.x;
-        holdNote.vert.y = pos.y;
+
         holdNote.SCALE.x = scale[0] * zoom;
         holdNote.SCALE.y = scale[1] * zoom;
         holdNote.SCALE.z = scale[4];
@@ -583,10 +586,11 @@ class Strumline extends FlxSpriteGroup
         }
         var vwoosh:Bool = false;
         var col:Int = holdNote.noteData.getDirection();
+        holdNote.x = holdNote.y = 0;
         holdNote.offsetX = STRUMLINE_SIZE / 2 - holdNote.width / 2;
-        var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        holdNote.vert.x = pos.x;
-        holdNote.vert.y = pos.y;
+        holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
+        holdNote.offsetX += differencesBetweenFNFandNotITG.x;
+        holdNote.offsetY += differencesBetweenFNFandNotITG.y;
         var scale:Array<Float> = mods.GetScale(col, 0, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, 0, modNumber);
         holdNote.SCALE.x = scale[0] * zoom;
@@ -597,8 +601,6 @@ class Strumline extends FlxSpriteGroup
         var yposWithoutReverse:Float = mods.GetYPos(col, 0, modNumber, xoffArray, height, false);
         holdNote.hsvShader.ALPHA = 1;
         holdNote.hsvShader.GLOW = 0;
-
-        holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
         holdNote.vwoosh = vwoosh;
       }
       else
@@ -606,16 +608,15 @@ class Strumline extends FlxSpriteGroup
         // Hold note is new, render it normally.
         holdNote.visible = true;
         var vwoosh:Bool = false;
-
+        holdNote.x = holdNote.y = 0;
         var col:Int = holdNote.noteData.getDirection();
         holdNote.offsetX = STRUMLINE_SIZE / 2 - holdNote.width / 2;
-        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote?.parent?.strumTime ?? 0);
+        holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
+        holdNote.offsetX += differencesBetweenFNFandNotITG.x;
+        holdNote.offsetY += differencesBetweenFNFandNotITG.y;
+        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote.strumTime);
         var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, holdNote.defaultScale);
         var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-        holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
-        var pos:Vector3D = new Vector3D(this.x + NOTE_SPACING * col, this.y, 0);
-        holdNote.vert.x = pos.x;
-        holdNote.vert.y = pos.y;
         holdNote.SCALE.x = scale[0] * zoom;
         holdNote.SCALE.y = scale[1] * zoom;
         holdNote.SCALE.z = scale[4];
@@ -632,14 +633,14 @@ class Strumline extends FlxSpriteGroup
     {
       if (strumNote == null || !strumNote.alive) continue;
       var col:Int = strumNote.column;
-      var xoff = this.x + (col * NOTE_SPACING);
       strumNote.offsetX = INITIAL_OFFSET + noteStyle._data.assets.noteStrumline.offsets[0];
       strumNote.offsetY = noteStyle._data.assets.noteStrumline.offsets[1];
-
+      strumNote.offsetX += differencesBetweenFNFandNotITG.x;
+      strumNote.offsetY += differencesBetweenFNFandNotITG.y;
       var realofs = mods.GetYPos(col, 0, modNumber, xoffArray, height);
       var zpos = mods.GetZPos(col, 0, modNumber, xoffArray);
-      var xpos:Float = xoff + mods.GetXPos(col, 0, modNumber, xoffArray);
-      var ypos:Float = this.y + realofs;
+      var xpos:Float = mods.GetXPos(col, 0, modNumber, xoffArray);
+      var ypos:Float = realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, strumNote.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
@@ -662,10 +663,12 @@ class Strumline extends FlxSpriteGroup
       var col:Int = splash.column;
       splash.offsetX = INITIAL_OFFSET;
       splash.offsetY = -INITIAL_OFFSET;
+      splash.offsetX += differencesBetweenFNFandNotITG.x;
+      splash.offsetY += differencesBetweenFNFandNotITG.y;
       var realofs = mods.GetYPos(col, 0, modNumber, xoffArray, height);
       var zpos = mods.GetZPos(col, 0, modNumber, xoffArray);
-      var xpos = this.x + (col * NOTE_SPACING) + mods.GetXPos(col, 0, modNumber, xoffArray);
-      var ypos = this.y + realofs;
+      var xpos = mods.GetXPos(col, 0, modNumber, xoffArray);
+      var ypos = realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, splash.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
@@ -685,10 +688,12 @@ class Strumline extends FlxSpriteGroup
       var col:Int = cover.column;
       cover.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12;
       cover.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96;
+      cover.offsetX += differencesBetweenFNFandNotITG.x;
+      cover.offsetY += differencesBetweenFNFandNotITG.y;
       var realofs = mods.GetYPos(col, 0, modNumber, xoffArray, height);
       var zpos = mods.GetZPos(col, 0, modNumber, xoffArray);
-      var xpos = this.x + (col * NOTE_SPACING) + mods.GetXPos(col, 0, modNumber, xoffArray);
-      var ypos = this.y + realofs;
+      var xpos = mods.GetXPos(col, 0, modNumber, xoffArray);
+      var ypos = realofs;
       var scale:Array<Float> = mods.GetScale(col, 0, modNumber, cover.defaultScale);
       var zoom:Float = mods.GetZoom(col, 0, modNumber);
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);

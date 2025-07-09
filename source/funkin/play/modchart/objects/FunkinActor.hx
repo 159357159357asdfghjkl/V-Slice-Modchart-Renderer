@@ -20,6 +20,8 @@ class FunkinActor extends FunkinSprite
   public var rotation:Vector3D = new Vector3D();
   public var SCALE:Vector3D = new Vector3D(1, 1);
   public var z:Float = 0;
+  public var alphaValue:Float = 0;
+  public var glow:Float = 0;
 
   public function new(?x:Float, ?y:Float)
   {
@@ -75,6 +77,9 @@ class FunkinActor extends FunkinSprite
           width / 2 + rotatedRB.x,
           height / 2 + rotatedRB.y
         ]);
+        var colors:Vector<Float> = new Vector<Float>(8, false);
+        for (i in 0...9)
+          colors.push(flixel.util.FlxColor.fromRGBFloat(glow * 255 * (1 - glow), glow * 255 * (1 - glow), glow * 255 * (1 - glow), alphaValue));
         var idx:Int = 0;
         while (idx < vertices.length)
         {

@@ -476,8 +476,10 @@ class Strumline extends FlxSpriteGroup
       note.y = pos.y;
       note.z = pos.z;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, height, false);
-      note.hsvShader.ALPHA = mods.GetAlpha(yposWithoutReverse, col, realofs);
-      note.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
+      note.alphaValue = mods.GetAlpha(yposWithoutReverse, col, realofs);
+      note.glow = mods.GetGlow(yposWithoutReverse, col, realofs);
+      // note.hsvShader.ALPHA = mods.GetAlpha(yposWithoutReverse, col, realofs);
+      // note.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
       var noteBeat:Float = (note.strumTime / 1000) * (Conductor.instance.bpm / 60);
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),
         mods.GetRotationY(col, realofs, note.holdNoteSprite != null), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null) + note.angle));
@@ -551,19 +553,6 @@ class Strumline extends FlxSpriteGroup
         holdNote.offsetY = -INITIAL_OFFSET + yOffset + STRUMLINE_SIZE / 2;
         holdNote.offsetX += differencesBetweenFNFandNotITG.x;
         holdNote.offsetY += differencesBetweenFNFandNotITG.y;
-        var col:Int = holdNote.noteData.getDirection();
-        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote.strumTime);
-        var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, holdNote.defaultScale);
-        var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-
-        holdNote.SCALE.x = scale[0] * zoom;
-        holdNote.SCALE.y = scale[1] * zoom;
-        holdNote.SCALE.z = scale[4];
-        holdNote.skew.x = scale[2];
-        holdNote.skew.y = scale[3];
-        var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, height, false);
-        holdNote.hsvShader.ALPHA = mods.GetAlpha(yposWithoutReverse, col, realofs);
-        holdNote.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
         // Clean up the cover.
         if (holdNote.cover != null)
         {
@@ -591,16 +580,6 @@ class Strumline extends FlxSpriteGroup
         holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
         holdNote.offsetX += differencesBetweenFNFandNotITG.x;
         holdNote.offsetY += differencesBetweenFNFandNotITG.y;
-        var scale:Array<Float> = mods.GetScale(col, 0, modNumber, holdNote.defaultScale);
-        var zoom:Float = mods.GetZoom(col, 0, modNumber);
-        holdNote.SCALE.x = scale[0] * zoom;
-        holdNote.SCALE.y = scale[1] * zoom;
-        holdNote.SCALE.z = scale[4];
-        holdNote.skew.x = scale[2];
-        holdNote.skew.y = scale[3];
-        var yposWithoutReverse:Float = mods.GetYPos(col, 0, modNumber, xoffArray, height, false);
-        holdNote.hsvShader.ALPHA = 1;
-        holdNote.hsvShader.GLOW = 0;
         holdNote.vwoosh = vwoosh;
       }
       else
@@ -614,17 +593,6 @@ class Strumline extends FlxSpriteGroup
         holdNote.offsetY = -INITIAL_OFFSET + STRUMLINE_SIZE / 2;
         holdNote.offsetX += differencesBetweenFNFandNotITG.x;
         holdNote.offsetY += differencesBetweenFNFandNotITG.y;
-        var realofs = mods.GetYOffset(conductorInUse, holdNote.strumTime, scrollSpeed, vwoosh, col, holdNote.strumTime);
-        var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, holdNote.defaultScale);
-        var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-        holdNote.SCALE.x = scale[0] * zoom;
-        holdNote.SCALE.y = scale[1] * zoom;
-        holdNote.SCALE.z = scale[4];
-        holdNote.skew.x = scale[2];
-        holdNote.skew.y = scale[3];
-        var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, height, false);
-        holdNote.hsvShader.ALPHA = mods.GetAlpha(yposWithoutReverse, col, realofs);
-        holdNote.hsvShader.GLOW = mods.GetGlow(yposWithoutReverse, col, realofs);
         holdNote.vwoosh = vwoosh;
       }
     }
@@ -655,7 +623,8 @@ class Strumline extends FlxSpriteGroup
       strumNote.x = pos.x;
       strumNote.y = pos.y;
       strumNote.z = pos.z;
-      strumNote.hsvShader.ALPHA = mods.ReceptorGetAlpha(col);
+      // strumNote.hsvShader.ALPHA = mods.ReceptorGetAlpha(col);
+      strumNote.alphaValue = mods.ReceptorGetAlpha(col);
     }
     for (splash in noteSplashes)
     {

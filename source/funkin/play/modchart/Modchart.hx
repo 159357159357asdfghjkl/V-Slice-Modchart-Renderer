@@ -8,12 +8,7 @@ import openfl.geom.Vector3D;
 using StringTools;
 
 /**
- * Read Me:
- * I'm new to haxe so the code is weird,
- * it is in a mess,
- * don't expect it too much!
- * --but who can optimize it or rewrite this shit--
- * [Don't support many of NotITG mods unless it's open-source]
+ * Just a shit port
  */
 class Modchart
 {
@@ -131,8 +126,11 @@ class Modchart
       'centered',
       'swap',
       'attenuatex',
+      'attenuatexoffset',
       'attenuatey',
+      'attenuateyoffset',
       'attenuatez',
+      'attenuatezoffset',
       'beat',
       'beatoffset',
       'beatmult',
@@ -178,7 +176,11 @@ class Modchart
       'sawtoothzoffset',
       'sawtoothzperiod',
       'parabolax',
+      'parabolaxoffset',
+      'parabolay',
+      'parabolayoffset',
       'parabolaz',
+      'parabolazoffset',
       'digital',
       'digitalsteps',
       'digitaloffset',
@@ -248,7 +250,6 @@ class Modchart
       'pulseouter',
       'pulseoffset',
       'pulseperiod',
-      'shrink',
       'shrinkmult',
       'shrinklinear',
       'noteskewx',
@@ -282,7 +283,6 @@ class Modchart
       'rotationz',
       'skewx',
       'skewy',
-      'hidenoteflash',
       'spiralx',
       'spiralxoffset',
       'spiralxperiod',
@@ -295,9 +295,31 @@ class Modchart
       'granulate',
       'gayholds',
       'arrowpath',
-      'mini'
+      'arrowpathgranulate',
+      'arrowpathsize',
+      'arrowpathdrawsize',
+      'arrowpathdrawsizeback',
+      'mini',
+      'drawsize',
+      'drawsizeback',
+      'holdtiny',
+      'tanpulse',
+      'tanpulseinner',
+      'tanpulseouter',
+      'tanpulseoffset',
+      'tanpulseperiod',
+      'shrinklinearx',
+      'shrinklineary',
+      'shrinklinearz',
+      'shrinkmultx',
+      'shrinkmulty',
+      'shrinkmultz',
+      'vanishoffset',
+      'tapstealth',
+      'holdstealth'
     ];
 
+    // spiralholds = holdtype
     var ONE:Array<String> = [
       'xmod',
       'zoom',
@@ -309,9 +331,10 @@ class Modchart
       'scale',
       'scalex',
       'scaley',
-      'scalez'
+      'scalez',
+      'scrollspeedmult'
     ];
-    for (i in 0...4)
+    for (i in 0...Strumline.KEY_COUNT)
     {
       ZERO.push('reverse$i');
       ZERO.push('movex$i');
@@ -324,6 +347,7 @@ class Modchart
       ZERO.push('moveyoffset1$i');
       ZERO.push('movezoffset1$i');
       ZERO.push('tiny$i');
+      ZERO.push('holdtiny$i');
       ZERO.push('bumpy$i');
       ONE.push('scalex$i');
       ONE.push('scaley$i');
@@ -342,6 +366,8 @@ class Modchart
       ZERO.push('confusionoffset$i');
       ZERO.push('dark$i');
       ZERO.push('stealth$i');
+      ZERO.push('tapstealth$i');
+      ZERO.push('holdstealth$i');
       ZERO.push('arrowpath$i');
       ONE.push('zoom$i');
       ONE.push('zoomx$i');
@@ -355,21 +381,25 @@ class Modchart
     for (mod in ONE)
       defaults.set(mod, 1);
 
-    defaults.set('cmod', 0);
+    defaults.set('cmod', 2);
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
+
     // in the groove 2 mod name
     altname.set('accel', 'boost');
     altname.set('decel', 'brake');
     altname.set('drift', 'drunk');
     altname.set('float', 'tipsy');
+
     // notitg names
+    // idk why notitg makes tons of aliases fuck
+    // i hate you
     altname.set('glitchytan', 'cosecant');
+    altname.set('plannedomspeed', 'scrollspeedmult');
     altname.set('x', 'movex');
     altname.set('y', 'movey');
     altname.set('z', 'movez');
-    altname.set('vanish', 'randomvanish');
     altname.set('drunkspacing', 'drunkoffset');
     altname.set('drunkyspacing', 'drunkyoffset');
     altname.set('drunkzspacing', 'drunkzoffset');
@@ -382,7 +412,26 @@ class Modchart
     altname.set('tantipsyspacing', 'tantipsyoffset');
     altname.set('tantipsyxspacing', 'tantipsyxoffset');
     altname.set('tantipsyzspacing', 'tantipsyzoffset');
+    altname.set('vanish', 'randomvanish');
     altname.set('grain', 'granulate');
+    altname.set('arrowpathgrain', 'arrowpathgranulate');
+    altname.set('arrowpathgirth', 'arrowpathsize');
+    altname.set('arrowpathwidth', 'arrowpathsize');
+    altname.set('drawsizefront', 'drawsize');
+    altname.set('drawdistance', 'drawsize');
+    altname.set('drawdistancefront', 'drawsize');
+    altname.set('drawdistanceback', 'drawsizeback');
+    altname.set('arrowpathdrawsizefront', 'arrowpathdrawsize');
+    altname.set('arrowpathdrawdistance', 'arrowpathdrawsize');
+    altname.set('arrowpathdrawdistancefront', 'arrowpathdrawsize');
+    altname.set('arrowpathdrawdistanceback', 'arrowpathdrawsizeback');
+    altname.set('hideholds', 'holdstealth');
+    altname.set('hidetaps', 'tapstealth');
+    for (i in 0...Strumline.KEY_COUNT)
+    {
+      altname.set('hideholds$i', 'holdstealth$i');
+      altname.set('hidetaps$i', 'tapstealth$i');
+    }
   }
 
   public function initMods()
@@ -405,7 +454,8 @@ class Modchart
 
   public function getValue(s:String):Float
   {
-    var val:Float = modList.get(getName(s));
+    var val:Null<Float> = modList.get(getName(s));
+    if (val == null) return 0;
     return val;
   }
 
@@ -420,7 +470,7 @@ class Modchart
       if (!checkedName.contains(name))
       {
         checkedName.push(s1);
-        lime.app.Application.current.window.alert('Modifier name "$s1" does not exist. Check your script!');
+        lime.app.Application.current.window.alert('Modifier name "$s1" does not exist. Check your script!', 'Modchart Script');
       }
       return '';
     }
@@ -443,9 +493,9 @@ class Modchart
     var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
     beatFactor[d] = 0;
     if (fBeat < 0) return;
-    fBeat -= Math.floor(fBeat);
+    fBeat -= ModchartMath.trunc(fBeat);
     fBeat += 1;
-    fBeat -= Math.floor(fBeat);
+    fBeat -= ModchartMath.trunc(fBeat);
     if (fBeat >= fTotalTime) return;
     if (fBeat < fAccelTime)
     {
@@ -460,6 +510,8 @@ class Modchart
     if (bEvenBeat) beatFactor[d] *= -1;
     beatFactor[d] *= 20.0;
   }
+
+  public var baseHoldSize:Int = 80;
 
   public function update(elapsed:Float):Void
   {
@@ -479,7 +531,7 @@ class Modchart
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int, parentTime:Float):Float
   {
     scrollSpeed = getValue('xmod');
-    if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod');
+    if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
 
     if (getValue('expand') != 0)
     {
@@ -504,6 +556,7 @@ class Modchart
 
       scrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
     }
+    scrollSpeed *= getValue('scrollspeedmult');
     var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh) * speed * -1;
     var fYAdjust:Float = 0;
 
@@ -574,7 +627,8 @@ class Modchart
       getValue('tandrunkoffset'), 0.2, fYOffset, getValue('tandrunkperiod'), 10),
       getValue('cosecant')) * ARROW_SIZE * 0.5;
 
-    if (getValue('attenuatex') != 0) f += getValue('attenuatex') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
+    if (getValue('attenuatex') != 0) f += getValue('attenuatex') * ((fYOffset + 100 * getValue('attenuatexoffset')) / ARROW_SIZE) * ((fYOffset
+      + 100 * getValue('attenuatexoffset')) / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
 
     if (getValue('beat') != 0)
     {
@@ -601,7 +655,47 @@ class Modchart
 
     if (getValue('divide') != 0) f += getValue('divide') * (ARROW_SIZE * (iCol >= 2 ? 1 : -1));
 
-    if (getValue('invert') != 0) f += getValue('invert') * (ARROW_SIZE * ((iCol % 2 == 0) ? 1 : -1));
+    if (getValue('invert') != 0)
+    {
+      final iNumCols:Int = 4;
+      final iNumSides:Int = 1;
+      final iNumColsPerSide:Int = Std.int(iNumCols / iNumSides);
+      final iSideIndex:Int = Std.int(iCol / iNumColsPerSide);
+      final iColOnSide:Int = Std.int(iCol % iNumColsPerSide);
+
+      final iColLeftOfMiddle:Int = Std.int((iNumColsPerSide - 1) / 2);
+      final iColRightOfMiddle:Int = Std.int((iNumColsPerSide + 1) / 2);
+
+      var iFirstColOnSide:Int = -1;
+      var iLastColOnSide:Int = -1;
+      if (iColOnSide <= iColLeftOfMiddle)
+      {
+        iFirstColOnSide = 0;
+        iLastColOnSide = iColLeftOfMiddle;
+      }
+      else if (iColOnSide >= iColRightOfMiddle)
+      {
+        iFirstColOnSide = iColRightOfMiddle;
+        iLastColOnSide = iNumColsPerSide - 1;
+      }
+      else
+      {
+        iFirstColOnSide = Std.int(iColOnSide / 2);
+        iLastColOnSide = Std.int(iColOnSide / 2);
+      }
+
+      // mirror
+      var iNewColOnSide:Int;
+      if (iFirstColOnSide == iLastColOnSide) iNewColOnSide = 0;
+      else
+        iNewColOnSide = Std.int(ModchartMath.scale(iColOnSide, iFirstColOnSide, iLastColOnSide, iLastColOnSide, iFirstColOnSide));
+      final iNewCol:Int = iSideIndex * iNumColsPerSide + iNewColOnSide;
+
+      var fOldPixelOffset:Float = xOffset[iCol];
+      var fNewPixelOffset:Float = xOffset[iNewCol];
+      var invertDistance:Float = fNewPixelOffset - fOldPixelOffset;
+      f += getValue('invert') * invertDistance;
+    }
 
     if (getValue('zigzag') != 0)
     {
@@ -615,7 +709,8 @@ class Modchart
       + 100.0 * getValue('sawtoothoffset'))) / ARROW_SIZE
       - Math.floor((0.5 / (getValue('sawtoothperiod') + 1) * (fYOffset + 100.0 * getValue('sawtoothoffset'))) / ARROW_SIZE));
 
-    if (getValue('parabolax') != 0) f += getValue('parabolax') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE);
+    if (getValue('parabolax') != 0) f += getValue('parabolax') * ((fYOffset + 2 * getValue('parabolaxoffset')) / ARROW_SIZE) * ((fYOffset
+      + 2 * getValue('parabolaxoffset')) / ARROW_SIZE);
 
     if (getValue('digital') != 0) f += (getValue('digital') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalsteps') +
       1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitaloffset'), getValue('digitalperiod')))) / (getValue('digitalsteps')
@@ -739,7 +834,11 @@ class Modchart
 
     f += ARROW_SIZE * getValue('movey') + getValue('moveyoffset') + getValue('moveyoffset1');
 
-    if (getValue('attenuatey') != 0) f += getValue('attenuatey') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
+    if (getValue('attenuatey') != 0) f += getValue('attenuatey') * ((fYOffset + 100 * getValue('attenuateyoffset')) / ARROW_SIZE) * ((fYOffset
+      + 100 * getValue('attenuateyoffset')) / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
+
+    if (getValue('parabolay') != 0) f += getValue('parabolay') * ((fYOffset + 2 * getValue('parabolayoffset')) / ARROW_SIZE) * ((fYOffset
+      + 2 * getValue('parabolayoffset')) / ARROW_SIZE);
 
     if (getValue('tipsy') != 0) f += getValue('tipsy') * CalculateTipsyOffset(time, getValue('tipsyoffset'), getValue('tipsyspeed'), iCol);
 
@@ -831,8 +930,9 @@ class Modchart
 
     if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastSin((fYOffset + getValue('spiralyoffset')) * (1
       + getValue('spiralyperiod')));
-    f *= (Preferences.downscroll ? -1 : 1);
+
     f *= (ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5) < 0 ? -1 : 1);
+    f *= (Preferences.downscroll ? -1 : 1);
     var zoomy:Float = getValue('zoomy') * getValue('zoomy$iCol');
     f -= ((notefieldZoom * zoomy) - 1) * 100;
     f -= getValue('skewy') * 100;
@@ -956,9 +1056,11 @@ class Modchart
       f += (getValue('squarez') * ARROW_SIZE * 0.5) * fResult;
     }
 
-    if (getValue('parabolaz') != 0) f += getValue('parabolaz') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE);
+    if (getValue('parabolaz') != 0) f += getValue('parabolaz') * ((fYOffset + 2 * getValue('parabolazoffset')) / ARROW_SIZE) * ((fYOffset
+      + 2 * getValue('parabolazoffset')) / ARROW_SIZE);
 
-    if (getValue('attenuatez') != 0) f += getValue('attenuatez') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
+    if (getValue('attenuatez') != 0) f += getValue('attenuatez') * ((fYOffset + 100 * getValue('attenuatezoffset')) / ARROW_SIZE) * ((fYOffset
+      + 100 * getValue('attenuatezoffset')) / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
 
     if (getValue('tipsyz') != 0) f += getValue('tipsyz') * CalculateTipsyOffset(time, getValue('tipsyzoffset'), getValue('tipsyzspeed'), iCol);
 
@@ -1170,20 +1272,7 @@ class Modchart
       + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 1.0, 1.25)
       + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('suddenoffset');
 
-  public function ReceptorGetAlpha(iCol:Int):Float
-  {
-    var fVisibleAdjust:Float = 0;
-
-    if (getValue('dark') != 0) fVisibleAdjust -= getValue('dark');
-    if (getValue('dark$iCol') != 0)
-    {
-      fVisibleAdjust -= getValue('dark$iCol');
-    }
-    var fPercentVisible:Float = ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);
-    return fPercentVisible;
-  }
-
-  public function ArrowGetPercentVisible(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float):Float
+  public function ArrowGetPercentVisible(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
     var fDistFromCenterLine:Float = fYPosWithoutReverse - SCREEN_HEIGHT * 0.5 / (1 - getValue('mini') * 0.5);
 
@@ -1213,6 +1302,16 @@ class Modchart
     {
       fVisibleAdjust -= getValue('stealth$iCol');
     }
+    if (getValue('holdstealth') != 0 && isHoldBody) fVisibleAdjust -= getValue('holdstealth');
+    if (getValue('holdstealth$iCol') != 0 && isHoldBody)
+    {
+      fVisibleAdjust -= getValue('holdstealth$iCol');
+    }
+    if (getValue('tapstealth') != 0 && !isHoldBody && !isHoldHead) fVisibleAdjust -= getValue('tapstealth');
+    if (getValue('tapstealth$iCol') != 0 && !isHoldBody && !isHoldHead)
+    {
+      fVisibleAdjust -= getValue('tapstealth$iCol');
+    }
     if (getValue('blink') != 0)
     {
       var f:Float = ModchartMath.fastSin(Conductor.instance.songPosition / 1000 * 10);
@@ -1222,22 +1321,32 @@ class Modchart
     if (getValue('randomvanish') != 0)
     {
       var fRealFadeDist:Float = 80;
-      fVisibleAdjust += ModchartMath.scale(Math.abs(fDistFromCenterLine), fRealFadeDist, 2 * fRealFadeDist, -1, 0) * getValue('randomvanish');
+      fVisibleAdjust += ModchartMath.scale(Math.abs(fDistFromCenterLine), fRealFadeDist + 100 * getValue('vanishoffset'),
+        2 * (fRealFadeDist + 100 * getValue('vanishoffset')), -1, 0) * getValue('randomvanish');
     }
     return ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);
   }
 
-  public function GetAlpha(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float):Float
+  public function GetAlpha(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
-    var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset);
-    var alpha:Float = ModchartMath.scale(fPercentVisible, 0.5, 0, 1, 0);
-    return ModchartMath.clamp(alpha, 0, 1);
+    var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset, isHoldHead, isHoldBody);
+    var fDrawDistanceBeforeTargetsPixels:Float = SCREEN_HEIGHT;
+    var fFullAlphaY:Float = fDrawDistanceBeforeTargetsPixels;
+    if (fYPosWithoutReverse > fFullAlphaY)
+    {
+      var f = ModchartMath.scale(fYPosWithoutReverse, fFullAlphaY, fDrawDistanceBeforeTargetsPixels, 1.0, 0.0);
+      return f;
+    }
+    return (fPercentVisible > 0.5) ? 1.0 : 0.0;
   }
 
-  public function GetGlow(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float):Float
+  public function GetGlow(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
-    var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset);
-    return ModchartMath.clamp(ModchartMath.scale(fPercentVisible, 1, 0.5, 0, 1.3), 0, 1);
+    var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset, isHoldHead, isHoldBody);
+    var fPercentFadeToFail:Float = -1;
+    if (fPercentFadeToFail != -1) fPercentVisible = 1 - fPercentFadeToFail;
+    var fDistFromHalf:Float = Math.abs(fPercentVisible - 0.5);
+    return ModchartMath.scale(fDistFromHalf, 0, 0.5, 1.3, 0);
   }
 
   public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>, isHoldBody:Bool = false):Array<Float>
@@ -1256,11 +1365,28 @@ class Modchart
     // notitg's tinyx tinyy mod
     x *= Math.pow(0.5, getValue('tinyx'));
     x *= Math.pow(0.5, getValue('tinyx$iCol'));
-    y *= Math.pow(0.5, getValue('tinyy'));
-    y *= Math.pow(0.5, getValue('tinyy$iCol'));
+    if (!isHoldBody)
+    {
+      y *= Math.pow(0.5, getValue('tinyy'));
+      y *= Math.pow(0.5, getValue('tinyy$iCol'));
+    }
     z *= Math.pow(0.5, getValue('tinyz'));
     z *= Math.pow(0.5, getValue('tinyz$iCol'));
-
+    if (isHoldBody)
+    {
+      x *= Math.pow(0.5, getValue('holdtiny'));
+      x *= Math.pow(0.5, getValue('holdtiny$iCol'));
+      y *= Math.pow(0.5, getValue('holdtiny'));
+      y *= Math.pow(0.5, getValue('holdtiny$iCol'));
+      z *= Math.pow(0.5, getValue('holdtiny'));
+      z *= Math.pow(0.5, getValue('holdtiny$iCol'));
+    }
+    if (getValue('shrinkmultx') != 0 && fYOffset >= 0) x *= 1 / (1 + (fYOffset * (getValue('shrinkmultx') / 100.0)));
+    if (getValue('shrinklinearx') != 0 && fYOffset >= 0) x += fYOffset * (0.5 * getValue('shrinklinearx') / ARROW_SIZE);
+    if (getValue('shrinkmulty') != 0 && fYOffset >= 0) y *= 1 / (1 + (fYOffset * (getValue('shrinkmulty') / 100.0)));
+    if (getValue('shrinklineary') != 0 && fYOffset >= 0) y += fYOffset * (0.5 * getValue('shrinklineary') / ARROW_SIZE);
+    if (getValue('shrinkmultz') != 0 && fYOffset >= 0) z *= 1 / (1 + (fYOffset * (getValue('shrinkmultz') / 100.0)));
+    if (getValue('shrinklinearz') != 0 && fYOffset >= 0) z += fYOffset * (0.5 * getValue('shrinklinearz') / ARROW_SIZE);
     // skewx skewy
     var skewx:Float = 0;
     var skewy:Float = 0;
@@ -1276,10 +1402,11 @@ class Modchart
 
   public function GetZoom(iCol:Int, fYOffset:Float, pn:Int):Float
   {
-    var fZoom:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5);
+    var fZoom:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5); // the same as 1 - mini * 0.5
     var fPulseInner:Float = 1.0;
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     fZoom *= notefieldZoom;
+
     if (getValue('pulseinner') != 0 || getValue('pulseouter') != 0 || getValue('pulse') != 0)
     {
       var inner:Float = getValue('pulseinner') == 0 ? getValue('pulse') : getValue('pulseinner');
@@ -1295,17 +1422,25 @@ class Modchart
       fZoom *= (sine * (outer * 0.5)) + fPulseInner;
     }
 
-    if ((getValue('shrinkmult') != 0 || getValue('shrink') != 0) && fYOffset >= 0)
+    if (getValue('tanpulseinner') != 0 || getValue('tanpulseouter') != 0 || getValue('tanpulse') != 0)
     {
-      var mult:Float = getValue('shrinkmult') == 0 ? getValue('shrink') : getValue('shrinkmult');
-      fZoom *= 1 / (1 + (fYOffset * (mult / 100.0)));
+      var inner:Float = getValue('tanpulseinner') == 0 ? getValue('tanpulse') : getValue('tanpulseinner');
+      fPulseInner = ((inner * 0.5) + 1);
+      if (fPulseInner == 0) fPulseInner = 0.01;
     }
 
-    if ((getValue('shrinklinear') != 0 || getValue('shrink') != 0) && fYOffset >= 0)
+    if (getValue('tanpulseinner') != 0 || getValue('tanpulseouter') != 0 || getValue('tanpulse') != 0)
     {
-      var linear:Float = getValue('shrinklinear') == 0 ? getValue('shrink') : getValue('shrinklinear');
-      fZoom += fYOffset * (0.5 * linear / ARROW_SIZE);
+      var outer:Float = getValue('tanpulseouter') == 0 ? getValue('tanpulse') : getValue('tanpulseouter');
+      var sine:Float = selectTanType(((fYOffset + (100.0 * (getValue('tanpulseoffset')))) / (0.4 * (ARROW_SIZE + (getValue('tanpulseperiod') * ARROW_SIZE)))),
+        getValue('cosecant'));
+
+      fZoom *= (sine * (outer * 0.5)) + fPulseInner;
     }
+
+    if (getValue('shrinkmult') != 0 && fYOffset >= 0) fZoom *= 1 / (1 + (fYOffset * (getValue('shrinkmult') / 100.0)));
+
+    if (getValue('shrinklinear') != 0 && fYOffset >= 0) fZoom += fYOffset * (0.5 * getValue('shrinklinear') / ARROW_SIZE);
 
     if (getValue('tiny') != 0)
     {
@@ -1326,8 +1461,7 @@ class Modchart
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
-      var centerX:Float = xoff[2] - ARROW_SIZE / 2;
-      var originPos:Vector3D = new Vector3D(centerX, SCREEN_HEIGHT / 2);
+      var originPos:Vector3D = new Vector3D(0, SCREEN_HEIGHT / 2);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);

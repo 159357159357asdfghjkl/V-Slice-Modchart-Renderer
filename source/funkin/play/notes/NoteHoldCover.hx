@@ -28,6 +28,7 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
   public var offsetY:Float = 0;
   public var defaultScale:Array<Float>;
   public var hsvShader:ModchartHSVShader;
+  public var currentZValue:Float = 0;
 
   public function new()
   {

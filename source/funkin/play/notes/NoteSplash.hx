@@ -25,6 +25,7 @@ class NoteSplash extends FlxSprite
   public var column:Int = 0;
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
+  public var currentZValue:Float = 0;
   public var defaultScale:Array<Float>;
 
   public function new()

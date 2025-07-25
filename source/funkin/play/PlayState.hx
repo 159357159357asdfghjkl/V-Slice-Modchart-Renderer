@@ -709,15 +709,8 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
-    modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
-    var event:ScriptEvent = new ScriptEvent(INIT, false);
-    ScriptEventDispatcher.callEvent(currentSong, event);
-    ScriptEventDispatcher.callEvent(currentConversation, event);
-    ScriptEventDispatcher.callEvent(currentStage, event);
-    modEvents.onStart();
-    opponentStrumline.mods.initMods();
-    playerStrumline.mods.initMods();
 
+    initModEvents();
 
     #if FEATURE_DISCORD_RPC
     // Initialize Discord Rich Presence.
@@ -771,6 +764,18 @@ class PlayState extends MusicBeatSubState
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.
     refresh();
+  }
+
+  function initModEvents()
+  {
+    modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
+    var event:ScriptEvent = new ScriptEvent(INIT, false);
+    ScriptEventDispatcher.callEvent(currentSong, event);
+    ScriptEventDispatcher.callEvent(currentConversation, event);
+    ScriptEventDispatcher.callEvent(currentStage, event);
+    modEvents.onStart();
+    opponentStrumline.mods.initMods();
+    playerStrumline.mods.initMods();
   }
 
   public override function draw():Void

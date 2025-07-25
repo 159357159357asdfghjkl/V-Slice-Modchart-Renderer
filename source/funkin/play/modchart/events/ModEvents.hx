@@ -312,6 +312,16 @@ class ModEvents
     sort();
   }
 
+  public function clear():Void
+  {
+    active_eases = [];
+    active_funcs.remove();
+    funcs = [];
+    eases = [];
+    eases_index = 0;
+    funcs_index = 0;
+  }
+
   function touch_mod(mod:String, ?pn:Int)
   {
     if (pn != null) mods[pn][mod] = mods[pn][mod];

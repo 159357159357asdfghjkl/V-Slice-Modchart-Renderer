@@ -36,6 +36,13 @@ class ModchartMath
     return n;
   }
 
+  inline public static function trunc(x:Float):Float
+  {
+    if (x >= 0) return Math.floor(x);
+    else
+      return Math.ceil(x);
+  }
+
   inline public static function lerp(x:Float, l:Float, h:Float):Float // FlxMath.lerp but x is the first argument
     return x * (h - l) + l;
 
@@ -81,9 +88,9 @@ class ModchartMath
     }
   }
 
-  public static function PerspectiveProjection(vec3:Vector3D):Vector3D
+  public static function PerspectiveProjection(vec3:Vector3D, ?origin:Vector3D):Vector3D
   {
-    var origin:Vector3D = new Vector3D(FlxG.width / 2, FlxG.height / 2);
+    if (origin == null) origin = new Vector3D(FlxG.width / 2, FlxG.height / 2);
     var zNear:Float = 0;
     var zFar:Float = 100;
     var zRange:Float = zNear - zFar;
@@ -95,8 +102,8 @@ class ModchartMath
     var a:Float = (-zNear - zFar) / zRange;
     var b:Float = 2.0 * zFar * zNear / zRange;
     var newZPos:Float = a * -pos.z + b;
-    var newXPos:Float = pos.x / (1 / tanHalfFOV * ar) / newZPos;
-    var newYPos:Float = pos.y / (1 / tanHalfFOV) / newZPos;
+    var newXPos:Float = pos.x * (1 / tanHalfFOV * ar) / newZPos;
+    var newYPos:Float = pos.y * (1 / tanHalfFOV) / newZPos;
     var vector:Vector3D = new Vector3D(newXPos, newYPos, newZPos).add(origin);
     return vector;
   }

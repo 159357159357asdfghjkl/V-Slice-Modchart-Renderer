@@ -1,8 +1,5 @@
 package funkin.play.modchart.util;
 
-/**
- * All the trigonometric functions is here
- */
 class Trigonometric
 {
   static final PI:Float = 3.141592653589793;

@@ -79,7 +79,7 @@ class SustainTrail extends FlxSprite
    */
   public var uvtData:DrawData<Float> = new DrawData<Float>();
 
-  public var colors:DrawData<Int> = new DrawData<Int>();
+  public var colors:Array<Int> = [];
 
   private var processedGraphic:FlxGraphic;
 
@@ -108,8 +108,10 @@ class SustainTrail extends FlxSprite
   public var offsetY:Float;
   public var hsvShader:ModchartHSVShader;
   public var vwoosh:Bool;
-
+  public var currentZValue:Float = 0;
   public var isChartingState:Bool = false;
+
+  var renderType:Int = 0;
 
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
@@ -242,6 +244,7 @@ class SustainTrail extends FlxSprite
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+    currentZValue = pos.z;
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
     var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, strumTime) ?? 0.0;
     var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray) ?? 0.0,
@@ -278,21 +281,35 @@ class SustainTrail extends FlxSprite
     var scaledPos:Vector3D = ModchartMath.scaleVector3(realPos, scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, scale[2], scale[3]);
     var rotatedPos:Vector3D = ModchartMath.rotateVector3(skewedPos, rotation.x, rotation.y, rotation.z);
-    var zPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(fullPos.x, fullPos.y, fullPos.z - 1000))).subtract(fullPos);
+    var origin:Vector3D = new Vector3D(0, FlxG.height / 2);
+    var zPos:Vector3D = ModchartMath.PerspectiveProjection(rotatedPos.add(new Vector3D(fullPos.x, fullPos.y, fullPos.z - 1000)), origin).subtract(fullPos);
     zPos.incrementBy(new Vector3D(fullPos.x, fullPos.y));
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
-    var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset) ?? 1.0;
-    var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset) ?? 0.0;
-    var color:Vector3D = new Vector3D(glow * 255 * (1 - glow), glow * 255 * (1 - glow), glow * 255 * (1 - glow), alpha);
+    var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset, false, true) ?? 1.0;
+    var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
+    var defaultColor:Vector3D = new Vector3D((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+    var color:Vector3D = new Vector3D(glow * 255
+      + defaultColor.x * (1 - glow), glow * 255
+      + defaultColor.y * (1 - glow),
+      glow * 255
+      + defaultColor.z * (1 - glow));
+    color.scaleBy(alpha);
     return [zPos, color];
   }
 
   public function updateClipping():Void
   {
-    if (isChartingState) updateClippingOld();
+    if (isChartingState)
+    {
+      updateClippingOld();
+      renderType = 1;
+    }
     else
+    {
       updateClippingNew();
+      renderType = 0;
+    }
   }
 
   public function updateClippingNew():Void
@@ -316,11 +333,11 @@ class SustainTrail extends FlxSprite
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
-    var roughness:Float = 30.0;
+    var roughness:Float = parentStrumline?.mods?.baseHoldSize ?? 80;
     var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
-    var length:Int = Std.int(fullSustainLength / (roughness * (1 + grain)));
-    if (grain < 0) length = Std.int(fullSustainLength / (roughness / (1 + Math.abs(grain))));
-    if (length == 0) length = 1;
+    var length:Int = Math.round(Math.abs(fullSustainLength) / (roughness * (1 + grain)));
+    if (grain < 0) length = Math.round(Math.abs(fullSustainLength) / (roughness / (1 + Math.abs(grain))));
+    if (length <= 1) length = 1;
     var halfWidth:Float = graphicWidth / 2;
     for (i in 0...length + 1)
     {
@@ -336,8 +353,8 @@ class SustainTrail extends FlxSprite
       vertices[a * 2 + 1] = pos1[0].y;
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y;
-      colors[a * 2] = colors[a * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z, pos1[1].w);
-      colors[(a + 1) * 2] = colors[(a + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z, pos2[1].w);
+      colors[a * 2] = colors[a * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z).to24Bit();
+      colors[(a + 1) * 2] = colors[(a + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z).to24Bit();
     }
 
     var end:Int = length * 2;
@@ -360,8 +377,8 @@ class SustainTrail extends FlxSprite
     vertices[bottomnext * 2 + 1] = pos1[0].y;
     vertices[(bottomnext + 1) * 2] = pos2[0].x + halfWidth;
     vertices[(bottomnext + 1) * 2 + 1] = pos2[0].y;
-    colors[bottomnext * 2] = colors[bottomnext * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z, pos1[1].w);
-    colors[(bottomnext + 1) * 2] = colors[(bottomnext + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z, pos2[1].w);
+    colors[bottomnext * 2] = colors[bottomnext * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z).to24Bit();
+    colors[(bottomnext + 1) * 2] = colors[(bottomnext + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z).to24Bit();
 
     for (i in 0...length + 1)
     {
@@ -402,6 +419,12 @@ class SustainTrail extends FlxSprite
     indices.push(next + 2);
     indices.push(next + 3);
     this.indices = new DrawData<Int>(indices.length, true, indices);
+  }
+
+  function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
+  {
+    var vwoosh:Float = 1.0;
+    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh;
   }
 
   public function updateClippingOld(songTime:Float = 0):Void
@@ -450,6 +473,17 @@ class SustainTrail extends FlxSprite
     vertices[3 * 2] = graphicWidth;
     vertices[3 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex
 
+    var idx:Int = 0;
+    while (idx < vertices.length)
+    {
+      var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+      var defX:Float = parentStrumline?.xoffArray[column] ?? 0.0;
+      vertices[idx] += defX + offsetX;
+      var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
+      var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
+      vertices[idx + 1] += CalculateNoteYPos(conductorInUse, strumTime, vwoosh) + offsetY;
+      idx += 2;
+    }
     // ===HOLD UVs===
 
     // The UVs are a bit more complicated.
@@ -523,9 +557,15 @@ class SustainTrail extends FlxSprite
     {
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
-
       getScreenPosition(_point, camera).subtractPoint(offset);
-      camera.drawTriangles(processedGraphic, vertices, indices, uvtData, colors, _point, blend, true, antialiasing);
+      if (renderType == 0)
+      {
+        camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
+      }
+      else
+      {
+        camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
+      }
     }
 
     #if FLX_DEBUG

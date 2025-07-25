@@ -316,7 +316,8 @@ class Modchart
       'shrinkmultz',
       'vanishoffset',
       'tapstealth',
-      'holdstealth'
+      'holdstealth',
+      'centered2'
     ];
 
     // spiralholds = holdtype
@@ -586,10 +587,10 @@ class Modchart
     {
       fYAdjust += getValue('parabolay') * (fYOffset / ARROW_SIZE) * (fYOffset / ARROW_SIZE);
     }
+
     fYOffset += fYAdjust;
     if (getValue('boomerang') != 0) fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * getValue('boomerang');
     fYOffset *= scrollSpeed;
-
     return fYOffset;
   }
 
@@ -816,6 +817,7 @@ class Modchart
   public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, WithReverse:Bool = true):Float
   {
     var f:Float = fYOffset;
+    f -= getValue('centered2') * ARROW_SIZE;
     var time:Float = (Conductor.instance.songPosition / 1000);
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     if (WithReverse)
@@ -826,6 +828,7 @@ class Modchart
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
       var fShift:Float = fPercentReverse * yReversedOffset;
       fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, yReversedOffset / 2);
+      fShift = ModchartMath.scale(getValue('centered2'), 0., 1., fShift, ARROW_SIZE);
       var fScale:Float = ModchartMath.scale(fPercentReverse, 0.0, 1.0, 1.0, -1.0);
       f *= fScale;
       f += fShift;

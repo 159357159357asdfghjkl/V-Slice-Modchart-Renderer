@@ -240,19 +240,20 @@ class SustainTrail extends FlxSprite
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
     var pn:Int = modNumber;
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
-    var yOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, strumTime) ?? 0.0;
-    var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray) ?? 0.0,
+    var ofs = (parentStrumline?.mods?.getValue('centered2') ?? 0.0) * Strumline.NOTE_SPACING;
+    var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, strumTime) ?? 0.0) + ofs;
+    var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     currentZValue = pos.z;
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
-    var noteYOffset:Float = parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, strumTime) ?? 0.0;
-    var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray) ?? 0.0,
+    var noteYOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, strumTime) ?? 0.0) + ofs;
+    var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray, true) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, noteYOffset, pn, xoffArray) ?? 0.0);
-    var strumPos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, 0, pn, xoffArray) ?? 0.0,
-      parentStrumline?.mods?.GetYPos(column, 0, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
-      parentStrumline?.mods?.GetZPos(column, 0, pn, xoffArray) ?? 0.0);
+    var strumPos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, ofs, pn, xoffArray, false) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, ofs, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
+      parentStrumline?.mods?.GetZPos(column, ofs, pn, xoffArray) ?? 0.0);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;

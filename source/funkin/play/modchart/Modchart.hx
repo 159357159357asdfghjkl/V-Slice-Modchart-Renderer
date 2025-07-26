@@ -317,7 +317,8 @@ class Modchart
       'vanishoffset',
       'tapstealth',
       'holdstealth',
-      'centered2'
+      'centered2',
+      'orient'
     ];
 
     // spiralholds = holdtype
@@ -817,11 +818,12 @@ class Modchart
   public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, WithReverse:Bool = true):Float
   {
     var f:Float = fYOffset;
-    f -= getValue('centered2') * ARROW_SIZE;
+
     var time:Float = (Conductor.instance.songPosition / 1000);
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     if (WithReverse)
     {
+      f -= getValue('centered2') * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
       var yReversedOffset:Float = (SCREEN_HEIGHT - height - Constants.STRUMLINE_Y_OFFSET * 2) / zoom;
@@ -1075,7 +1077,7 @@ class Modchart
     return f;
   }
 
-  public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false):Float
+  public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1108,6 +1110,7 @@ class Modchart
     {
       fRotation += getValue('rotationz') * 100;
     }
+    if (getValue('orient') != 0) fRotation += (ModchartMath.deg * travelDir - 90 * (1 - GetReversePercentForColumn(iCol))) * getValue('orient');
     return fRotation;
   }
 
@@ -1175,7 +1178,7 @@ class Modchart
     return fRotation;
   }
 
-  public function ReceptorGetRotationZ(iCol:Int):Float
+  public function ReceptorGetRotationZ(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1197,6 +1200,7 @@ class Modchart
     {
       fRotation += getValue('rotationz') * 100;
     }
+    if (getValue('orient') != 0) fRotation += (ModchartMath.deg * travelDir - 90 * (1 - GetReversePercentForColumn(iCol))) * getValue('orient');
     return fRotation;
   }
 

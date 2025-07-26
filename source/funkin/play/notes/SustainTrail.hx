@@ -241,6 +241,7 @@ class SustainTrail extends FlxSprite
     var pn:Int = modNumber;
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
     var ofs = (parentStrumline?.mods?.getValue('centered2') ?? 0.0) * Strumline.NOTE_SPACING;
+    var timeDiff:Float = (parentStrumline?.mods?.baseHoldSize ?? 0);
     var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, strumTime) ?? 0.0) + ofs;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
@@ -254,6 +255,21 @@ class SustainTrail extends FlxSprite
     var strumPos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, ofs, pn, xoffArray, false) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, ofs, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, ofs, pn, xoffArray) ?? 0.0);
+    var yOffset2:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time + timeDiff, speed, vwoosh, column,
+      Conductor.instance.songPosition + timeDiff) ?? 0)
+      + ofs;
+    var pos4:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset2, pn, xoffArray, false) ?? 0,
+      parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0,
+      parentStrumline?.mods?.GetZPos(column, yOffset2, pn, xoffArray) ?? 0);
+    if (parentStrumline != null)
+    {
+      parentStrumline.mods.modifyPos(pos, xoffArray);
+      parentStrumline.mods.modifyPos(notePos, xoffArray);
+      parentStrumline.mods.modifyPos(strumPos, xoffArray);
+      parentStrumline.mods.modifyPos(pos4, xoffArray);
+    }
+    var diff = pos4.subtract(pos);
+    var ang = Math.atan2(diff.y, diff.x);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;
@@ -271,14 +287,12 @@ class SustainTrail extends FlxSprite
     var noteBeat:Float = (strumTime / 1000) * (Conductor.instance.bpm / 60);
     var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true) ?? 0.0,
       parentStrumline?.mods?.GetRotationY(column, yOffset, true) ?? 0.0,
-      (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true) ?? 0.0) + this.angle);
+      (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true, ang) ?? 0.0) + this.angle);
     var fullPos:Vector3D = pos;
-    if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, xoffArray);
     var realPos:Vector3D = new Vector3D(xoff, yoff);
     var scale:Array<Float> = parentStrumline?.mods?.GetScale(column, yOffset, modNumber, defaultScale) ?? [1, 1, 0, 0, 1];
     var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, modNumber) ?? 1;
     var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, modNumber, xoffArray, height, false) ?? 0.0;
-
     var scaledPos:Vector3D = ModchartMath.scaleVector3(realPos, scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewedPos:Vector3D = ModchartMath.skewVector2(scaledPos, scale[2], scale[3]);
     var rotatedPos:Vector3D = ModchartMath.rotateVector3(skewedPos, rotation.x, rotation.y, rotation.z);

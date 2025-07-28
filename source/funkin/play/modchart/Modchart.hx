@@ -381,9 +381,9 @@ class Modchart
       defaults.set(mod, 0);
 
     for (mod in ONE)
-      defaults.set(mod, 1);
+      defaults.set(mod, 100);
 
-    defaults.set('cmod', 2);
+    defaults.set('cmod', 200);
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
@@ -458,6 +458,8 @@ class Modchart
   {
     var val:Null<Float> = modList.get(getName(s));
     if (val == null) return 0;
+    else
+      val /= 100;
     return val;
   }
 
@@ -1110,7 +1112,11 @@ class Modchart
     {
       fRotation += getValue('rotationz') * 100;
     }
-    if (getValue('orient') != 0) fRotation += (ModchartMath.deg * travelDir - 90 * (1 - GetReversePercentForColumn(iCol))) * getValue('orient');
+    if (getValue('orient') != 0)
+    {
+      var reverse:Float = GetReversePercentForColumn(iCol);
+      fRotation += (ModchartMath.deg * travelDir - 90 * (reverse > 0.5 ? -1 : 1)) * getValue('orient');
+    }
     return fRotation;
   }
 
@@ -1200,7 +1206,11 @@ class Modchart
     {
       fRotation += getValue('rotationz') * 100;
     }
-    if (getValue('orient') != 0) fRotation += (ModchartMath.deg * travelDir - 90 * (1 - GetReversePercentForColumn(iCol))) * getValue('orient');
+    if (getValue('orient') != 0)
+    {
+      var reverse:Float = GetReversePercentForColumn(iCol);
+      fRotation += (ModchartMath.deg * travelDir - 90 * (reverse > 0.5 ? -1 : 1)) * getValue('orient');
+    }
     return fRotation;
   }
 

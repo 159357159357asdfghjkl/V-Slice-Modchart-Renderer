@@ -93,6 +93,7 @@ class ModEvents
         i += 2;
       }
     }
+    return this;
   }
 
   var eases:Array<Map<String, Dynamic>> = [];
@@ -134,6 +135,7 @@ class ModEvents
       copy.set('plr', i);
       eases.push(copy);
     }
+    return this;
   }
 
   public function add(beat:Float, len:Float, easing:Ease, modArr:Array<Dynamic>, ?extra:ExtraVars)
@@ -141,11 +143,13 @@ class ModEvents
     if (extra == null) extra = {relative: true};
     extra.relative = true;
     ease(beat, len, easing, modArr, extra);
+    return this;
   }
 
   public function set(beat:Float, modArr:Array<Dynamic>, ?extra:ExtraVars)
   {
     ease(beat, 0, ModEases.instant, modArr, extra);
+    return this;
   }
 
   public function acc(beat:Float, modArr:Array<Dynamic>, ?extra:ExtraVars)
@@ -153,6 +157,7 @@ class ModEvents
     if (extra == null) extra = {relative: true};
     extra.relative = true;
     ease(beat, 0, ModEases.instant, modArr, extra);
+    return this;
   }
 
   var funcs:Array<Map<String, Dynamic>> = [];
@@ -277,6 +282,7 @@ class ModEvents
     else if (self.length == 3) func_perframe(self, true, extra);
     else
       func_ease(self, extra);
+    return this;
   }
 
   public function alias(table:Array<String>)

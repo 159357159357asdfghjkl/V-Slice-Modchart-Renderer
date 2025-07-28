@@ -269,8 +269,8 @@ class Strumline extends FlxSpriteGroup
     zPos.incrementBy(new Vector3D(fullPos.x, fullPos.y));
     zPos.decrementBy(offset);
     zPos.incrementBy(getDifference());
-    // zPos.x += 60; // offset
-    // zPos.y += 48;
+    zPos.x += 50; // offset
+    zPos.y += 90;
     return zPos;
   }
 
@@ -282,7 +282,7 @@ class Strumline extends FlxSpriteGroup
     var bitmap = new openfl.display.Shape();
     var grain = mods.getValue('arrowpathgranulate');
     var roughness:Int = mods.baseHoldSize;
-    var backLength:Float = 400;
+    var backLength:Float = 200;
     backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
     var frontLength:Float = Math.round(FlxG.height / Constants.PIXELS_PER_MS);
     frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
@@ -298,7 +298,7 @@ class Strumline extends FlxSpriteGroup
       if (alpha <= 0) continue;
       var size:Float = 1 + mods.getValue('arrowpathsize');
       var path1 = getPosWithOffset(-size / 2, size / 2, 0, column);
-      bitmap.graphics.lineStyle(size, 0xFFFFFF, 1);
+      bitmap.graphics.lineStyle(size, 0xFFFFFF, alpha);
       commands.push(GraphicsPathCommand.MOVE_TO);
       data.push(path1.x);
       data.push(path1.y);
@@ -529,10 +529,8 @@ class Strumline extends FlxSpriteGroup
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
       mods.modifyPos(pos, xoffArray);
       var realofs2 = mods.GetYOffset(conductorInUse, note.strumTime + timeDiff, scrollSpeed, vwoosh, col, note.strumTime + timeDiff) + c2;
-      var zpos2 = mods.GetZPos(col, realofs2, modNumber, xoffArray);
-      var xpos2 = mods.GetXPos(col, realofs2, modNumber, xoffArray, true);
-      var ypos2 = mods.GetYPos(col, realofs2, modNumber, xoffArray, height);
-      var pos2:Vector3D = new Vector3D(xpos2, ypos2, zpos2);
+      var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true), mods.GetYPos(col, realofs2, modNumber, xoffArray, height),
+        mods.GetZPos(col, realofs2, modNumber, xoffArray));
       mods.modifyPos(pos2, xoffArray);
       var diff = pos2.subtract(pos);
       var ang = Math.atan2(diff.y, diff.x);
@@ -684,15 +682,11 @@ class Strumline extends FlxSpriteGroup
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
       mods.modifyPos(pos, xoffArray);
       var realofs2 = calculateNoteYPos(Conductor.instance.songPosition + timeDiff, false) + c2;
-      var zpos2 = mods.GetZPos(col, realofs2, modNumber, xoffArray);
-      var xpos2 = mods.GetXPos(col, realofs2, modNumber, xoffArray, true);
-      var ypos2 = mods.GetYPos(col, realofs2, modNumber, xoffArray, height);
-      var pos2:Vector3D = new Vector3D(xpos2, ypos2, zpos2);
+      var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true), mods.GetYPos(col, realofs2, modNumber, xoffArray, height),
+        mods.GetZPos(col, realofs2, modNumber, xoffArray));
       var realofs3 = calculateNoteYPos(Conductor.instance.songPosition, false) + c2;
-      var zpos3 = mods.GetZPos(col, realofs3, modNumber, xoffArray);
-      var xpos3 = mods.GetXPos(col, realofs3, modNumber, xoffArray, true);
-      var ypos3 = mods.GetYPos(col, realofs3, modNumber, xoffArray, height);
-      var pos3:Vector3D = new Vector3D(xpos3, ypos3, zpos3);
+      var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true), mods.GetYPos(col, realofs3, modNumber, xoffArray, height),
+        mods.GetZPos(col, realofs3, modNumber, xoffArray));
       mods.modifyPos(pos3, xoffArray);
       var diff = pos2.subtract(pos3);
       var ang = Math.atan2(diff.y, diff.x);

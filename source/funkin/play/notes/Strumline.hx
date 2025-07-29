@@ -282,12 +282,12 @@ class Strumline extends FlxSpriteGroup
     var bitmap = new openfl.display.Shape();
     var grain = mods.getValue('arrowpathgranulate');
     var roughness:Int = mods.baseHoldSize;
-    var backLength:Float = 200;
+    var backLength:Float = 400;
     backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
-    var frontLength:Float = Math.round(FlxG.height / Constants.PIXELS_PER_MS);
+    var frontLength:Float = 1000;
     frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
-    var subdivisions:Int = Math.round(Math.abs(backLength + frontLength) / (roughness * (1 + grain)));
-    if (grain < 0) subdivisions = Math.round(Math.abs(backLength + frontLength) / (roughness / (1 + Math.abs(grain))));
+    var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * (1 + grain)));
+    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / (1 + Math.abs(grain))));
     if (subdivisions <= 1) subdivisions = 1;
     for (column in 0...KEY_COUNT)
     {
@@ -533,7 +533,7 @@ class Strumline extends FlxSpriteGroup
         mods.GetZPos(col, realofs2, modNumber, xoffArray));
       mods.modifyPos(pos2, xoffArray);
       var diff = pos2.subtract(pos);
-      var ang = Math.atan2(diff.y, diff.x);
+      var ang = Math.atan2(diff.y, diff.x); // from hex mod i think
       note.SCALE.x = scale[0] * zoom;
       note.SCALE.y = scale[1] * zoom;
       note.SCALE.z = scale[4];

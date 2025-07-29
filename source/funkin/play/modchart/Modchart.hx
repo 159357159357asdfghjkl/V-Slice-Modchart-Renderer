@@ -9,6 +9,7 @@ using StringTools;
 
 /**
  * Just a shit port
+ * only make notitg mods
  */
 class Modchart
 {
@@ -532,6 +533,8 @@ class Modchart
     altname.set('expandsize', 'expandperiod');
     altname.set('sawtoothsize', 'sawtoothperiod');
     altname.set('sawtoothzsize', 'sawtoothzperiod');
+    altname.set('zigzagsize', 'zigzagperiod');
+    altname.set('zigzagzsize', 'zigzagzperiod');
     for (i in 0...Strumline.KEY_COUNT)
     {
       altname.set('hideholds$i', 'holdstealth$i');

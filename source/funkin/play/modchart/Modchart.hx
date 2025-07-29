@@ -529,6 +529,9 @@ class Modchart
     altname.set('tandrunkysize', 'tandrunkyperiod');
     altname.set('tandrunkzsize', 'tandrunkzperiod');
     altname.set('wavesize', 'waveperiod');
+    altname.set('expandsize', 'expandperiod');
+    altname.set('sawtoothsize', 'sawtoothperiod');
+    altname.set('sawtoothzsize', 'sawtoothzperiod');
     for (i in 0...Strumline.KEY_COUNT)
     {
       altname.set('hideholds$i', 'holdstealth$i');
@@ -627,7 +630,7 @@ class Modchart
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int, parentTime:Float):Float
   {
-    scrollSpeed = getValue('xmod');
+    scrollSpeed *= getValue('xmod');
     if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
 
     if (getValue('expand') != 0)
@@ -1455,7 +1458,7 @@ class Modchart
     if (getValue('orient') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) * getValue('orientoffset'));
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
       fRotation += value * getValue('orient');
     }
     return fRotation;
@@ -1554,7 +1557,7 @@ class Modchart
     if (getValue('orient') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) * getValue('orientoffset'));
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
       fRotation += value * getValue('orient');
     }
     return fRotation;

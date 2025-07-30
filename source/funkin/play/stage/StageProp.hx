@@ -22,8 +22,6 @@ class StageProp extends FunkinSprite implements IStateStageProp
    */
   public function onAdd(event:ScriptEvent):Void {}
 
-  public function onInit(event:ScriptEvent):Void {}
-
   public function onScriptEvent(event:ScriptEvent) {}
 
   public function onCreate(event:ScriptEvent) {}

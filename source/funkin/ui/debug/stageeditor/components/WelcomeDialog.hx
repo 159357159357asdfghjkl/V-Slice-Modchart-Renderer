@@ -4,12 +4,9 @@ import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.containers.dialogs.Dialogs;
 import haxe.ui.containers.dialogs.MessageBox.MessageBoxType;
 import haxe.ui.components.Link;
-import funkin.ui.debug.stageeditor.handlers.StageDataHandler;
 import funkin.save.Save;
 import funkin.util.FileUtil;
-import lime.ui.FileDialog;
 import flixel.FlxG;
-import funkin.input.Cursor;
 import funkin.data.stage.StageData;
 import funkin.data.stage.StageRegistry;
 import funkin.ui.debug.stageeditor.StageEditorState.StageEditorDialogType;
@@ -38,14 +35,17 @@ class WelcomeDialog extends Dialog
     {
       trace(file);
 
-      if (!FileUtil.doesFileExist(file)) continue; // whats the point of loading something that doesnt exist
+      if (!FileUtil.fileExists(file)) continue; // whats the point of loading something that doesnt exist
 
       var patj = new haxe.io.Path(file);
 
       var fileText = new Link();
       fileText.percentWidth = 100;
       fileText.text = patj.file + "." + patj.ext;
-      fileText.onClick = function(_) loadFromFilePath(file);
+      fileText.onClick = function(_) {
+        fileText.hide();
+        loadFromFilePath(file);
+      };
 
       #if sys
       var stat = sys.FileSystem.stat(file);
@@ -59,7 +59,7 @@ class WelcomeDialog extends Dialog
 
     boxDrag.onClick = function(_) FileUtil.browseForSaveFile([FileUtil.FILE_FILTER_FNFS], loadFromFilePath, null, null, "Open Stage Data");
 
-    var defaultStages = StageRegistry.instance.listBaseGameStageIds();
+    var defaultStages:Array<String> = StageRegistry.instance.listBaseGameEntryIds();
     defaultStages.sort(funkin.util.SortUtil.alphabetically);
 
     for (stage in defaultStages)
@@ -135,7 +135,8 @@ class WelcomeDialog extends Dialog
 
   function killDaDialog()
   {
-    stageEditorState.updateDialog(StageEditorDialogType.OBJECT);
+    stageEditorState.updateDialog(StageEditorDialogType.OBJECT_GRAPHIC);
+    stageEditorState.updateDialog(StageEditorDialogType.OBJECT_PROPERTIES);
     stageEditorState.updateDialog(StageEditorDialogType.CHARACTER);
     stageEditorState.updateDialog(StageEditorDialogType.STAGE);
 

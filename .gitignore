@@ -3,11 +3,22 @@
 .vs/
 APIStuff.hx
 dump/
+temp/
+docs/temp/
 export/
+assets/
+art/
+astc-textures/
 RECOVER_*.fla
 shitAudio/
 .build_time
 .swp
+NewgroundsCredentials.hx
+
+# Mobile signing stuff
+.apple/
+.env
+key.keystore
 
 # Exclude JS stuff
 node_modules/

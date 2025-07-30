@@ -4,6 +4,7 @@ import flixel.FlxG;
 import funkin.play.notes.Strumline;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
+import funkin.util.GRhythmUtil;
 
 using StringTools;
 
@@ -33,12 +34,6 @@ class Modchart
   var expandSeconds:Float = 0;
   var tanExpandSeconds:Float = 0;
 
-  public function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
-  {
-    var vwoosh:Float = 1.0;
-    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh;
-  }
-
   function CalculateDrunkAngle(time:Float, speed:Float, col:Int, offset:Float, col_frequency:Float, y_offset:Float, period:Float, offset_frequency:Float,
       real_offset:Float):Float
   {
@@ -56,6 +51,11 @@ class Modchart
   function CalculateDigitalAngle(y_offset:Float, offset:Float, period:Float):Float
   {
     return Math.PI * (y_offset + (1.0 * offset)) / (ARROW_SIZE + (period * ARROW_SIZE));
+  }
+
+  function getTime():Float
+  {
+    return Conductor.instance.songPosition / 1000;
   }
 
   function initDefaultMods()
@@ -622,7 +622,7 @@ class Modchart
 
   public function update(elapsed:Float):Void
   {
-    var time:Float = Conductor.instance.songPosition / 1000;
+    var time:Float = getTime();
     expandSeconds = time;
     expandSeconds = ModchartMath.mod(expandSeconds, (Math.PI * 2) / (getValue('expandperiod') + 1));
     tanExpandSeconds = time;
@@ -631,7 +631,7 @@ class Modchart
 
   public var scrollSpeed:Float = 1.0;
 
-  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, vwoosh:Bool, iCol:Int, parentTime:Float):Float
+  public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
     scrollSpeed *= getValue('xmod');
     if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
@@ -660,7 +660,7 @@ class Modchart
       scrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
     }
     scrollSpeed *= getValue('scrollspeedmult');
-    var fYOffset:Float = CalculateNoteYPos(conductor, time, vwoosh) * speed * -1;
+    var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, false, conductor) * -1;
     var fYAdjust:Float = 0;
 
     if (getValue('boost') != 0)
@@ -736,7 +736,7 @@ class Modchart
 
   public function GetXPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, isNote:Bool = false):Float
   {
-    var time:Float = (Conductor.instance.songPosition / 1000);
+    var time:Float = getTime();
     var f:Float = 0;
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     f += ARROW_SIZE * getValue('movex${iCol}') + getValue('movexoffset$iCol') + getValue('movexoffset1$iCol');
@@ -1009,11 +1009,10 @@ class Modchart
     return f;
   }
 
-  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, WithReverse:Bool = true):Float
+  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, down:Bool, WithReverse:Bool = true):Float
   {
     var f:Float = fYOffset;
-
-    var time:Float = (Conductor.instance.songPosition / 1000);
+    var time:Float = getTime();
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     if (WithReverse)
     {
@@ -1204,7 +1203,7 @@ class Modchart
       + getValue('spiralyperiod')));
 
     f *= (ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5) < 0 ? -1 : 1);
-    f *= (Preferences.downscroll ? -1 : 1);
+    f *= (down ? -1 : 1);
     var zoomy:Float = getValue('zoomy') * getValue('zoomy$iCol');
     f -= ((notefieldZoom * zoomy) - 1) * 100;
     f -= getValue('skewy') * 100;
@@ -1214,7 +1213,7 @@ class Modchart
   public function GetZPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>):Float
   {
     var f:Float = 0;
-    var time:Float = (Conductor.instance.songPosition / 1000);
+    var time:Float = getTime();
     var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     f += ARROW_SIZE * getValue('movez$iCol') + getValue('movezoffset$iCol') + getValue('movezoffset1$iCol');
 
@@ -1683,7 +1682,7 @@ class Modchart
     }
     if (getValue('blink') != 0)
     {
-      var f:Float = ModchartMath.fastSin(Conductor.instance.songPosition / 1000 * 10);
+      var f:Float = ModchartMath.fastSin(getTime() * 10);
       f = ModchartMath.Quantize(f, 0.3333);
       fVisibleAdjust += ModchartMath.scale(f, 0, 1, -1, 0);
     }

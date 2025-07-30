@@ -3,11 +3,8 @@ package funkin.play.notes;
 import funkin.data.song.SongData.SongNoteData;
 import funkin.data.song.SongData.NoteParamData;
 import funkin.play.notes.notestyle.NoteStyle;
-import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.FlxSprite;
 import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
-import funkin.play.modchart.shaders.ModchartHSVShader;
 
 class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 {
@@ -15,10 +12,7 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 
   public var holdNoteSprite:SustainTrail;
 
-  public var hsvShader:ModchartHSVShader;
-
-  public var parentStrumline:Strumline;
-  public var defaultScale:Array<Float>;
+  var hsvShader:HSVShader;
 
   /**
    * The strum time at which the note should be hit, in milliseconds.
@@ -111,6 +105,11 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   }
 
   /**
+   * The Y Offset of the note.
+   */
+  public var yOffset:Float = 0.0;
+
+  /**
    * Set this flag to true when hitting the note to avoid scoring it multiple times.
    */
   public var hasBeenHit:Bool = false;
@@ -148,14 +147,19 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
    */
   public var handledMiss:Bool;
 
+  public var defaultScale:Array<Float>;
+
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {
     super(0, -9999);
     this.direction = direction;
 
-    this.hsvShader = new ModchartHSVShader();
+    this.hsvShader = new HSVShader();
+
+    this.alpha = 1;
 
     setupNoteGraphic(noteStyle);
+    defaultScale = [scale.x, scale.y];
   }
 
   /**
@@ -165,8 +169,8 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
-    defaultScale = [scale.x, scale.y];
-    this.shader = hsvShader.shader;
+
+    this.shader = hsvShader;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -246,5 +250,12 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   public override function kill():Void
   {
     super.kill();
+  }
+
+  public override function destroy():Void
+  {
+    // This function should ONLY get called as you leave PlayState entirely.
+    // Otherwise, we want the game to keep reusing note sprites to save memory.
+    super.destroy();
   }
 }

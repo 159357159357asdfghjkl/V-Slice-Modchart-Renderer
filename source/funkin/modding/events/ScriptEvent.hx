@@ -5,16 +5,17 @@ import funkin.data.song.SongData.SongEventData;
 import flixel.FlxState;
 import flixel.FlxSubState;
 import funkin.play.notes.NoteSprite;
+import funkin.play.notes.SustainTrail;
 import funkin.play.cutscene.dialogue.Conversation;
 import funkin.play.Countdown.CountdownStep;
 import funkin.play.notes.NoteDirection;
-import openfl.events.EventType;
 import openfl.events.KeyboardEvent;
 
 /**
  * This is a base class for all events that are issued to scripted classes.
  * It can be used to identify the type of event called, store data, and cancel event propagation.
  */
+@:nullSafety
 class ScriptEvent
 {
   /**
@@ -227,6 +228,49 @@ class GhostMissNoteScriptEvent extends ScriptEvent
   }
 }
 
+class HoldNoteScriptEvent extends NoteScriptEvent
+{
+  /**
+   * The hold note that was hit (or dropped).
+   */
+  public var holdNote:SustainTrail;
+
+  /**
+   * The score the player received for hitting the note.
+   */
+  public var score:Int;
+
+  /**
+   * If the hit causes a combo break.
+   */
+  public var isComboBreak:Bool = false;
+
+  /**
+   * The time difference when the player hit the note
+   */
+  public var hitDiff:Float = 0;
+
+  /**
+   * Whether this note hit causes a note splash to display.
+   * Defaults to true only on "sick" notes.
+   */
+  public var doesNotesplash:Bool = false;
+
+  public function new(type:ScriptEventType, holdNote:SustainTrail, healthChange:Float, score:Int, isComboBreak:Bool, comboCount:Int = 0,
+      cancelable:Bool = false):Void
+  {
+    super(type, null, healthChange, comboCount, true);
+    this.holdNote = holdNote;
+    this.score = score;
+    this.isComboBreak = isComboBreak;
+  }
+
+  public override function toString():String
+  {
+    return 'HoldNoteScriptEvent(type=$type, holdNote=$holdNote, healthChange=$healthChange, score=$score, isComboBreak=$isComboBreak, cancelable=$cancelable)';
+  }
+}
+
 /**
  * An event that is fired when the song reaches an event.
  */
@@ -415,6 +459,28 @@ class SongLoadScriptEvent extends ScriptEvent
 }
 
 /**
+ * AAn event that is fired when the player retries the song.
+ */
+class SongRetryEvent extends ScriptEvent
+{
+  /**
+   * The new difficulty of the song.
+   */
+  public var difficulty(default, null):String;
+
+  public function new(difficulty:String):Void
+  {
+    super(SONG_RETRY, false);
+    this.difficulty = difficulty;
+  }
+
+  public override function toString():String
+  {
+    return 'SongRetryEvent(difficulty=$difficulty)';
+  }
+}
+
+/**
  * An event that is fired when moving out of or into an FlxState.
  */
 class StateChangeScriptEvent extends ScriptEvent
@@ -433,6 +499,22 @@ class StateChangeScriptEvent extends ScriptEvent
   public override function toString():String
   {
     return 'StateChangeScriptEvent(type=' + type + ', targetState=' + targetState + ')';
+  }
+}
+
+/**
+ * An event that is fired when the game loses or gains focus.
+ */
+class FocusScriptEvent extends ScriptEvent
+{
+  public function new(type:ScriptEventType):Void
+  {
+    super(type, false);
+  }
+
+  public override function toString():String
+  {
+    return 'FocusScriptEvent(type=' + type + ')';
   }
 }
 

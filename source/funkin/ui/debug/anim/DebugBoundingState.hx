@@ -31,13 +31,6 @@ import openfl.net.FileReference;
 
 using flixel.util.FlxSpriteUtil;
 
-#if web
-import js.html.FileList;
-#end
-#if sys
-import sys.io.File;
-#end
-
 class DebugBoundingState extends FlxState
 {
   /*
@@ -75,11 +68,11 @@ class DebugBoundingState extends FlxState
   function get_haxeUIFocused():Bool
   {
     // get the screen position, according to the HUD camera, temp default to FlxG.camera juuust in case?
-    var hudMousePos:FlxPoint = FlxG.mouse.getScreenPosition(hudCam ?? FlxG.camera);
+    var hudMousePos:FlxPoint = FlxG.mouse.getViewPosition(hudCam ?? FlxG.camera);
     return Screen.instance.hasSolidComponentUnderPoint(hudMousePos.x, hudMousePos.y);
   }
 
-  override function create()
+  override function create():Void
   {
     Paths.setCurrentLevel('week1');
 
@@ -403,6 +396,11 @@ class DebugBoundingState extends FlxState
       onionSkinChar.visible = !onionSkinChar.visible;
     }
 
+    if (FlxG.keys.justPressed.G)
+    {
+      swagChar.flipX = !swagChar.flipX;
+    }
+
     // Plays the idle animation
     if (FlxG.keys.justPressed.SPACE)
     {
@@ -530,8 +528,11 @@ class DebugBoundingState extends FlxState
     trace('Added ${offsetAnimationDropdown.dataSource.size} to HaxeUI dropdown');
 
     offsetAnimationDropdown.onChange = function(event:UIEvent) {
-      trace('Selected animation ${event?.data?.id}');
-      playCharacterAnimation(event.data.id, true);
+      if (event.data != null)
+      {
+        trace('Selected animation ${event.data.id}');
+        playCharacterAnimation(event.data.id, true);
+      }
     }
 
     txtOffsetShit.text = 'Offset: ' + swagChar.animOffsets;
@@ -571,7 +572,7 @@ class DebugBoundingState extends FlxState
       _file.addEventListener(Event.COMPLETE, onSaveComplete);
       _file.addEventListener(Event.CANCEL, onSaveCancel);
       _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-      _file.save(saveString,);
+      _file.save(saveString, fileName);
     }
   }
 

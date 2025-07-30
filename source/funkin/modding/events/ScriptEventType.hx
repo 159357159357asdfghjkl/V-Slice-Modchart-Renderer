@@ -1,7 +1,10 @@
 package funkin.modding.events;
 
+@:nullSafety
 enum abstract ScriptEventType(String) from String to String
 {
+  var INIT = 'INIT';
+
   /**
    * Called when the relevant object is created.
    * Keep in mind that the constructor may be called before the object is needed,
@@ -10,7 +13,7 @@ enum abstract ScriptEventType(String) from String to String
    * This event is not cancelable.
    */
   var CREATE = 'CREATE';
-  var INIT = 'INIT';
+
   /**
    * Called when the relevant object is destroyed.
    * This should perform relevant cleanup to ensure good performance.
@@ -87,6 +90,14 @@ enum abstract ScriptEventType(String) from String to String
    *   avoiding a combo break and lost health.
    */
   var NOTE_MISS = 'NOTE_MISS';
+
+  /**
+   * Called when a character lets go of a hold note.
+   * Important information such as note data, player/opponent, etc. are all provided.
+   *
+   * This event is not cancelable.
+   */
+  var NOTE_HOLD_DROP = 'NOTE_HOLD_DROP';
 
   /**
    * Called when a character presses a note when there was none there, causing them to lose health.
@@ -222,6 +233,20 @@ enum abstract ScriptEventType(String) from String to String
    * This event is not cancelable.
    */
   var SUBSTATE_CLOSE_END = 'SUBSTATE_CLOSE_END';
+
+  /**
+   * Called when the game regains focus.
+   *
+   * This event is not cancelable.
+   */
+  var FOCUS_GAINED = 'FOCUS_GAINED';
+
+  /**
+   * Called when the game loses focus.
+   *
+   * This event is not cancelable.
+   */
+  var FOCUS_LOST = 'FOCUS_LOST';
 
   /**
    * Called when the game starts a conversation.

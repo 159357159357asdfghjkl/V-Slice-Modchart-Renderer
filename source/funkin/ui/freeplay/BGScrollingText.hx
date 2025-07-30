@@ -1,15 +1,12 @@
 package funkin.ui.freeplay;
 
 import flixel.FlxObject;
-import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup;
-import flixel.math.FlxMath;
 import flixel.text.FlxText;
-import flixel.util.FlxColor;
 import flixel.util.FlxSort;
-import flixel.util.FlxTimer;
 
 // its kinda like marqeee html lol!
+@:nullSafety
 class BGScrollingText extends FlxSpriteGroup
 {
   var grpTexts:FlxTypedSpriteGroup<FlxText>;
@@ -25,15 +22,15 @@ class BGScrollingText extends FlxSpriteGroup
   {
     super(x, y);
 
-    this.widthShit = widthShit;
-    if (size != null) this.size = size;
-
     grpTexts = new FlxTypedSpriteGroup<FlxText>();
     add(grpTexts);
 
+    this.widthShit = widthShit;
+    if (size != null) this.size = size;
+
     var testText:FlxText = new FlxText(0, 0, 0, text, this.size);
     testText.font = "5by7";
-    testText.bold = bold;
+    testText.bold = bold ?? false;
     testText.updateHitbox();
     grpTexts.add(testText);
 
@@ -46,7 +43,7 @@ class BGScrollingText extends FlxSpriteGroup
       var coolText:FlxText = new FlxText((lmfao * testText.frameWidth) + (lmfao * 20), 0, 0, text, this.size);
 
       coolText.font = "5by7";
-      coolText.bold = bold;
+      coolText.bold = bold ?? false;
       coolText.updateHitbox();
       grpTexts.add(coolText);
     }
@@ -77,6 +74,7 @@ class BGScrollingText extends FlxSpriteGroup
   {
     for (txt in grpTexts.group)
     {
+      if (txt == null) continue;
       txt.x -= 1 * (speed * (elapsed / (1 / 60)));
 
       if (speed > 0)

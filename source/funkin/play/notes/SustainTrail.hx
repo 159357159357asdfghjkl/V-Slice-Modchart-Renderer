@@ -1,22 +1,12 @@
 package funkin.play.notes;
 
 import funkin.play.notes.notestyle.NoteStyle;
-import funkin.play.notes.NoteDirection;
 import funkin.data.song.SongData.SongNoteData;
-import flixel.util.FlxDirectionFlags;
+import funkin.mobile.ui.FunkinHitbox.FunkinHitboxControlSchemes;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
-import flixel.graphics.tile.FlxDrawTrianglesItem;
+import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxMath;
-import funkin.ui.options.PreferencesMenu;
-import funkin.play.modchart.shaders.ModchartHSVShader;
-import funkin.play.modchart.util.ModchartMath;
-import openfl.geom.Vector3D;
-import flixel.math.FlxPoint;
-import funkin.play.modchart.util.ModchartMath;
-import flixel.util.FlxColor;
-
-using StringTools;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -39,11 +29,15 @@ class SustainTrail extends FlxSprite
   public var noteDirection:NoteDirection = 0;
   public var sustainLength(default, set):Float = 0; // millis
   public var fullSustainLength:Float = 0;
-  public var modNumber:Int;
   public var noteData:Null<SongNoteData>;
   public var parentStrumline:Strumline;
 
   public var cover:NoteHoldCover = null;
+
+  /**
+   * The Y Offset of the note.
+   */
+  public var yOffset:Float = 0.0;
 
   /**
    * Set to `true` if the user hit the note and is currently holding the sustain.
@@ -79,10 +73,6 @@ class SustainTrail extends FlxSprite
    */
   public var uvtData:DrawData<Float> = new DrawData<Float>();
 
-  public var colors:Array<Int> = [];
-
-  private var processedGraphic:FlxGraphic;
-
   private var zoom:Float = 1;
 
   /**
@@ -97,6 +87,11 @@ class SustainTrail extends FlxSprite
    */
   public var bottomClip:Float = 0.9;
 
+  /**
+   * Whether the note will recieve custom vertex data
+   */
+  public var customVertexData:Bool = false;
+
   public var isPixel:Bool;
   public var noteStyleOffsets:Array<Float>;
 
@@ -106,12 +101,7 @@ class SustainTrail extends FlxSprite
   public var defaultScale:Array<Float>;
   public var offsetX:Float;
   public var offsetY:Float;
-  public var hsvShader:ModchartHSVShader;
-  public var vwoosh:Bool;
   public var currentZValue:Float = 0;
-  public var isChartingState:Bool = false;
-
-  var renderType:Int = 0;
 
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
@@ -119,7 +109,7 @@ class SustainTrail extends FlxSprite
    * @param SustainLength Length in milliseconds.
    * @param fileName
    */
-  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle, modNumber:Int)
+  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle)
   {
     super(0, 0);
 
@@ -127,14 +117,70 @@ class SustainTrail extends FlxSprite
     this.sustainLength = sustainLength;
     this.fullSustainLength = sustainLength;
     this.noteDirection = noteDirection;
-    this.modNumber = modNumber;
-    hsvShader = new ModchartHSVShader();
+
     setupHoldNoteGraphic(noteStyle);
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
-    indices = new DrawData<Int>(12, true, TRIANGLE_VERTEX_INDICES);
-    defaultScale = [scale.x, scale.y];
+    setIndices(TRIANGLE_VERTEX_INDICES);
+
     this.active = true; // This NEEDS to be true for the note to be drawn!
+  }
+
+  /**
+   * Sets the indices for the triangles.
+   * @param indices The indices to set.
+   */
+  public function setIndices(indices:Array<Int>):Void
+  {
+    if (this.indices.length == indices.length)
+    {
+      for (i in 0...indices.length)
+      {
+        this.indices[i] = indices[i];
+      }
+    }
+    else
+    {
+      this.indices = new DrawData<Int>(indices.length, false, indices);
+    }
+  }
+
+  /**
+   * Sets the vertices for the triangles.
+   * @param vertices The vertices to set.
+   */
+  public function setVertices(vertices:Array<Float>):Void
+  {
+    if (this.vertices.length == vertices.length)
+    {
+      for (i in 0...vertices.length)
+      {
+        this.vertices[i] = vertices[i];
+      }
+    }
+    else
+    {
+      this.vertices = new DrawData<Float>(vertices.length, false, vertices);
+    }
+  }
+
+  /**
+   * Sets the UV data for the triangles.
+   * @param uvtData The UV data to set.
+   */
+  public function setUVTData(uvtData:Array<Float>):Void
+  {
+    if (this.uvtData.length == uvtData.length)
+    {
+      for (i in 0...uvtData.length)
+      {
+        this.uvtData[i] = uvtData[i];
+      }
+    }
+    else
+    {
+      this.uvtData = new DrawData<Float>(uvtData.length, false, uvtData);
+    }
   }
 
   /**
@@ -167,16 +213,15 @@ class SustainTrail extends FlxSprite
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     // instead of scrollSpeed, PlayState.SONG.speed
 
-    flipY = Preferences.downscroll;
+    flipY = Preferences.downscroll #if mobile
+    || (Preferences.controlsScheme == FunkinHitboxControlSchemes.Arrows
+      && !funkin.mobile.input.ControlsHandler.usingExternalInputDevice) #end;
 
     // alpha = 0.6;
     alpha = 1.0;
-    // calls updateColorTransform(), which initializes processedGraphic!
     updateColorTransform();
 
     updateClipping();
-
-    this.shader = hsvShader.shader;
   }
 
   function getBaseScrollSpeed()
@@ -189,8 +234,6 @@ class SustainTrail extends FlxSprite
   override function update(elapsed)
   {
     super.update(elapsed);
-    x = y = 0;
-    updateClipping();
     if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0))
     {
       triggerRedraw();
@@ -238,25 +281,24 @@ class SustainTrail extends FlxSprite
     var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
     var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
-    var pn:Int = modNumber;
+    var pn:Int = parentStrumline?.modNumber ?? 0;
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
     var ofs = (parentStrumline?.mods?.getValue('centered2') ?? 0.0) * Strumline.NOTE_SPACING;
     var timeDiff:Float = (parentStrumline?.mods?.baseHoldSize ?? 0);
-    var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, vwoosh, column, strumTime) ?? 0.0) + ofs;
+    var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, column, strumTime) ?? 0.0) + ofs;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     currentZValue = pos.z;
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
-    var noteYOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, vwoosh, column, strumTime) ?? 0.0) + ofs;
+    var noteYOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) ?? 0.0) + ofs;
     var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray, true) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, noteYOffset, pn, xoffArray) ?? 0.0);
     var strumPos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, ofs, pn, xoffArray, false) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, ofs, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, ofs, pn, xoffArray) ?? 0.0);
-    var yOffset2:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time + timeDiff, speed, vwoosh, column,
-      Conductor.instance.songPosition + timeDiff) ?? 0)
+    var yOffset2:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time + timeDiff, speed, column, Conductor.instance.songPosition + timeDiff) ?? 0)
       + ofs;
     var pos4:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset2, pn, xoffArray, false) ?? 0,
       parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, parentStrumline?.defaultHeight ?? 0.0) ?? 0,
@@ -313,28 +355,21 @@ class SustainTrail extends FlxSprite
     return [zPos, color];
   }
 
-  public function updateClipping():Void
+  public function updateClipping(useNew:Bool = true, songTime:Float = 0)
   {
-    if (isChartingState)
-    {
-      updateClippingOld();
-      renderType = 1;
-    }
+    if (useNew) updateClippingNew(songTime);
     else
-    {
-      updateClippingNew();
-      renderType = 0;
-    }
+      updateClippingOld(songTime);
   }
 
-  public function updateClippingNew():Void
+  public function updateClippingNew(songTime:Float = 0):Void
   {
     if (graphic == null)
     {
       return;
     }
 
-    var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength + strumTime, parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
+    var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
     if (clipHeight <= 0.1)
     {
       visible = false;
@@ -436,15 +471,14 @@ class SustainTrail extends FlxSprite
     this.indices = new DrawData<Int>(indices.length, true, indices);
   }
 
-  function CalculateNoteYPos(conductor:Conductor, strumTime:Float, vwoosh:Bool):Float
-  {
-    var vwoosh:Float = 1.0;
-    return Constants.PIXELS_PER_MS * (conductor.songPosition - strumTime - Conductor.instance.inputOffset) * vwoosh;
-  }
-
+  /**
+   * Sets up new vertex and UV data to clip the trail.
+   * If flipY is true, top and bottom bounds swap places.
+   * @param songTime	The time to clip the note at, in milliseconds.
+   */
   public function updateClippingOld(songTime:Float = 0):Void
   {
-    if (graphic == null)
+    if (graphic == null || customVertexData)
     {
       return;
     }
@@ -488,17 +522,6 @@ class SustainTrail extends FlxSprite
     vertices[3 * 2] = graphicWidth;
     vertices[3 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex
 
-    var idx:Int = 0;
-    while (idx < vertices.length)
-    {
-      var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
-      var defX:Float = parentStrumline?.xoffArray[column] ?? 0.0;
-      vertices[idx] += defX + offsetX;
-      var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
-      var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
-      vertices[idx + 1] += CalculateNoteYPos(conductorInUse, strumTime, vwoosh) + offsetY;
-      idx += 2;
-    }
     // ===HOLD UVs===
 
     // The UVs are a bit more complicated.
@@ -561,6 +584,18 @@ class SustainTrail extends FlxSprite
     // Bottom right
     uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
     uvtData[7 * 2 + 1] = uvtData[6 * 2 + 1]; // bottom bound
+
+    var idx:Int = 0;
+    while (idx < vertices.length)
+    {
+      var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+      var defX:Float = parentStrumline?.xoffArray[column] ?? 0.0;
+      vertices[idx] += defX + offsetX;
+      var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
+      var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
+      vertices[idx + 1] += CalculateNoteYPos(conductorInUse, strumTime, vwoosh) + offsetY;
+      idx += 2;
+    }
   }
 
   @:access(flixel.FlxCamera)
@@ -572,30 +607,14 @@ class SustainTrail extends FlxSprite
     {
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
+
       getScreenPosition(_point, camera).subtractPoint(offset);
-      if (renderType == 0)
-      {
-        camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
-      }
-      else
-      {
-        camera.drawTriangles(processedGraphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing);
-      }
+      camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
     }
 
     #if FLX_DEBUG
     if (FlxG.debugger.drawDebug) drawDebug();
     #end
-  }
-
-  public function desaturate():Void
-  {
-    this.hsvShader.saturation = 0.2;
-  }
-
-  public function setHue(hue:Float):Void
-  {
-    this.hsvShader.hue = hue;
   }
 
   public override function kill():Void
@@ -625,9 +644,6 @@ class SustainTrail extends FlxSprite
     hitNote = false;
     missedNote = false;
     handledMiss = false;
-    this.hsvShader.hue = 1.0;
-    this.hsvShader.saturation = 1.0;
-    this.hsvShader.value = 1.0;
   }
 
   override public function destroy():Void
@@ -635,16 +651,7 @@ class SustainTrail extends FlxSprite
     vertices = null;
     indices = null;
     uvtData = null;
-    processedGraphic.destroy();
 
     super.destroy();
-  }
-
-  override function updateColorTransform():Void
-  {
-    super.updateColorTransform();
-    if (processedGraphic != null) processedGraphic.destroy();
-    processedGraphic = FlxGraphic.fromGraphic(graphic, true);
-    processedGraphic.bitmap.colorTransform(processedGraphic.bitmap.rect, colorTransform);
   }
 }

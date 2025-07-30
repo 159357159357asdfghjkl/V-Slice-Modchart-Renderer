@@ -1,87 +1,47 @@
 package funkin.play.notes;
 
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import funkin.play.notes.NoteDirection;
 import flixel.graphics.frames.FlxFramesCollection;
 import funkin.util.assets.FlxAnimationUtil;
-import flixel.FlxG;
-import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.FlxSprite;
-import funkin.play.modchart.shaders.ModchartHSVShader;
-import flixel.math.FlxPoint;
-import openfl.geom.Vector3D;
-import flixel.math.FlxPoint;
-import flixel.graphics.FlxGraphic;
+import funkin.play.notes.notestyle.NoteStyle;
 
 class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 {
   static final FRAMERATE_DEFAULT:Int = 24;
 
-  static var glowFrames:FlxFramesCollection;
-
   public var holdNote:SustainTrail;
 
-  var glow:FlxSprite;
+  public var glow:FlxSprite;
 
-  public var column:Int = 0;
+  var sparks:FlxSprite;
+
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var defaultScale:Array<Float>;
-  public var hsvShader:ModchartHSVShader;
   public var currentZValue:Float = 0;
 
-  public function new()
+  public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
 
-    setup();
-
+    setupHoldNoteCover(noteStyle);
     defaultScale = [scale.x, scale.y];
-  }
-
-  public static function preloadFrames():Void
-  {
-    glowFrames = null;
-    for (direction in Strumline.DIRECTIONS)
-    {
-      var directionName = direction.colorName.toTitleCase();
-
-      var atlas:FlxFramesCollection = Paths.getSparrowAtlas('holdCover${directionName}');
-      atlas.parent.persist = true;
-
-      if (glowFrames != null)
-      {
-        glowFrames = FlxAnimationUtil.combineFramesCollections(glowFrames, atlas);
-      }
-      else
-      {
-        glowFrames = atlas;
-      }
-    }
   }
 
   /**
    * Add ALL the animations to this sprite. We will recycle and reuse the FlxSprite multiple times.
    */
-  function setup():Void
+  function setupHoldNoteCover(noteStyle:NoteStyle):Void
   {
-    glow = new FlxSprite(0, 0);
+    glow = new FlxSprite();
     add(glow);
 
-    if (glowFrames == null) preloadFrames();
-    glow.frames = glowFrames;
+    // TODO: null check here like how NoteSplash does
+    noteStyle.buildHoldCoverSprite(this);
 
-    for (direction in Strumline.DIRECTIONS)
-    {
-      var directionName = direction.colorName.toTitleCase();
+    glow.animation.onFinish.add(this.onAnimationFinished);
 
-      glow.animation.addByPrefix('holdCoverStart$directionName', 'holdCoverStart${directionName}0', FRAMERATE_DEFAULT, false, false, false);
-      glow.animation.addByPrefix('holdCover$directionName', 'holdCover${directionName}0', FRAMERATE_DEFAULT, true, false, false);
-      glow.animation.addByPrefix('holdCoverEnd$directionName', 'holdCoverEnd${directionName}0', FRAMERATE_DEFAULT, false, false, false);
-    }
-    glow.animation.finishCallback = this.onAnimationFinished;
-    this.hsvShader = new ModchartHSVShader();
-    glow.shader = hsvShader.shader;
     if (glow.animation.getAnimationList().length < 3 * 4)
     {
       trace('WARNING: NoteHoldCover failed to initialize all animations.');
@@ -117,7 +77,10 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 
     this.visible = false;
 
+    holdNote.cover = null;
+
     if (glow != null) glow.visible = false;
+    if (sparks != null) sparks.visible = false;
   }
 
   public override function revive():Void
@@ -126,10 +89,9 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
 
     this.visible = true;
     this.alpha = 1.0;
-    this.hsvShader.hue = 1.0;
-    this.hsvShader.saturation = 1.0;
-    this.hsvShader.value = 1.0;
+
     if (glow != null) glow.visible = true;
+    if (sparks != null) sparks.visible = true;
   }
 
   public function onAnimationFinished(animationName:String):Void

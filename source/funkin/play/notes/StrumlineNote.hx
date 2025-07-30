@@ -4,7 +4,6 @@ import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.graphics.FunkinSprite;
 import funkin.play.notes.NoteSprite;
-import funkin.play.modchart.shaders.ModchartHSVShader;
 
 /**
  * The actual receptor that you see on screen.
@@ -28,6 +27,11 @@ class StrumlineNote extends funkin.play.modchart.objects.FunkinActor
   }
 
   /**
+   * The Y Offset of the note.
+   */
+  public var yOffset:Float = 0.0;
+
+  /**
    * Set this flag to `true` to disable performance optimizations that cause
    * the Strumline note sprite to ignore `velocity` and `acceleration`.
    */
@@ -44,9 +48,7 @@ class StrumlineNote extends funkin.play.modchart.objects.FunkinActor
   var confirmHoldTimer:Float = -1;
 
   public var column:Int = 0;
-  public var parentStrumline:Strumline;
   public var defaultScale:Array<Float>;
-  public var hsvShader:ModchartHSVShader;
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, direction:NoteDirection)
   {
@@ -57,11 +59,11 @@ class StrumlineNote extends funkin.play.modchart.objects.FunkinActor
     this.direction = direction;
 
     setup(noteStyle);
+
     defaultScale = [scale.x, scale.y];
-    this.animation.callback = onAnimationFrame;
-    this.animation.finishCallback = onAnimationFinished;
-    hsvShader = new ModchartHSVShader();
-    this.shader = hsvShader.shader;
+    this.animation.onFrameChange.add(onAnimationFrame);
+    this.animation.onFinish.add(onAnimationFinished);
+
     // Must be true for animations to play.
     this.active = true;
   }

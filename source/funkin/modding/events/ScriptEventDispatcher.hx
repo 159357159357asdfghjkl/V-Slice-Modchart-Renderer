@@ -6,6 +6,7 @@ import funkin.modding.IScriptedClass;
 /**
  * Utility functions to assist with handling scripted classes.
  */
+@:nullSafety
 class ScriptEventDispatcher
 {
   /**
@@ -30,9 +31,6 @@ class ScriptEventDispatcher
     {
       case CREATE:
         target.onCreate(event);
-        return;
-      case INIT:
-        target.onInit(event);
         return;
       case DESTROY:
         target.onDestroy(event);
@@ -93,6 +91,9 @@ class ScriptEventDispatcher
         case NOTE_MISS:
           t.onNoteMiss(cast event);
           return;
+        case NOTE_HOLD_DROP:
+          t.onNoteHoldDrop(cast event);
+          return;
         default: // Continue;
       }
     }
@@ -117,6 +118,9 @@ class ScriptEventDispatcher
       var t:IPlayStateScriptedClass = cast(target, IPlayStateScriptedClass);
       switch (event.type)
       {
+        case INIT:
+          target.onInit(event);
+          return;
         case NOTE_GHOST_MISS:
           t.onNoteGhostMiss(cast event);
           return;
@@ -127,7 +131,7 @@ class ScriptEventDispatcher
           t.onSongEnd(event);
           return;
         case SONG_RETRY:
-          t.onSongRetry(event);
+          t.onSongRetry(cast event);
           return;
         case GAME_OVER:
           t.onGameOver(event);
@@ -179,6 +183,12 @@ class ScriptEventDispatcher
           return;
         case SUBSTATE_CLOSE_END:
           t.onSubStateCloseEnd(cast event);
+          return;
+        case FOCUS_LOST:
+          t.onFocusLost(cast event);
+          return;
+        case FOCUS_GAINED:
+          t.onFocusGained(cast event);
           return;
         default: // Continue;
       }

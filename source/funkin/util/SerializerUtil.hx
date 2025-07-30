@@ -2,7 +2,6 @@ package funkin.util;
 
 import haxe.Json;
 import haxe.io.Bytes;
-import thx.semver.Version;
 
 typedef ScoreInput =
 {
@@ -15,6 +14,7 @@ typedef ScoreInput =
  * Functions dedicated to serializing and deserializing data.
  * NOTE: Use `json2object` wherever possible, it's way more efficient.
  */
+@:nullSafety
 class SerializerUtil
 {
   static final INDENT_CHAR = "\t";
@@ -49,7 +49,7 @@ class SerializerUtil
   /**
    * Convert a JSON byte array to a Haxe object.
    */
-  public static function fromJSONBytes(input:Bytes):Dynamic
+  public static function fromJSONBytes(input:Bytes):Null<Dynamic>
   {
     try
     {
@@ -61,31 +61,6 @@ class SerializerUtil
       trace(e);
       return null;
     }
-  }
-
-  public static function initSerializer():Void
-  {
-    haxe.Unserializer.DEFAULT_RESOLVER = new FunkinTypeResolver();
-  }
-
-  /**
-   * Serialize a Haxe object using the built-in Serializer.
-   * @param input The object to serialize
-   * @return The serialized object as a string
-   */
-  public static function fromHaxeObject(input:Dynamic):String
-  {
-    return haxe.Serializer.run(input);
-  }
-
-  /**
-   * Convert a serialized Haxe object back into a Haxe object.
-   * @param input The serialized object as a string
-   * @return The deserialized object
-   */
-  public static function toHaxeObject(input:String):Dynamic
-  {
-    return haxe.Unserializer.run(input);
   }
 
   /**
@@ -114,27 +89,4 @@ class SerializerUtil
     if (value.build.length > 0) result += '+${value.build}';
     return result;
   }
-}
-
-class FunkinTypeResolver
-{
-  public function new()
-  {
-    // Blank constructor.
-  }
-
-  public function resolveClass(name:String):Class<Dynamic>
-  {
-    if (name == 'Dynamic')
-    {
-      FlxG.log.warn('Found invalid class type in save data, indicates partial save corruption.');
-      return null;
-    }
-    return Type.resolveClass(name);
-  };
-
-  public function resolveEnum(name:String):Enum<Dynamic>
-  {
-    return Type.resolveEnum(name);
-  };
 }

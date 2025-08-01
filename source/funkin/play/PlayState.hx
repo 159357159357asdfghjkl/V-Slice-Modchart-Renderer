@@ -63,6 +63,7 @@ import funkin.util.GRhythmUtil;
 import haxe.Int64;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.events.ModEvents;
+import funkin.play.modchart.util.ModchartMath;
 #if mobile
 import funkin.util.TouchUtil;
 import funkin.mobile.ui.FunkinHitbox;
@@ -2457,8 +2458,11 @@ class PlayState extends MusicBeatSubState
     else
     {
       // TODO: Add an option for this maybe?
+      var acc:Null<Float> = ModchartMath.getCurrentAccuracy(Highscore.tallies.sick, Highscore.tallies.good, Highscore.tallies.bad, Highscore.tallies.shit,
+        Highscore.tallies.missed);
+      if (acc == null) acc = 0;
       var commaSeparated:Bool = true;
-      scoreText.text = 'Score: ${FlxStringUtil.formatMoney(songScore, false, commaSeparated)}';
+      scoreText.text = 'Score: ${FlxStringUtil.formatMoney(songScore, false, commaSeparated)}' + '\nAccuracy: ${acc}';
     }
   }
 

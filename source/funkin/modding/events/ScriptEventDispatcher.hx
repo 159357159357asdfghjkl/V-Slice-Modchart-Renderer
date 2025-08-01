@@ -119,7 +119,7 @@ class ScriptEventDispatcher
       switch (event.type)
       {
         case INIT:
-          target.onInit(event);
+          t.onInit(event);
           return;
         case NOTE_GHOST_MISS:
           t.onNoteGhostMiss(cast event);

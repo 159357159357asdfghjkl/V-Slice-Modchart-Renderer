@@ -173,4 +173,15 @@ class ModchartMath
     var matToVec:Vector3D = transform(vec, mat);
     return matToVec;
   }
+
+  // funny stuff
+  public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float
+  {
+    if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
+      return 0;
+    var tempMult:Float = 1.0;
+    for (_ in 0...2)
+      tempMult *= 10.0;
+    return Math.ffloor((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses) * tempMult) / tempMult;
+  }
 }

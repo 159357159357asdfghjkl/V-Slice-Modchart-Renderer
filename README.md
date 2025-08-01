@@ -1,3 +1,9 @@
+# Modchart System
+
+This modchart system is easy to port i think
+
+When it is finished, i'll only put the modchart stuff into this repo
+
 # Friday Night Funkin'
 
 Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for Ludum Dare 47.

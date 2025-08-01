@@ -147,7 +147,7 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
    */
   public var handledMiss:Bool;
 
-  public var defaultScale:Array<Float>;
+  public var defaultScale:Array<Float> = [1, 1];
 
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {

@@ -48,7 +48,7 @@ class StrumlineNote extends funkin.play.modchart.objects.FunkinActor
   var confirmHoldTimer:Float = -1;
 
   public var column:Int = 0;
-  public var defaultScale:Array<Float>;
+  public var defaultScale:Array<Float> = [1, 1];
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, direction:NoteDirection)
   {

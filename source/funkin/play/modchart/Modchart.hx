@@ -31,8 +31,6 @@ class Modchart
   var dim_x:Int = 0;
   var dim_y:Int = 1;
   var dim_z:Int = 2;
-  var expandSeconds:Float = 0;
-  var tanExpandSeconds:Float = 0;
 
   function CalculateDrunkAngle(time:Float, speed:Float, col:Int, offset:Float, col_frequency:Float, y_offset:Float, period:Float, offset_frequency:Float,
       real_offset:Float):Float
@@ -55,7 +53,7 @@ class Modchart
 
   function getTime():Float
   {
-    return Conductor.instance.songPosition / 1000;
+    return Conductor.instance.getTimeWithDelta() / 1000;
   }
 
   function initDefaultMods()
@@ -338,10 +336,12 @@ class Modchart
       'orientoffset',
       'noreorient',
       'holdgirth',
+      'variableboomerang'
     ];
 
     // spiralholds = holdtype
     var ONE:Array<String> = [
+      'overhead', // default, no use
       'xmod',
       'zoom',
       'zoomx',
@@ -585,7 +585,8 @@ class Modchart
 
   public function getValue(s:String):Float
   {
-    var val:Null<Float> = modList.get(getName(s));
+    var name:String = getName(s);
+    var val:Null<Float> = modList.get(name);
     if (val == null) return 0;
     else
       val /= 100;
@@ -594,7 +595,7 @@ class Modchart
 
   var checkedName:Array<String> = [];
 
-  public function getName(s:String):String
+  public function getName(s:String)
   {
     var s1:String = s.toLowerCase();
     var name:String = altname.exists(s1) ? altname.get(s1) : s1;
@@ -605,7 +606,7 @@ class Modchart
         checkedName.push(s1);
         lime.app.Application.current.window.alert('Modifier name "$s1" does not exist. Check your script!', 'Modchart Script');
       }
-      return '';
+      return 'overhead';
     }
     return name;
   }
@@ -618,49 +619,22 @@ class Modchart
       + (col * ((offset * 1.8) + 1.8)), getValue('cosecant')) * arrow_times_mag);
   }
 
-  public var baseHoldSize:Int = 80;
+  public var baseHoldSize(get, never):Float; // ms
 
-  public function update(elapsed:Float):Void
+  function get_baseHoldSize():Float
   {
-    var time:Float = getTime();
-    expandSeconds = time;
-    expandSeconds = ModchartMath.mod(expandSeconds, (Math.PI * 2) / (getValue('expandperiod') + 1));
-    tanExpandSeconds = time;
-    tanExpandSeconds = ModchartMath.mod(tanExpandSeconds, (Math.PI * 2) / (getValue('tanexpandperiod') + 1));
+    var pixels:Int = 16;
+    return 16; // pixels / Constants.PIXELS_PER_MS;
   }
-
-  public var scrollSpeed:Float = 1.0;
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
+    var scrollSpeed:Float = speed;
+    var curTime:Float = getTime();
     scrollSpeed *= getValue('xmod');
     if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
-
-    if (getValue('expand') != 0)
-    {
-      var fExpandMultiplier:Float = ModchartMath.scale(ModchartMath.fastCos(expandSeconds * 3 * (getValue('expandperiod') + 1)), -1, 1, 0.75, 1.75);
-      scrollSpeed *= ModchartMath.scale(getValue('expand'), 0, 1, 1, fExpandMultiplier);
-    }
-    if (getValue('tanexpand') != 0)
-    {
-      var fExpandMultiplier:Float = ModchartMath.scale(selectTanType(tanExpandSeconds * 3 * (getValue('tanexpandperiod') + 1), getValue('cosecant')), -1, 1,
-        0.75, 1.75);
-
-      scrollSpeed *= ModchartMath.scale(getValue('tanexpand'), 0, 1, 1, fExpandMultiplier);
-    }
-    if (getValue('randomspeed') > 0)
-    {
-      var noteBeat:Float = (parentTime / 1000) * (Conductor.instance.bpm / 60);
-      var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
-
-      for (i in 0...3)
-        seed = ((seed * 1664525) + 1013904223) & 0xFFFFFFFF;
-      var fRandom:Float = seed / 4294967296.0;
-
-      scrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
-    }
     scrollSpeed *= getValue('scrollspeedmult');
-    var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, false, conductor) * -1;
+    var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     var fYAdjust:Float = 0;
 
     if (getValue('boost') != 0)
@@ -711,7 +685,38 @@ class Modchart
       + 2 * getValue('parabolayoffset')) / ARROW_SIZE);
 
     fYOffset += fYAdjust;
-    if (getValue('boomerang') != 0) fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * getValue('boomerang');
+
+    if (getValue('boomerang') != 0)
+    {
+      fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * (getValue('variableboomerang') != 0 ? getValue('boomerang') : 1);
+    }
+
+    if (getValue('expand') != 0)
+    {
+      var expandSeconds:Float = curTime;
+      expandSeconds = ModchartMath.mod(expandSeconds, (Math.PI * 2) / (getValue('expandperiod') + 1));
+      var fExpandMultiplier:Float = ModchartMath.scale(ModchartMath.fastCos(expandSeconds * 3 * (getValue('expandperiod') + 1)), -1, 1, 0.75, 1.75);
+      scrollSpeed *= ModchartMath.scale(getValue('expand'), 0, 1, 1, fExpandMultiplier);
+    }
+    if (getValue('tanexpand') != 0)
+    {
+      var tanExpandSeconds:Float = curTime;
+      tanExpandSeconds = ModchartMath.mod(tanExpandSeconds, (Math.PI * 2) / (getValue('tanexpandperiod') + 1));
+      var fExpandMultiplier:Float = ModchartMath.scale(selectTanType(tanExpandSeconds * 3 * (getValue('tanexpandperiod') + 1), getValue('cosecant')), -1, 1,
+        0.75, 1.75);
+      scrollSpeed *= ModchartMath.scale(getValue('tanexpand'), 0, 1, 1, fExpandMultiplier);
+    }
+    if (getValue('randomspeed') > 0)
+    {
+      var noteBeat:Float = (parentTime / 1000) * (Conductor.instance.bpm / 60);
+      var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
+
+      for (i in 0...3)
+        seed = ((seed * 1664525) + 1013904223) & 0xFFFFFFFF;
+      var fRandom:Float = seed / 4294967296.0;
+
+      scrollSpeed *= ModchartMath.scale(fRandom, 0.0, 1.0, 1.0, getValue('randomspeed') + 1.0);
+    }
     fYOffset *= scrollSpeed;
     return fYOffset;
   }
@@ -1009,7 +1014,7 @@ class Modchart
     return f;
   }
 
-  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, height:Float, down:Bool, WithReverse:Bool = true):Float
+  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, down:Bool, fYReversedOffset:Float, WithReverse:Bool = true):Float
   {
     var f:Float = fYOffset;
     var time:Float = getTime();
@@ -1019,7 +1024,7 @@ class Modchart
       f -= getValue('centered2') * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
-      var yReversedOffset:Float = (SCREEN_HEIGHT - height - Constants.STRUMLINE_Y_OFFSET * 2) / zoom;
+      var yReversedOffset:Float = fYReversedOffset / zoom;
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
       var fShift:Float = fPercentReverse * yReversedOffset;
       fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, yReversedOffset / 2);
@@ -1822,11 +1827,11 @@ class Modchart
   }
 
   @:nullSafety
-  public function modifyPos(pos:Vector3D, xoff:Array<Float>):Void
+  public function modifyPos(pos:Vector3D, xoff:Array<Float>, yReversedOffset:Float):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
-      var originPos:Vector3D = new Vector3D(0, SCREEN_HEIGHT / 2);
+      var originPos:Vector3D = new Vector3D(0, yReversedOffset / 2);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);

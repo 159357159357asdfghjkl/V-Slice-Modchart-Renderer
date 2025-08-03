@@ -623,8 +623,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    var pixels:Int = 16;
-    return 16; // pixels / Constants.PIXELS_PER_MS;
+    return 80;
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
@@ -1417,7 +1416,8 @@ class Modchart
 
     if (getValue('spiralz') != 0) f += fYOffset * getValue('spiralz') * ModchartMath.fastCos((fYOffset + getValue('spiralzoffset')) * (1
       + getValue('spiralzperiod')));
-
+    var zoomz:Float = getValue('zoomz') * getValue('zoomz$iCol');
+    f *= zoomz;
     return f;
   }
 

@@ -4,7 +4,7 @@ import funkin.data.song.SongData.SongNoteData;
 import funkin.data.song.SongData.NoteParamData;
 import funkin.play.notes.notestyle.NoteStyle;
 import funkin.graphics.FunkinSprite;
-import funkin.graphics.shaders.HSVShader;
+import funkin.play.modchart.shaders.ModchartHSVShader as HSVShader;
 
 class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 {
@@ -12,7 +12,7 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 
   public var holdNoteSprite:SustainTrail;
 
-  var hsvShader:HSVShader;
+  public var hsvShader:HSVShader;
 
   /**
    * The strum time at which the note should be hit, in milliseconds.
@@ -170,7 +170,7 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   {
     noteStyle.buildNoteSprite(this);
 
-    this.shader = hsvShader;
+    this.shader = hsvShader.shader;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -245,6 +245,15 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
     this.hsvShader.hue = 1.0;
     this.hsvShader.saturation = 1.0;
     this.hsvShader.value = 1.0;
+    this.hsvShader.diffuser = 1.0;
+    this.hsvShader.diffuseg = 1.0;
+    this.hsvShader.diffuseb = 1.0;
+    this.hsvShader.diffusea = 1.0;
+    this.hsvShader.glow = 0.0;
+    this.hsvShader.glowdiffuser = 1.0;
+    this.hsvShader.glowdiffuseg = 1.0;
+    this.hsvShader.glowdiffuseb = 1.0;
+    this.hsvShader.glowdiffusea = 1.0;
   }
 
   public override function kill():Void

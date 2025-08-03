@@ -21,8 +21,6 @@ class FunkinActor extends FunkinSprite
   public var SCALE:Vector3D = new Vector3D(1, 1);
   public var z:Float = 0;
   public var originVec:Vector3D;
-  public var alphaValue:Float = 0;
-  public var glow:Float = 0;
 
   public function new(?x:Float, ?y:Float)
   {
@@ -79,9 +77,6 @@ class FunkinActor extends FunkinSprite
           width / 2 + rotatedRB.x,
           height / 2 + rotatedRB.y
         ]);
-        var colors:Array<Int> = [];
-        for (i in 0...Std.int(vertices.length / 2) + 1)
-          colors.push(flixel.util.FlxColor.fromRGBFloat(glow * 255 * (1 - glow), glow * 255 * (1 - glow), glow * 255 * (1 - glow), alphaValue));
         var idx:Int = 0;
         while (idx < vertices.length)
         {
@@ -101,6 +96,7 @@ class FunkinActor extends FunkinSprite
         ]);
         var indices:Vector<Int> = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
+        colorTransform.alphaMultiplier = alpha;
         camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
       }
     }

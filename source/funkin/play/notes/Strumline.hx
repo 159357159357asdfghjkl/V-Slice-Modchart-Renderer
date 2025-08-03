@@ -394,7 +394,6 @@ class Strumline extends FlxSpriteGroup
     super.draw();
     // stolen from schmovin but modified a little
     var currentBeat:Float = conductorInUse.currentBeatTime;
-    var bitmap = new openfl.display.Shape();
     var grain = mods.getValue('arrowpathgranulate');
     var roughness:Float = mods.baseHoldSize;
     var backLength:Float = 400;
@@ -413,7 +412,7 @@ class Strumline extends FlxSpriteGroup
       if (alpha <= 0) continue;
       var size:Float = 1 + mods.getValue('arrowpathsize');
       var path1 = getPosWithOffset(-size / 2, size / 2, 0, column);
-      bitmap.graphics.lineStyle(size, 0xFFFFFF, alpha);
+      camera.canvas.graphics.lineStyle(size, 0xFFFFFF, alpha);
       commands.push(GraphicsPathCommand.MOVE_TO);
       data.push(path1.x);
       data.push(path1.y);
@@ -424,15 +423,7 @@ class Strumline extends FlxSpriteGroup
         data.push(path2.x);
         data.push(path2.y);
       }
-      bitmap.graphics.drawPath(commands, data);
-      var bitmapData = new BitmapData(FlxG.width, FlxG.height, true, 0);
-      bitmapData.draw(bitmap);
-      for (camera in cameras)
-      {
-        camera.canvas.graphics.beginBitmapFill(bitmapData, new Matrix());
-        camera.canvas.graphics.drawRect(0, 0, FlxG.width, FlxG.height);
-        camera.canvas.graphics.endFill();
-      }
+      camera.canvas.graphics.drawPath(commands, data);
     }
   }
 
@@ -753,8 +744,8 @@ class Strumline extends FlxSpriteGroup
       note.z = pos.z;
       note.originVec = zOrigin;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff, false);
-      note.alphaValue = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
-      note.glow = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.hsvShader.diffusea = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.hsvShader.glow = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       var noteBeat:Float = (note.strumTime / 1000) * (Conductor.instance.bpm / 60);
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),
         mods.GetRotationY(col, realofs, note.holdNoteSprite != null),
@@ -905,7 +896,7 @@ class Strumline extends FlxSpriteGroup
       strumNote.originVec = zOrigin;
       var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
       fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-      strumNote.alphaValue = fBaseAlpha;
+      strumNote.alpha = fBaseAlpha;
     }
     for (splash in noteSplashes)
     {

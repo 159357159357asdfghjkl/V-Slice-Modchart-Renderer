@@ -11,7 +11,9 @@ import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
 import flixel.math.FlxPoint;
 import funkin.play.modchart.util.ModchartMath;
-import flixel.util.FlxColor;
+import funkin.play.modchart.shaders.ModchartHSVShader;
+import funkin.play.modchart.shaders.ModchartHSVShader.ModchartHSVShaderFrag;
+import openfl.display.TriangleCulling;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -36,6 +38,7 @@ class SustainTrail extends FlxSprite
   public var fullSustainLength:Float = 0;
   public var noteData:Null<SongNoteData>;
   public var parentStrumline:Strumline;
+  public var renderType:Int = 0;
 
   public var cover:NoteHoldCover = null;
 
@@ -107,6 +110,19 @@ class SustainTrail extends FlxSprite
   public var offsetX:Float;
   public var offsetY:Float;
   public var currentZValue:Float = 0;
+
+  var hues:Array<Float> = [];
+  var vals:Array<Float> = [];
+  var sats:Array<Float> = [];
+  var glows:Array<Float> = [];
+  var diffrs:Array<Float> = [];
+  var diffgs:Array<Float> = [];
+  var diffbs:Array<Float> = [];
+  var diffas:Array<Float> = [];
+  var glowdiffrs:Array<Float> = [];
+  var glowdiffgs:Array<Float> = [];
+  var glowdiffbs:Array<Float> = [];
+  var glowdiffas:Array<Float> = [];
 
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
@@ -353,14 +369,9 @@ class SustainTrail extends FlxSprite
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
     var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset, false, true) ?? 1.0;
     var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
-    var defaultColor:Vector3D = new Vector3D((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
-    var color:Vector3D = new Vector3D(glow * 255
-      + defaultColor.x * (1 - glow), glow * 255
-      + defaultColor.y * (1 - glow),
-      glow * 255
-      + defaultColor.z * (1 - glow));
-    color.scaleBy(alpha);
-    return [zPos, color];
+    var diffuses:Vector3D = new Vector3D(1, 1, 1, alpha);
+    var glowColor:Vector3D = new Vector3D(1, 1, 1, glow);
+    return [zPos, diffuses, glowColor];
   }
 
   public function updateClipping(songTime:Float = 0, useNew:Bool = true)
@@ -372,6 +383,7 @@ class SustainTrail extends FlxSprite
 
   public function updateClippingNew(songTime:Float = 0):Void
   {
+    renderType = 1;
     if (graphic == null)
     {
       return;
@@ -387,7 +399,6 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
-
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
 
@@ -397,6 +408,7 @@ class SustainTrail extends FlxSprite
     if (grain < 0) length = Math.round((fullSustainLength) / (roughness / (1 + Math.abs(grain))));
     if (length <= 1) length = 1;
     var halfWidth:Float = graphicWidth / 2;
+    var hsvs:Array<ModchartHSVShader> = [];
     for (i in 0...length)
     {
       var a:Int = i * 2;
@@ -411,8 +423,20 @@ class SustainTrail extends FlxSprite
       vertices[a * 2 + 1] = pos1[0].y;
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y;
-      // colors[a * 2] = colors[a * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z).to24Bit();
-      // colors[(a + 1) * 2] = colors[(a + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z).to24Bit();
+      var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+      hsvShader.diffuser = pos1[1].x;
+      hsvShader.diffuseg = pos1[1].y;
+      hsvShader.diffuseb = pos1[1].z;
+      hsvShader.diffusea = pos1[1].w;
+      hsvShader.hue = 1;
+      hsvShader.saturation = 1;
+      hsvShader.value = 1;
+      hsvShader.glow = pos1[2].w;
+      hsvShader.glowdiffuser = 1;
+      hsvShader.glowdiffuseg = 1;
+      hsvShader.glowdiffuseb = 1;
+      hsvShader.glowdiffusea = 1;
+      hsvs.push(hsvShader);
     }
 
     var end:Int = (length - 1) * 2;
@@ -421,6 +445,28 @@ class SustainTrail extends FlxSprite
     vertices[next * 2 + 1] = vertices[end * 2 + 1];
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
+    var time:Float = strumTime + (fullSustainLength / length * (length - 1));
+    if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+    {
+      time = Conductor.instance.songPosition + (sustainLength / length * (length - 1));
+    }
+    var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
+    var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
+    var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+    hsvShader.diffuser = pos1[1].x;
+    hsvShader.diffuseg = pos1[1].y;
+    hsvShader.diffuseb = pos1[1].z;
+    hsvShader.diffusea = pos1[1].w;
+    hsvShader.hue = 1;
+    hsvShader.saturation = 1;
+    hsvShader.value = 1;
+    hsvShader.glow = pos1[2].w;
+    hsvShader.glowdiffuser = 1;
+    hsvShader.glowdiffuseg = 1;
+    hsvShader.glowdiffuseb = 1;
+    hsvShader.glowdiffusea = 1;
+    hsvs.push(hsvShader);
+
     var bottom:Int = (length + 1) * 2;
     var time:Float = strumTime + fullSustainLength;
     if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
@@ -433,8 +479,20 @@ class SustainTrail extends FlxSprite
     vertices[bottom * 2 + 1] = pos1[0].y;
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
     vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
-    // colors[bottomnext * 2] = colors[bottomnext * 2 + 1] = FlxColor.fromRGBFloat(pos1[1].x, pos1[1].y, pos1[1].z).to24Bit();
-    // colors[(bottomnext + 1) * 2] = colors[(bottomnext + 1) * 2 + 1] = FlxColor.fromRGBFloat(pos2[1].x, pos2[1].y, pos2[1].z).to24Bit();
+    var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+    hsvShader.diffuser = pos1[1].x;
+    hsvShader.diffuseg = pos1[1].y;
+    hsvShader.diffuseb = pos1[1].z;
+    hsvShader.diffusea = pos1[1].w;
+    hsvShader.hue = 1;
+    hsvShader.saturation = 1;
+    hsvShader.value = 1;
+    hsvShader.glow = pos1[2].w;
+    hsvShader.glowdiffuser = 1;
+    hsvShader.glowdiffuseg = 1;
+    hsvShader.glowdiffuseb = 1;
+    hsvShader.glowdiffusea = 1;
+    hsvs.push(hsvShader);
 
     for (i in 0...length)
     {
@@ -474,6 +532,7 @@ class SustainTrail extends FlxSprite
     indices.push(next + 2);
     indices.push(next + 3);
     this.indices = new DrawData<Int>(indices.length, true, indices);
+    addHSVValue(hsvs);
   }
 
   /**
@@ -483,6 +542,7 @@ class SustainTrail extends FlxSprite
    */
   public function updateClippingOld(songTime:Float = 0):Void
   {
+    renderType = 0;
     if (graphic == null || customVertexData)
     {
       return;
@@ -608,6 +668,97 @@ class SustainTrail extends FlxSprite
     }
   }
 
+  var colorMultipliers:Array<Float>;
+  var colorOffsets:Array<Float>;
+  var alphas:Array<Float> = [];
+
+  function addHSVValue(HSV:Array<ModchartHSVShader>)
+  {
+    // (colorMultipliers == null)
+    // if (colorOffsets == null)
+    colorMultipliers = [];
+    colorOffsets = [];
+    alphas = [];
+    hues = [];
+    sats = [];
+    vals = [];
+    diffrs = [];
+    diffgs = [];
+    diffbs = [];
+    diffas = [];
+    glows = [];
+    glowdiffrs = [];
+    glowdiffgs = [];
+    glowdiffbs = [];
+    glowdiffas = [];
+    for (_ in 0...indices.length)
+    {
+      if (colorTransform != null)
+      {
+        colorMultipliers.push(colorTransform.redMultiplier);
+        colorMultipliers.push(colorTransform.greenMultiplier);
+        colorMultipliers.push(colorTransform.blueMultiplier);
+        colorMultipliers.push(1);
+        colorOffsets.push(colorTransform.redOffset);
+        colorOffsets.push(colorTransform.greenOffset);
+        colorOffsets.push(colorTransform.blueOffset);
+        colorOffsets.push(colorTransform.alphaOffset);
+        alphas.push(colorTransform.alphaMultiplier);
+      }
+      else
+      {
+        colorMultipliers.push(1);
+        colorMultipliers.push(1);
+        colorMultipliers.push(1);
+        colorMultipliers.push(1);
+        colorOffsets.push(0);
+        colorOffsets.push(0);
+        colorOffsets.push(0);
+        colorOffsets.push(0);
+        alphas.push(1);
+      }
+    }
+
+    for (i in 0...Std.int(indices.length / 3))
+    {
+      var HSV = HSV[i];
+
+      for (i in 0...3)
+      {
+        if (HSV != null)
+        {
+          hues.push(HSV.hue);
+          sats.push(HSV.saturation);
+          vals.push(HSV.value);
+          glows.push(HSV.glow);
+          diffrs.push(HSV.diffuser);
+          diffgs.push(HSV.diffuseg);
+          diffbs.push(HSV.diffuseb);
+          diffas.push(HSV.diffusea);
+          glowdiffrs.push(HSV.glowdiffuser);
+          glowdiffgs.push(HSV.glowdiffuseg);
+          glowdiffbs.push(HSV.glowdiffuseb);
+          glowdiffas.push(HSV.glowdiffusea);
+        }
+        else
+        {
+          hues.push(1);
+          sats.push(1);
+          vals.push(1);
+          glows.push(0);
+          diffrs.push(1);
+          diffgs.push(1);
+          diffbs.push(1);
+          diffas.push(1);
+          glowdiffrs.push(1);
+          glowdiffgs.push(1);
+          glowdiffbs.push(1);
+          glowdiffas.push(1);
+        }
+      }
+    }
+  }
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
@@ -618,8 +769,43 @@ class SustainTrail extends FlxSprite
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
 
-      getScreenPosition(_point, camera).subtractPoint(offset);
-      camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
+      if (renderType == 0)
+      {
+        getScreenPosition(_point, camera).subtractPoint(offset);
+        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
+      }
+      else if (renderType == 1)
+      {
+        #if !flash
+        var shaderData:ModchartHSVShader = new ModchartHSVShader();
+        var shader:ModchartHSVShaderFrag = shaderData.shader;
+        shader.bitmap.input = graphic.bitmap;
+        shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
+        shader.bitmap.wrap = REPEAT;
+        shader.hasColorTransform.value = [true];
+        shader.colorMultiplier.value = colorMultipliers;
+        shader.colorOffset.value = colorOffsets;
+        shader.alpha.value = alphas;
+        shader._hue.value = hues;
+        shader._sat.value = sats;
+        shader._val.value = vals;
+        shader.glow.value = glows;
+        shader.diffuser.value = diffrs;
+        shader.diffuseg.value = diffgs;
+        shader.diffuseb.value = diffbs;
+        shader.diffusea.value = diffas;
+        shader.glowdiffuser.value = glowdiffrs;
+        shader.glowdiffuseg.value = glowdiffgs;
+        shader.glowdiffuseb.value = glowdiffbs;
+        shader.glowdiffusea.value = glowdiffas;
+        camera.canvas.graphics.overrideBlendMode(blend);
+        camera.canvas.graphics.beginShaderFill(shader);
+        #else
+        camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
+        #end
+        camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
+        camera.canvas.graphics.endFill();
+      }
     }
 
     #if FLX_DEBUG
@@ -661,6 +847,20 @@ class SustainTrail extends FlxSprite
     vertices = null;
     indices = null;
     uvtData = null;
+    #if !flash
+    hues = null;
+    sats = null;
+    vals = null;
+    glows = null;
+    diffrs = null;
+    diffgs = null;
+    diffbs = null;
+    diffas = null;
+    glowdiffrs = null;
+    glowdiffgs = null;
+    glowdiffbs = null;
+    glowdiffas = null;
+    #end
 
     super.destroy();
   }

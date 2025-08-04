@@ -118,7 +118,7 @@ class SustainTrail extends FlxSprite
   var diffrs:Array<Float> = [];
   var diffgs:Array<Float> = [];
   var diffbs:Array<Float> = [];
-  var diffas:Array<Float> = [];
+  var as:Array<Float> = [];
   var glowdiffrs:Array<Float> = [];
   var glowdiffgs:Array<Float> = [];
   var glowdiffbs:Array<Float> = [];
@@ -413,9 +413,9 @@ class SustainTrail extends FlxSprite
     {
       var a:Int = i * 2;
       var time:Float = strumTime + (fullSustainLength / length * i);
-      if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
       {
-        time = Conductor.instance.songPosition + (sustainLength / length * i);
+        time = Conductor.instance.getTimeWithDelta() + (sustainLength / length * i);
       }
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
@@ -427,7 +427,7 @@ class SustainTrail extends FlxSprite
       hsvShader.diffuser = pos1[1].x;
       hsvShader.diffuseg = pos1[1].y;
       hsvShader.diffuseb = pos1[1].z;
-      hsvShader.diffusea = pos1[1].w;
+      hsvShader.a = pos1[1].w;
       hsvShader.hue = 1;
       hsvShader.saturation = 1;
       hsvShader.value = 1;
@@ -435,7 +435,19 @@ class SustainTrail extends FlxSprite
       hsvShader.glowdiffuser = 1;
       hsvShader.glowdiffuseg = 1;
       hsvShader.glowdiffuseb = 1;
-      hsvShader.glowdiffusea = 1;
+      hsvs.push(hsvShader);
+      var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+      hsvShader.diffuser = pos2[1].x;
+      hsvShader.diffuseg = pos2[1].y;
+      hsvShader.diffuseb = pos2[1].z;
+      hsvShader.a = pos2[1].w;
+      hsvShader.hue = 1;
+      hsvShader.saturation = 1;
+      hsvShader.value = 1;
+      hsvShader.glow = pos2[2].w;
+      hsvShader.glowdiffuser = 1;
+      hsvShader.glowdiffuseg = 1;
+      hsvShader.glowdiffuseb = 1;
       hsvs.push(hsvShader);
     }
 
@@ -446,9 +458,9 @@ class SustainTrail extends FlxSprite
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
     var time:Float = strumTime + (fullSustainLength / length * (length - 1));
-    if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
     {
-      time = Conductor.instance.songPosition + (sustainLength / length * (length - 1));
+      time = Conductor.instance.getTimeWithDelta() + (sustainLength / length * (length - 1));
     }
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
@@ -456,7 +468,7 @@ class SustainTrail extends FlxSprite
     hsvShader.diffuser = pos1[1].x;
     hsvShader.diffuseg = pos1[1].y;
     hsvShader.diffuseb = pos1[1].z;
-    hsvShader.diffusea = pos1[1].w;
+    hsvShader.a = pos1[1].w;
     hsvShader.hue = 1;
     hsvShader.saturation = 1;
     hsvShader.value = 1;
@@ -464,14 +476,25 @@ class SustainTrail extends FlxSprite
     hsvShader.glowdiffuser = 1;
     hsvShader.glowdiffuseg = 1;
     hsvShader.glowdiffuseb = 1;
-    hsvShader.glowdiffusea = 1;
     hsvs.push(hsvShader);
-
+    var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+    hsvShader.diffuser = pos2[1].x;
+    hsvShader.diffuseg = pos2[1].y;
+    hsvShader.diffuseb = pos2[1].z;
+    hsvShader.a = pos2[1].w;
+    hsvShader.hue = 1;
+    hsvShader.saturation = 1;
+    hsvShader.value = 1;
+    hsvShader.glow = pos2[2].w;
+    hsvShader.glowdiffuser = 1;
+    hsvShader.glowdiffuseg = 1;
+    hsvShader.glowdiffuseb = 1;
+    hsvs.push(hsvShader);
     var bottom:Int = (length + 1) * 2;
     var time:Float = strumTime + fullSustainLength;
-    if (hitNote && !missedNote && Conductor.instance.songPosition >= strumTime)
+    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
     {
-      time = Conductor.instance.songPosition + sustainLength;
+      time = Conductor.instance.getTimeWithDelta() + sustainLength;
     }
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
@@ -483,7 +506,7 @@ class SustainTrail extends FlxSprite
     hsvShader.diffuser = pos1[1].x;
     hsvShader.diffuseg = pos1[1].y;
     hsvShader.diffuseb = pos1[1].z;
-    hsvShader.diffusea = pos1[1].w;
+    hsvShader.a = pos1[1].w;
     hsvShader.hue = 1;
     hsvShader.saturation = 1;
     hsvShader.value = 1;
@@ -491,7 +514,19 @@ class SustainTrail extends FlxSprite
     hsvShader.glowdiffuser = 1;
     hsvShader.glowdiffuseg = 1;
     hsvShader.glowdiffuseb = 1;
-    hsvShader.glowdiffusea = 1;
+    hsvs.push(hsvShader);
+    var hsvShader:ModchartHSVShader = new ModchartHSVShader();
+    hsvShader.diffuser = pos2[1].x;
+    hsvShader.diffuseg = pos2[1].y;
+    hsvShader.diffuseb = pos2[1].z;
+    hsvShader.a = pos2[1].w;
+    hsvShader.hue = 1;
+    hsvShader.saturation = 1;
+    hsvShader.value = 1;
+    hsvShader.glow = pos2[2].w;
+    hsvShader.glowdiffuser = 1;
+    hsvShader.glowdiffuseg = 1;
+    hsvShader.glowdiffuseb = 1;
     hsvs.push(hsvShader);
 
     for (i in 0...length)
@@ -674,8 +709,6 @@ class SustainTrail extends FlxSprite
 
   function addHSVValue(HSV:Array<ModchartHSVShader>)
   {
-    // (colorMultipliers == null)
-    // if (colorOffsets == null)
     colorMultipliers = [];
     colorOffsets = [];
     alphas = [];
@@ -685,12 +718,11 @@ class SustainTrail extends FlxSprite
     diffrs = [];
     diffgs = [];
     diffbs = [];
-    diffas = [];
+    as = [];
     glows = [];
     glowdiffrs = [];
     glowdiffgs = [];
     glowdiffbs = [];
-    glowdiffas = [];
     for (_ in 0...indices.length)
     {
       if (colorTransform != null)
@@ -734,11 +766,10 @@ class SustainTrail extends FlxSprite
           diffrs.push(HSV.diffuser);
           diffgs.push(HSV.diffuseg);
           diffbs.push(HSV.diffuseb);
-          diffas.push(HSV.diffusea);
+          as.push(HSV.a);
           glowdiffrs.push(HSV.glowdiffuser);
           glowdiffgs.push(HSV.glowdiffuseg);
           glowdiffbs.push(HSV.glowdiffuseb);
-          glowdiffas.push(HSV.glowdiffusea);
         }
         else
         {
@@ -749,11 +780,10 @@ class SustainTrail extends FlxSprite
           diffrs.push(1);
           diffgs.push(1);
           diffbs.push(1);
-          diffas.push(1);
+          as.push(1);
           glowdiffrs.push(1);
           glowdiffgs.push(1);
           glowdiffbs.push(1);
-          glowdiffas.push(1);
         }
       }
     }
@@ -793,11 +823,10 @@ class SustainTrail extends FlxSprite
         shader.diffuser.value = diffrs;
         shader.diffuseg.value = diffgs;
         shader.diffuseb.value = diffbs;
-        shader.diffusea.value = diffas;
+        shader.a.value = as;
         shader.glowdiffuser.value = glowdiffrs;
         shader.glowdiffuseg.value = glowdiffgs;
         shader.glowdiffuseb.value = glowdiffbs;
-        shader.glowdiffusea.value = glowdiffas;
         camera.canvas.graphics.overrideBlendMode(blend);
         camera.canvas.graphics.beginShaderFill(shader);
         #else
@@ -855,11 +884,10 @@ class SustainTrail extends FlxSprite
     diffrs = null;
     diffgs = null;
     diffbs = null;
-    diffas = null;
+    as = null;
     glowdiffrs = null;
     glowdiffgs = null;
     glowdiffbs = null;
-    glowdiffas = null;
     #end
 
     super.destroy();

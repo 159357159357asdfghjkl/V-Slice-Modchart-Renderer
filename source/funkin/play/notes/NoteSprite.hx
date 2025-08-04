@@ -248,12 +248,11 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
     this.hsvShader.diffuser = 1.0;
     this.hsvShader.diffuseg = 1.0;
     this.hsvShader.diffuseb = 1.0;
-    this.hsvShader.diffusea = 1.0;
+    this.hsvShader.a = 1.0;
     this.hsvShader.glow = 0.0;
     this.hsvShader.glowdiffuser = 1.0;
     this.hsvShader.glowdiffuseg = 1.0;
     this.hsvShader.glowdiffuseb = 1.0;
-    this.hsvShader.glowdiffusea = 1.0;
   }
 
   public override function kill():Void

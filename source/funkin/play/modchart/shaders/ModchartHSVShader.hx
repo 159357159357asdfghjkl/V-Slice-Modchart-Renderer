@@ -12,11 +12,10 @@ class ModchartHSVShader
   public var diffuser(default, set):Float;
   public var diffuseg(default, set):Float;
   public var diffuseb(default, set):Float;
-  public var diffusea(default, set):Float;
+  public var a(default, set):Float;
   public var glowdiffuser(default, set):Float;
   public var glowdiffuseg(default, set):Float;
   public var glowdiffuseb(default, set):Float;
-  public var glowdiffusea(default, set):Float;
 
   public function new()
   {
@@ -31,8 +30,7 @@ class ModchartHSVShader
     shader.glowdiffuseg.value = [1.0];
     shader.diffuseb.value = [1.0];
     shader.glowdiffuseb.value = [1.0];
-    shader.diffusea.value = [1.0];
-    shader.glowdiffusea.value = [1.0];
+    shader.a.value = [1.0];
   }
 
   function set_hue(value:Float):Float
@@ -87,11 +85,11 @@ class ModchartHSVShader
     return diffuseb;
   }
 
-  function set_diffusea(value:Float)
+  function set_a(value:Float)
   {
-    diffusea = value;
-    shader.diffusea.value[0] = value;
-    return diffusea;
+    a = value;
+    shader.a.value[0] = value;
+    return a;
   }
 
   function set_glowdiffuser(value:Float)
@@ -114,13 +112,6 @@ class ModchartHSVShader
     shader.glowdiffuseb.value[0] = value;
     return glowdiffuseb;
   }
-
-  function set_glowdiffusea(value:Float)
-  {
-    glowdiffusea = value;
-    shader.glowdiffusea.value[0] = value;
-    return glowdiffusea;
-  }
 }
 
 class ModchartHSVShaderFrag extends FlxShader
@@ -132,14 +123,13 @@ class ModchartHSVShaderFrag extends FlxShader
   uniform float _sat;
   uniform float _val;
   uniform float glow;
+  uniform float a;
   uniform float diffuser;
   uniform float diffuseg;
   uniform float diffuseb;
-  uniform float diffusea;
   uniform float glowdiffuser;
   uniform float glowdiffuseg;
   uniform float glowdiffuseb;
-  uniform float glowdiffusea;
 
   vec3 normalizeColor(vec3 color)
   {
@@ -177,9 +167,10 @@ class ModchartHSVShaderFrag extends FlxShader
   swagColor.z *= (_hue * 0.5) + 0.5;
   color = vec4(hsv2rgb(vec3(swagColor[0], swagColor[1], swagColor[2])), swagColor[3]);
   if(glow != 0.0){
-	  color = mix(color, vec4(glowdiffuser,glowdiffuseg,glowdiffuseb,glowdiffusea), glow) * color.a;
+	  color = mix(color, vec4(glowdiffuser,glowdiffuseg,glowdiffuseb,1.0), glow) * color.a;
 	}
-  color *= vec4(diffuser,diffuseg,diffuseb,diffusea);
+  color *= vec4(diffuser,diffuseg,diffuseb,1.0);
+  color *= a;
 	gl_FragColor = color;
   }
   ')

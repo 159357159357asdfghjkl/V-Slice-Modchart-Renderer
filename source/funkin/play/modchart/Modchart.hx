@@ -427,6 +427,7 @@ class Modchart
       ZERO.push('waveoffset$i');
       ZERO.push('waveperiod$i');
       ZERO.push('dizzy$i');
+      ZERO.push('roll$i');
       ZERO.push('drunk$i');
       ZERO.push('drunkoffset$i');
       ZERO.push('drunkperiod$i');
@@ -1495,6 +1496,10 @@ class Modchart
     if (getValue('roll') != 0)
     {
       fRotation += getValue('roll') * fYOffset / 2;
+    }
+    if (getValue('roll$iCol') != 0)
+    {
+      fRotation += getValue('roll$iCol') * fYOffset / 2;
     }
     if (getValue('rotationx') != 0)
     {

@@ -744,7 +744,7 @@ class Strumline extends FlxSpriteGroup
       note.z = pos.z;
       note.originVec = zOrigin;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff, false);
-      note.hsvShader.diffusea = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.hsvShader.a = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       note.hsvShader.glow = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       var noteBeat:Float = (note.strumTime / 1000) * (Conductor.instance.bpm / 60);
       note.rotation.copyFrom(new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null),

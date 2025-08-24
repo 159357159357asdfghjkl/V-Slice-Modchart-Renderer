@@ -4,7 +4,7 @@ import flixel.system.FlxAssets.FlxShader;
 
 class ModchartHSVShader
 {
-  public var shader(default, null):ModchartHSVShaderFrag;
+  public var shader(default, null):ModchartHSVShaderGLSL;
   public var hue(default, set):Float;
   public var saturation(default, set):Float;
   public var value(default, set):Float;
@@ -19,7 +19,7 @@ class ModchartHSVShader
 
   public function new()
   {
-    shader = new ModchartHSVShaderFrag();
+    shader = new ModchartHSVShaderGLSL();
     shader._hue.value = [1.0];
     shader._sat.value = [1.0];
     shader._val.value = [1.0];
@@ -114,31 +114,64 @@ class ModchartHSVShader
   }
 }
 
-class ModchartHSVShaderFrag extends FlxShader
+class ModchartHSVShaderGLSL extends FlxShader
 {
+  @:glVertexSource('
+  #pragma header
+
+  attribute float _hue;
+  attribute float _sat;
+  attribute float _val;
+  attribute float glow;
+  attribute float a;
+  attribute float diffuser;
+  attribute float diffuseg;
+  attribute float diffuseb;
+  attribute float glowdiffuser;
+  attribute float glowdiffuseg;
+  attribute float glowdiffuseb;
+  varying float _hue2;
+  varying float _sat2;
+  varying float _val2;
+  varying float glow2;
+  varying float a2;
+  varying float diffuser2;
+  varying float diffuseg2;
+  varying float diffuseb2;
+  varying float glowdiffuser2;
+  varying float glowdiffuseg2;
+  varying float glowdiffuseb2;
+
+  void main()
+  {
+    #pragma body
+    _hue2 = _hue;
+    _sat2 = _sat;
+    _val2 = _val;
+    glow2 = glow;
+    a2 = a;
+    diffuser2 = diffuser;
+    diffuseg2 = diffuseg;
+    diffuseb2 = diffuseb;
+    glowdiffuser2 = glowdiffuser;
+    glowdiffuseg2 = glowdiffuseg;
+    glowdiffuseb2 = glowdiffuseb;
+  }
+  ')
   @:glFragmentSource('
   #pragma header
 
-  uniform float _hue;
-  uniform float _sat;
-  uniform float _val;
-  uniform float glow;
-  uniform float a;
-  uniform float diffuser;
-  uniform float diffuseg;
-  uniform float diffuseb;
-  uniform float glowdiffuser;
-  uniform float glowdiffuseg;
-  uniform float glowdiffuseb;
-
-  vec3 normalizeColor(vec3 color)
-  {
-    return vec3(
-        color[0] / 255.0,
-        color[1] / 255.0,
-        color[2] / 255.0
-    );
-  }
+  varying float _hue2;
+  varying float _sat2;
+  varying float _val2;
+  varying float glow2;
+  varying float a2;
+  varying float diffuser2;
+  varying float diffuseg2;
+  varying float diffuseb2;
+  varying float glowdiffuser2;
+  varying float glowdiffuseg2;
+  varying float glowdiffuseb2;
 
   vec3 rgb2hsv(vec3 c)
   {
@@ -157,21 +190,40 @@ class ModchartHSVShaderFrag extends FlxShader
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
   }
 
-  void main() {
-  vec4 color = flixel_texture2D(bitmap, openfl_TextureCoordv);
-  vec4 swagColor = vec4(rgb2hsv(vec3(color[0], color[1], color[2])), color[3]);
-  swagColor.x *= _hue;
-  swagColor.y *= _sat;
-  swagColor.z *= _val;
-
-  swagColor.z *= (_hue * 0.5) + 0.5;
-  color = vec4(hsv2rgb(vec3(swagColor[0], swagColor[1], swagColor[2])), swagColor[3]);
-  if(glow != 0.0){
-	  color = mix(color, vec4(glowdiffuser,glowdiffuseg,glowdiffuseb,1.0), glow) * color.a;
+	vec4 modchartTexture2D(sampler2D bitmap, vec2 coord)
+	{
+		vec4 color = texture2D(bitmap, coord);
+		if (isTexture)
+			color.rgb *= color.a;
+		if (!(hasTransform || openfl_HasColorTransform))
+			return color;
+		if (color.a == 0.0)
+			return vec4(0.0, 0.0, 0.0, 0.0);
+		if (openfl_HasColorTransform || hasColorTransform)
+		{
+			color = vec4 (color.rgb / color.a, color.a);
+			vec4 mult = vec4(openfl_ColorMultiplierv.rgb, 1.0);
+      vec4 off = openfl_ColorOffsetv;
+  		color = clamp (off + (color * mult), 0.0, 1.0);
+      color *= vec4(diffuser2,diffuseg2,diffuseb2,1.0);
+      //color += vec4(glowdiffuser2,glowdiffuseg2,glowdiffuseb2,glow2);
+      color *= a2;
+			if (color.a == 0.0)
+				return vec4 (0.0, 0.0, 0.0, 0.0);
+			return vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
+		}
+		return color * openfl_Alphav;
 	}
-  color *= vec4(diffuser,diffuseg,diffuseb,1.0);
-  color *= a;
-	gl_FragColor = color;
+
+  void main() {
+    vec4 color = /*flixel_texture2D(bitmap, openfl_TextureCoordv);*/ modchartTexture2D(bitmap, openfl_TextureCoordv);
+    vec4 swagColor = vec4(rgb2hsv(vec3(color[0], color[1], color[2])), color[3]);
+    swagColor.x *= _hue2;
+    swagColor.y *= _sat2;
+    swagColor.z *= _val2;
+    swagColor.z *= (_hue2 * 0.5) + 0.5;
+    color = vec4(hsv2rgb(vec3(swagColor[0], swagColor[1], swagColor[2])), swagColor[3]);
+	  gl_FragColor = color;
   }
   ')
   public function new()

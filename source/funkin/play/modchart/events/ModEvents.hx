@@ -5,6 +5,8 @@ import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.*;
 import funkin.play.modchart.events.templates.*;
 
+// mirin template haxe port
+
 typedef ExtraVars =
 {
   @:optional var plr:Array<Int>;
@@ -388,7 +390,9 @@ class ModEvents
         while (i < e['mod'].length)
         {
           var mod = e['mod'][i + 1];
-          mods[plr][mod] = e['_$mod'] + e3 * e['__$mod'];
+          var a:Int = 1;
+          if (mod == 'straightholds') a = -1;
+          mods[plr][mod] = e['_$mod'] + e3 * e['__$mod'] * a;
           i += 2;
         }
         active_eases_index++;

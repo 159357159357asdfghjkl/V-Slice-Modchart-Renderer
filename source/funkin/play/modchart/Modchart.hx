@@ -9,8 +9,8 @@ import funkin.util.GRhythmUtil;
 using StringTools;
 
 /**
- * Just a shit port
- * only make notitg mods
+ * StepMania Port + NotITG Mods
+ * orient / asymptote / cubic / straightholds / clip were made by me
  */
 class Modchart
 {
@@ -18,14 +18,14 @@ class Modchart
 
   private var modList:Map<String, Float>;
   private var altname:Map<String, String> = new Map<String, String>();
-  final ARROW_SIZE:Int = Strumline.NOTE_SPACING;
+  final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
 
   function selectTanType(angle:Float, is_cosec:Float)
   {
-    if (is_cosec != 0) return ModchartMath.fastCsc(angle);
+    if (is_cosec != 0) return ModchartMath.fastCsc(angle, getValue('tanclip'));
     else
-      return ModchartMath.fastTan(angle);
+      return ModchartMath.fastTan(angle, getValue('tanclip'));
   }
 
   var dim_x:Int = 0;
@@ -36,7 +36,7 @@ class Modchart
       real_offset:Float):Float
   {
     return (time
-      + real_offset) * (1 + speed)
+      + real_offset * 100) * (1 + speed)
       + col * ((offset * col_frequency) + col_frequency)
       + y_offset * ((period * offset_frequency) + offset_frequency) / SCREEN_HEIGHT;
   }
@@ -268,8 +268,6 @@ class Modchart
       'shrinklinear',
       'noteskewx',
       'noteskewy',
-      'zoomx',
-      'zoomy',
       'tinyx',
       'tinyy',
       'tinyz',
@@ -288,12 +286,14 @@ class Modchart
       'sudden',
       'suddenoffset',
       'blink',
-      'randomvanish',
+      'vanish',
       'dark',
       'cosecant',
       'dizzyholds',
       'rotationx',
       'rotationy',
+      'vanishoffset',
+      'vanishsize',
       'rotationz',
       'skewx',
       'skewy',
@@ -328,15 +328,40 @@ class Modchart
       'shrinkmultx',
       'shrinkmulty',
       'shrinkmultz',
-      'vanishoffset',
       'tapstealth',
       'holdstealth',
       'centered2',
       'orient',
       'orientoffset',
       'noreorient',
+      'orienty',
+      'orientyoffset',
+      'noreorienty',
+      'orientx',
+      'orientxoffset',
+      'noreorientx',
       'holdgirth',
-      'variableboomerang'
+      'variableboomerang',
+      'reversetype',
+      'holdheadstealth',
+      'asymptote',
+      'asymptotescale',
+      'asymptoteoffset',
+      'cubicx',
+      'cubicxoffset',
+      'cubicy',
+      'cubicyoffset',
+      'cubicz',
+      'cubiczoffset',
+      'x',
+      'y',
+      'z',
+      'noteskewtype',
+      'longholds',
+      'spiralholds',
+      'sinclip',
+      'cosclip',
+      'tanclip'
     ];
 
     // spiralholds = holdtype
@@ -353,7 +378,8 @@ class Modchart
       'scalex',
       'scaley',
       'scalez',
-      'scrollspeedmult'
+      'scrollspeedmult',
+
     ];
     for (i in 0...Strumline.KEY_COUNT)
     {
@@ -408,6 +434,7 @@ class Modchart
       ZERO.push('stealth$i');
       ZERO.push('tapstealth$i');
       ZERO.push('holdstealth$i');
+      ZERO.push('holdheadstealth$i');
       ZERO.push('arrowpath$i');
       ZERO.push('beat$i');
       ZERO.push('beatmult$i');
@@ -459,10 +486,21 @@ class Modchart
       ZERO.push('tandrunkzspeed$i');
       ZERO.push('tandrunkzspacing$i');
       ZERO.push('twirl$i');
-      ONE.push('zoom$i');
-      ONE.push('zoomx$i');
-      ONE.push('zoomy$i');
-      ONE.push('zoomz$i');
+      ZERO.push('zigzag$i');
+      ZERO.push('zigzagoffset$i');
+      ZERO.push('zigzagperiod$i');
+      ZERO.push('zigzagz$i');
+      ZERO.push('zigzagzoffset$i');
+      ZERO.push('zigzagzperiod$i');
+      ZERO.push('sawtooth$i');
+      ZERO.push('sawtoothoffset$i');
+      ZERO.push('sawtoothperiod$i');
+      ZERO.push('sawtoothz$i');
+      ZERO.push('sawtoothzoffset$i');
+      ZERO.push('sawtoothzperiod$i');
+      ZERO.push('centered$i');
+      ZERO.push('arrowpathsize$i');
+      ZERO.push('centered2$i');
     }
 
     for (mod in ZERO)
@@ -487,10 +525,7 @@ class Modchart
     // i hate you
     altname.set('glitchytan', 'cosecant');
     altname.set('plannedomspeed', 'scrollspeedmult');
-    altname.set('x', 'movex');
-    altname.set('y', 'movey');
-    altname.set('z', 'movez');
-    altname.set('vanish', 'randomvanish');
+    altname.set('randomvanish', 'vanish');
     altname.set('grain', 'granulate');
     altname.set('ultraman', 'alternate');
     altname.set('arrowpathgrain', 'arrowpathgranulate');
@@ -506,6 +541,7 @@ class Modchart
     altname.set('arrowpathdrawdistanceback', 'arrowpathdrawsizeback');
     altname.set('hideholds', 'holdstealth');
     altname.set('hidetaps', 'tapstealth');
+    altname.set('hideholdheads', 'holdheadstealth');
     altname.set('holdtiny', 'holdtinyx');
     altname.set('beatsize', 'beatperiod');
     altname.set('beatysize', 'beatyperiod');
@@ -536,10 +572,21 @@ class Modchart
     altname.set('sawtoothzsize', 'sawtoothzperiod');
     altname.set('zigzagsize', 'zigzagperiod');
     altname.set('zigzagzsize', 'zigzagzperiod');
+    altname.set('sawtoothsize', 'sawtoothperiod');
+    altname.set('sawtoothzsize', 'sawtoothzperiod');
+    altname.set('unboundedreverse', 'reversetype');
+    altname.set('cosec', 'cosecant');
+    altname.set('centeredpath', 'centered2');
+    altname.set('longboy', 'longholds');
+    altname.set('longboys', 'longholds');
+    altname.set('holdtype', 'spiralholds');
+    altname.set('asymptotesize', 'asymptotescale');
+
     for (i in 0...Strumline.KEY_COUNT)
     {
       altname.set('hideholds$i', 'holdstealth$i');
       altname.set('hidetaps$i', 'tapstealth$i');
+      altname.set('hideholdheads$i', 'holdheadstealth$i');
       altname.set('holdtiny$i', 'holdtinyx$i');
       altname.set('beatsize$i', 'beatperiod$i');
       altname.set('beatysize$i', 'beatyperiod$i');
@@ -563,6 +610,14 @@ class Modchart
       altname.set('tandrunkzsize$i', 'tandrunkzperiod$i');
       altname.set('plannedomspeed$i', 'scrollspeedmult$i');
       altname.set('wavesize$i', 'waveperiod$i');
+      altname.set('zigzagsize$i', 'zigzagperiod$i');
+      altname.set('zigzagzsize$i', 'zigzagzperiod$i');
+      altname.set('sawtoothsize$i', 'sawtoothperiod$i');
+      altname.set('sawtoothzsize$i', 'sawtoothzperiod$i');
+      altname.set('converge$i', 'centered$i');
+      altname.set('arrowpathgirth$i', 'arrowpathsize$i');
+      altname.set('arrowpathwidth$i', 'arrowpathsize$i');
+      altname.set('centeredpath$i', 'centered2$i');
     }
   }
 
@@ -576,17 +631,33 @@ class Modchart
 
   public function createAliasForMod(alias:String, mod:String)
   {
-    altname.set(alias, getName(mod));
+    var name:String = getName(mod);
+    altname.set(alias, name);
   }
 
   public function setValue(s:String, val:Float):Void
   {
-    modList.set(getName(s), val);
+    var name:String = getName(s);
+    if (name == 'straightholds')
+    {
+      modList.set('gayholds', -val);
+      return;
+    }
+    modList.set(name, val);
   }
 
   public function getValue(s:String):Float
   {
     var name:String = getName(s);
+    if (name == 'straightholds')
+    {
+      var val:Null<Float> = modList.get('gayholds');
+      if (val == null) return 0;
+      else
+        val /= 100;
+      val *= -1;
+      return val;
+    }
     var val:Null<Float> = modList.get(name);
     if (val == null) return 0;
     else
@@ -599,6 +670,7 @@ class Modchart
   public function getName(s:String)
   {
     var s1:String = s.toLowerCase();
+    if (s1 == 'straightholds') return s1;
     var name:String = altname.exists(s1) ? altname.get(s1) : s1;
     if (!modList.exists(name))
     {
@@ -614,10 +686,10 @@ class Modchart
 
   function CalculateTipsyOffset(time:Float, offset:Float, speed:Float, col:Int, real_offset:Float, ?tan:Float = 0)
   {
-    var time_times_timer:Float = (time + real_offset) * ((speed * 1.2) + 1.2);
+    var time_times_timer:Float = (time + real_offset * 100) * ((speed * 1.2) + 1.2);
     var arrow_times_mag:Float = ARROW_SIZE * 0.4;
-    return (tan == 0 ? ModchartMath.fastCos(time_times_timer + (col * ((offset * 1.8) + 1.8))) * arrow_times_mag : selectTanType(time_times_timer
-      + (col * ((offset * 1.8) + 1.8)), getValue('cosecant')) * arrow_times_mag);
+    return (tan == 0 ? ModchartMath.fastCos(time_times_timer + (col * ((offset * 1.8) + 1.8)),
+      getValue('cosclip')) * arrow_times_mag : selectTanType(time_times_timer + (col * ((offset * 1.8) + 1.8)), getValue('cosecant')) * arrow_times_mag);
   }
 
   public var baseHoldSize(get, never):Float; // ms
@@ -633,10 +705,13 @@ class Modchart
     var curTime:Float = getTime();
     scrollSpeed *= getValue('xmod');
     if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
-    scrollSpeed *= getValue('scrollspeedmult');
+    scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     var fYAdjust:Float = 0;
-
+    if (fYOffset < 0)
+    {
+      return fYOffset * scrollSpeed;
+    }
     if (getValue('boost') != 0)
     {
       var fEffectHeight:Float = SCREEN_HEIGHT;
@@ -675,11 +750,13 @@ class Modchart
     }
     if (getValue('wave') != 0)
     {
-      fYAdjust += getValue('wave') * 20 * ModchartMath.fastSin((fYOffset + getValue('waveoffset')) / ((getValue('waveperiod') * 38) + 38));
+      fYAdjust += getValue('wave') * 20 * ModchartMath.fastSin((fYOffset + getValue('waveoffset') * 100) / ((getValue('waveperiod') * 38) + 38),
+        getValue('sinclip'));
     }
     if (getValue('wave$iCol') != 0)
     {
-      fYAdjust += getValue('wave$iCol') * 20 * ModchartMath.fastSin((fYOffset + getValue('waveoffset$iCol')) / ((getValue('waveperiod$iCol') * 38) + 38));
+      fYAdjust += getValue('wave$iCol') * 20 * ModchartMath.fastSin((fYOffset + getValue('waveoffset$iCol') * 100) / ((getValue('waveperiod$iCol') * 38) + 38),
+        getValue('sinclip'));
     }
     if (getValue('parabolay') != 0) fYAdjust += getValue('parabolay') * ((fYOffset + 2 * getValue('parabolayoffset')) / ARROW_SIZE) * ((fYOffset
       + 2 * getValue('parabolayoffset')) / ARROW_SIZE);
@@ -695,7 +772,8 @@ class Modchart
     {
       var expandSeconds:Float = curTime;
       expandSeconds = ModchartMath.mod(expandSeconds, (Math.PI * 2) / (getValue('expandperiod') + 1));
-      var fExpandMultiplier:Float = ModchartMath.scale(ModchartMath.fastCos(expandSeconds * 3 * (getValue('expandperiod') + 1)), -1, 1, 0.75, 1.75);
+      var fExpandMultiplier:Float = ModchartMath.scale(ModchartMath.fastCos(expandSeconds * 3 * (getValue('expandperiod') + 1), getValue('cosclip')), -1, 1,
+        0.75, 1.75);
       scrollSpeed *= ModchartMath.scale(getValue('expand'), 0, 1, 1, fExpandMultiplier);
     }
     if (getValue('tanexpand') != 0)
@@ -732,31 +810,35 @@ class Modchart
     var iFirstCrossCol = iNumCols / 4;
     var iLastCrossCol = iNumCols - 1 - iFirstCrossCol;
     if (iCol >= iFirstCrossCol && iCol <= iLastCrossCol) f += getValue('cross');
-    if (f > 2) f = ModchartMath.mod(f, 2);
-    if (f > 1) f = ModchartMath.scale(f, 1., 2., 1., 0.);
+    if (getValue('reversetype') == 0)
+    {
+      if (f > 2) f = ModchartMath.mod(f, 2);
+      if (f > 1) f = ModchartMath.scale(f, 1., 2., 1., 0.);
+    }
     return f;
   }
 
   public var notefieldZoom:Float = 1.0;
 
-  public function GetXPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, isNote:Bool = false):Float
+  public function GetXPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, isNote:Bool = false, isHoldBody:Bool = false):Float
   {
     var time:Float = getTime();
     var f:Float = 0;
-    var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     f += ARROW_SIZE * getValue('movex${iCol}') + getValue('movexoffset$iCol') + getValue('movexoffset1$iCol');
 
     f += ARROW_SIZE * getValue('movex') + getValue('movexoffset') + getValue('movexoffset1');
 
     if (getValue('drunk') != 0) f += getValue('drunk') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkspeed'), iCol,
-      getValue('drunkspacing'), 0.2, fYOffset, getValue('drunkperiod'), 10, getValue('drunkoffset'))) * ARROW_SIZE * 0.5;
+      getValue('drunkspacing'), 0.2, fYOffset, getValue('drunkperiod'), 10, getValue('drunkoffset')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunk') != 0) f += getValue('tandrunk') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkspeed'), iCol,
       getValue('tandrunkspacing'), 0.2, fYOffset, getValue('tandrunkperiod'), 10, getValue('tandrunkoffset')),
       getValue('cosecant')) * ARROW_SIZE * 0.5;
 
     if (getValue('drunk$iCol') != 0) f += getValue('drunk$iCol') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkspeed$iCol'), iCol,
-      getValue('drunkspacing$iCol'), 0.2, fYOffset, getValue('drunkperiod$iCol'), 10, getValue('drunkoffset$iCol'))) * ARROW_SIZE * 0.5;
+      getValue('drunkspacing$iCol'), 0.2, fYOffset, getValue('drunkperiod$iCol'), 10, getValue('drunkoffset$iCol')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunk$iCol') != 0) f += getValue('tandrunk$iCol') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkspeed$iCol'), iCol,
       getValue('tandrunkspacing$iCol'), 0.2, fYOffset, getValue('tandrunkperiod$iCol'), 10, getValue('tandrunkoffset$iCol')),
@@ -791,7 +873,7 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatperiod') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatperiod') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beat') * fShift;
       }
       while (false);
@@ -823,20 +905,20 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beat$iCol') * fShift;
       }
       while (false);
     }
 
     if (getValue('bumpyx') != 0) f += getValue('bumpyx') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyxoffset'),
-      getValue('bumpyxperiod')));
+      getValue('bumpyxperiod')), getValue('sinclip'));
 
     if (getValue('tanbumpyx') != 0) f += getValue('tanbumpyx') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyxoffset'),
       getValue('tanbumpyxperiod')), getValue('cosecant'));
 
     if (getValue('bumpyx$iCol') != 0) f += getValue('bumpyx$iCol') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyxoffset$iCol'),
-      getValue('bumpyxperiod$iCol')));
+      getValue('bumpyxperiod$iCol')), getValue('sinclip'));
 
     if (getValue('tanbumpyx$iCol') != 0) f += getValue('tanbumpyx$iCol') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyxoffset$iCol'),
       getValue('tanbumpyxperiod$iCol')), getValue('cosecant'));
@@ -904,15 +986,28 @@ class Modchart
       f += (getValue('zigzag') * ARROW_SIZE / 2) * fResult;
     }
 
+    if (getValue('zigzag$iCol') != 0)
+    {
+      var fResult:Float = ModchartMath.triangle((Math.PI * (1 / (getValue('zigzagperiod$iCol') + 1)) * ((fYOffset +
+        (100.0 * (getValue('zigzagoffset$iCol')))) / ARROW_SIZE)));
+
+      f += (getValue('zigzag$iCol') * ARROW_SIZE / 2) * fResult;
+    }
+
     if (getValue('sawtooth') != 0) f += (getValue('sawtooth') * ARROW_SIZE) * ((0.5 / (getValue('sawtoothperiod') + 1) * (fYOffset
       + 100.0 * getValue('sawtoothoffset'))) / ARROW_SIZE
       - Math.floor((0.5 / (getValue('sawtoothperiod') + 1) * (fYOffset + 100.0 * getValue('sawtoothoffset'))) / ARROW_SIZE));
+
+    if (getValue('sawtooth$iCol') != 0) f += (getValue('sawtooth$iCol') * ARROW_SIZE) * ((0.5 / (getValue('sawtoothperiod$iCol') + 1) * (fYOffset
+      + 100.0 * getValue('sawtoothoffset$iCol'))) / ARROW_SIZE
+      - Math.floor((0.5 / (getValue('sawtoothperiod$iCol') + 1) * (fYOffset + 100.0 * getValue('sawtoothoffset$iCol'))) / ARROW_SIZE));
 
     if (getValue('parabolax') != 0) f += getValue('parabolax') * ((fYOffset + 2 * getValue('parabolaxoffset')) / ARROW_SIZE) * ((fYOffset
       + 2 * getValue('parabolaxoffset')) / ARROW_SIZE);
 
     if (getValue('digital') != 0) f += (getValue('digital') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalsteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitaloffset'), getValue('digitalperiod')))) / (getValue('digitalsteps')
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitaloffset'), getValue('digitalperiod')),
+        getValue('sinclip'))) / (getValue('digitalsteps')
       + 1);
 
     if (getValue('tandigital') != 0) f += (getValue('tandigital') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalsteps') +
@@ -922,7 +1017,7 @@ class Modchart
 
     if (getValue('square') != 0)
     {
-      var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (1.0 * (getValue('squareoffset')))) / (ARROW_SIZE
+      var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (100.0 * (getValue('squareoffset')))) / (ARROW_SIZE
         + (getValue('squareperiod') * ARROW_SIZE))));
 
       f += (getValue('square') * ARROW_SIZE * 0.5) * fResult;
@@ -930,7 +1025,8 @@ class Modchart
 
     if (getValue('bounce') != 0)
     {
-      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (1.0 * (getValue('bounceoffset')))) / (60 + (getValue('bounceperiod') * 60)))));
+      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (100.0 * (getValue('bounceoffset')))) / (60 + (getValue('bounceperiod') * 60))),
+        getValue('sinclip')));
 
       f += getValue('bounce') * ARROW_SIZE * 0.5 * fBounceAmt;
     }
@@ -959,8 +1055,8 @@ class Modchart
       var iEndCol:Int = iCol + iTornadoWidth;
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -970,8 +1066,9 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadooffset')) * ((6 * getValue('tornadoperiod')) + 6) / SCREEN_HEIGHT;
-      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
+      fRads += (fYOffset + getValue('tornadooffset') * 100) * ((6 * getValue('tornadoperiod')) + 6) / SCREEN_HEIGHT;
+      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
+        fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tornado');
     }
@@ -984,8 +1081,8 @@ class Modchart
 
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -996,21 +1093,29 @@ class Modchart
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
 
-      fRads += (fYOffset + getValue('tantornadooffset')) * ((6 * getValue('tantornadoperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tantornadooffset') * 100) * ((6 * getValue('tantornadoperiod')) + 6) / SCREEN_HEIGHT;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornado');
     }
 
     if (getValue('spiralx') != 0) f += fYOffset * getValue('spiralx') * ModchartMath.fastCos((fYOffset + getValue('spiralxoffset')) * (1
-      + getValue('spiralxperiod')));
+      + getValue('spiralxperiod')), getValue('cosclip'));
 
-    var zoomx:Float = getValue('zoomx') * getValue('zoomx$iCol');
+    if (getValue('cubicx') != 0)
+    {
+      f += Math.pow((fYOffset + 2 * getValue('cubicxoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicx');
+    }
+
+    if (getValue('asymptote') != 0)
+    {
+      var fAsymptoteEffect:Float = (xOffset[iCol] * (1 + getValue('asymptote') * 1000) - xOffset[iCol]) * Math.exp(-Math.abs(fYOffset
+        + getValue('asymptoteoffset') * 100) * (1 + getValue('asymptotescale')));
+      f += fAsymptoteEffect;
+    }
+
     var mini:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5);
-    f += xOffset[iCol] * zoomx * notefieldZoom * mini;
-    f -= getValue('skewx') * 100;
-
-    if (isNote) f += getValue('skewx') * fYOffset;
-
+    f += xOffset[iCol] * notefieldZoom * mini;
+    if (isNote || isHoldBody) f += getValue('skewx') * fYOffset;
     return f;
   }
 
@@ -1018,17 +1123,18 @@ class Modchart
   {
     var f:Float = fYOffset;
     var time:Float = getTime();
-    var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     if (WithReverse)
     {
-      f -= getValue('centered2') * ARROW_SIZE;
+      f -= (getValue('centered2') + getValue('centered2$iCol')) * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
       var yReversedOffset:Float = fYReversedOffset / zoom;
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
       var fShift:Float = fPercentReverse * yReversedOffset;
       fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, yReversedOffset / 2);
+      fShift = ModchartMath.scale(getValue('centered$iCol'), 0., 1., fShift, yReversedOffset / 2);
       fShift = ModchartMath.scale(getValue('centered2'), 0., 1., fShift, ARROW_SIZE);
+      fShift = ModchartMath.scale(getValue('centered2$iCol'), 0., 1., fShift, ARROW_SIZE);
       var fScale:Float = ModchartMath.scale(fPercentReverse, 0.0, 1.0, 1.0, -1.0);
       f *= fScale;
       f += fShift;
@@ -1072,7 +1178,7 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatyperiod') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatyperiod') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beaty') * fShift;
       }
       while (false);
@@ -1104,21 +1210,23 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatyperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatyperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beaty$iCol') * fShift;
       }
       while (false);
     }
 
     if (getValue('drunky') != 0) f += getValue('drunky') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkyspeed'), iCol,
-      getValue('drunkyspacing'), 0.2, fYOffset, getValue('drunkyperiod'), 10, getValue('drunkyoffset'))) * ARROW_SIZE * 0.5;
+      getValue('drunkyspacing'), 0.2, fYOffset, getValue('drunkyperiod'), 10, getValue('drunkyoffset')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunky') != 0) f += getValue('tandrunky') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkyspeed'), iCol,
       getValue('tandrunkyspacing'), 0.2, fYOffset, getValue('tandrunkyperiod'), 10, getValue('tandrunkyoffset')),
       getValue('cosecant')) * ARROW_SIZE * 0.5;
 
     if (getValue('drunky$iCol') != 0) f += getValue('drunky$iCol') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkyspeed$iCol'), iCol,
-      getValue('drunkyspacing$iCol'), 0.2, fYOffset, getValue('drunkyperiod$iCol'), 10, getValue('drunkyoffset$iCol'))) * ARROW_SIZE * 0.5;
+      getValue('drunkyspacing$iCol'), 0.2, fYOffset, getValue('drunkyperiod$iCol'), 10, getValue('drunkyoffset$iCol')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunky$iCol') != 0) f += getValue('tandrunky$iCol') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkyspeed$iCol'), iCol,
       getValue('tandrunkyspacing$iCol'), 0.2, fYOffset, getValue('tandrunkyperiod$iCol'), 10, getValue('tandrunkyoffset$iCol')),
@@ -1126,16 +1234,17 @@ class Modchart
 
     if (getValue('bouncey') != 0)
     {
-      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (1.0 * (getValue('bounceyoffset')))) / (60 + (getValue('bounceyperiod') * 60)))));
+      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (100.0 * (getValue('bounceyoffset')))) / (60 + (getValue('bounceyperiod') * 60))),
+        getValue('sinclip')));
 
       f += getValue('bouncey') * ARROW_SIZE * 0.5 * fBounceAmt;
     }
 
     if (getValue('bumpyy') != 0) f += getValue('bumpyy') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyyoffset'),
-      getValue('bumpyyperiod')));
+      getValue('bumpyyperiod')), getValue('sinclip'));
 
     if (getValue('bumpyy$iCol') != 0) f += getValue('bumpyy$iCol') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyyoffset$iCol'),
-      getValue('bumpyyperiod$iCol')));
+      getValue('bumpyyperiod$iCol')), getValue('sinclip'));
 
     if (getValue('tanbumpyy') != 0) f += getValue('tanbumpyy') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyyoffset'),
       getValue('tanbumpyyperiod')), getValue('cosecant'));
@@ -1151,8 +1260,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1163,9 +1272,10 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadoyoffset')) * ((6 * getValue('tornadoyperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tornadoyoffset') * 100) * ((6 * getValue('tornadoyperiod')) + 6) / SCREEN_HEIGHT;
 
-      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
+      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
+        fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tornadoy');
     }
@@ -1178,8 +1288,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1190,14 +1300,15 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tantornadoyoffset')) * ((6 * getValue('tantornadoyperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tantornadoyoffset') * 100) * ((6 * getValue('tantornadoyperiod')) + 6) / SCREEN_HEIGHT;
 
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornadoy');
     }
     if (getValue('digitaly') != 0) f += (getValue('digitaly') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalysteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalyoffset'), getValue('digitalyperiod')))) / (getValue('digitalysteps')
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalyoffset'), getValue('digitalyperiod')),
+        getValue('sinclip'))) / (getValue('digitalysteps')
       + 1);
 
     if (getValue('tandigitaly') != 0) f += (getValue('tandigitaly') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalysteps') +
@@ -1205,13 +1316,14 @@ class Modchart
       getValue('cosecant'))) / (getValue('tandigitalysteps') + 1);
 
     if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastSin((fYOffset + getValue('spiralyoffset')) * (1
-      + getValue('spiralyperiod')));
+      + getValue('spiralyperiod')), getValue('sinclip'));
 
+    if (getValue('cubicy') != 0)
+    {
+      f += Math.pow((fYOffset + 2 * getValue('cubicyoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicy');
+    }
     f *= (ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5) < 0 ? -1 : 1);
     f *= (down ? -1 : 1);
-    var zoomy:Float = getValue('zoomy') * getValue('zoomy$iCol');
-    f -= ((notefieldZoom * zoomy) - 1) * 100;
-    f -= getValue('skewy') * 100;
     return f;
   }
 
@@ -1219,7 +1331,6 @@ class Modchart
   {
     var f:Float = 0;
     var time:Float = getTime();
-    var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
     f += ARROW_SIZE * getValue('movez$iCol') + getValue('movezoffset$iCol') + getValue('movezoffset1$iCol');
 
     f += ARROW_SIZE * getValue('movez') + getValue('movezoffset') + getValue('movezoffset1');
@@ -1232,8 +1343,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1244,9 +1355,10 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadozoffset')) * ((6 * getValue('tornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tornadozoffset') * 100) * ((6 * getValue('tornadozperiod')) + 6) / SCREEN_HEIGHT;
 
-      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
+      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
+        fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tornadoz');
     }
@@ -1259,8 +1371,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = 3.402823466e+38;
-      var fMaxX:Float = 1.175494351e-38;
+      var fMinX:Float = ModchartMath.FLT_MAX_x32;
+      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1271,7 +1383,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tantornadozoffset')) * ((6 * getValue('tantornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tantornadozoffset') * 100) * ((6 * getValue('tantornadozperiod')) + 6) / SCREEN_HEIGHT;
 
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
 
@@ -1279,14 +1391,16 @@ class Modchart
     }
 
     if (getValue('drunkz') != 0) f += getValue('drunkz') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkzspeed'), iCol,
-      getValue('drunkzspacing'), 0.2, fYOffset, getValue('drunkzperiod'), 10, getValue('drunkzoffset'))) * ARROW_SIZE * 0.5;
+      getValue('drunkzspacing'), 0.2, fYOffset, getValue('drunkzperiod'), 10, getValue('drunkzoffset')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunkz') != 0) f += getValue('tandrunkz') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkzspeed'), iCol,
       getValue('tandrunkzspacing'), 0.2, fYOffset, getValue('tandrunkzperiod'), 10, getValue('tandrunkzoffset')),
       getValue('cosecant')) * ARROW_SIZE * 0.5;
 
     if (getValue('drunkz$iCol') != 0) f += getValue('drunkz$iCol') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkzspeed$iCol'), iCol,
-      getValue('drunkzspacing$iCol'), 0.2, fYOffset, getValue('drunkzperiod$iCol'), 10, getValue('drunkzoffset$iCol'))) * ARROW_SIZE * 0.5;
+      getValue('drunkzspacing$iCol'), 0.2, fYOffset, getValue('drunkzperiod$iCol'), 10, getValue('drunkzoffset$iCol')),
+      getValue('cosclip')) * ARROW_SIZE * 0.5;
 
     if (getValue('tandrunkz$iCol') != 0) f += getValue('tandrunkz$iCol') * selectTanType(CalculateDrunkAngle(time, getValue('tandrunkzspeed$iCol'), iCol,
       getValue('tandrunkzspacing$iCol'), 0.2, fYOffset, getValue('tandrunkzperiod$iCol'), 10, getValue('tandrunkzoffset$iCol')),
@@ -1294,19 +1408,20 @@ class Modchart
 
     if (getValue('bouncez') != 0)
     {
-      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (1.0 * (getValue('bouncezoffset')))) / (60 + (getValue('bouncezperiod') * 60)))));
+      var fBounceAmt:Float = Math.abs(ModchartMath.fastSin(((fYOffset + (100.0 * (getValue('bouncezoffset')))) / (60 + (getValue('bouncezperiod') * 60))),
+        getValue('sinclip')));
 
       f += getValue('bouncez') * ARROW_SIZE * 0.5 * fBounceAmt;
     }
 
     if (getValue('bumpy') != 0) f += getValue('bumpy') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyoffset'),
-      getValue('bumpyperiod')));
+      getValue('bumpyperiod')), getValue('sinclip'));
 
     if (getValue('tanbumpy') != 0) f += getValue('tanbumpy') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyoffset'),
       getValue('tanbumpyperiod')), getValue('cosecant'));
 
     if (getValue('bumpy$iCol') != 0) f += getValue('bumpy$iCol') * 40 * ModchartMath.fastSin(CalculateBumpyAngle(fYOffset, getValue('bumpyoffset$iCol'),
-      getValue('bumpyperiod$iCol')));
+      getValue('bumpyperiod$iCol')), getValue('sinclip'));
 
     if (getValue('tanbumpy$iCol') != 0) f += getValue('tanbumpy$iCol') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyoffset$iCol'),
       getValue('tanbumpyperiod$iCol')), getValue('cosecant'));
@@ -1337,7 +1452,7 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatzperiod') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatzperiod') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beatz') * fShift;
       }
       while (false);
@@ -1369,14 +1484,15 @@ class Modchart
         }
         if (bEvenBeat) beatFactor *= -1;
         beatFactor *= 20.0;
-        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatzperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2));
+        var fShift:Float = beatFactor * ModchartMath.fastSin(((fYOffset / (getValue('beatzperiod$iCol') * 30.0 + 30.0))) + (Math.PI / 2), getValue('sinclip'));
         f += getValue('beatz$iCol') * fShift;
       }
       while (false);
     }
 
     if (getValue('digitalz') != 0) f += (getValue('digitalz') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalzsteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalzoffset'), getValue('digitalzperiod')))) / (getValue('digitalzsteps')
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalzoffset'), getValue('digitalzperiod')),
+        getValue('sinclip'))) / (getValue('digitalzsteps')
       + 1);
 
     if (getValue('tandigitalz') != 0) f += (getValue('tandigitalz') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalzsteps') +
@@ -1391,13 +1507,25 @@ class Modchart
       f += (getValue('zigzagz') * ARROW_SIZE / 2) * fResult;
     }
 
+    if (getValue('zigzagz$iCol') != 0)
+    {
+      var fResult:Float = ModchartMath.triangle((Math.PI * (1 / (getValue('zigzagzperiod$iCol') + 1)) * ((fYOffset +
+        (100.0 * (getValue('zigzagzoffset$iCol')))) / ARROW_SIZE)));
+
+      f += (getValue('zigzagz$iCol') * ARROW_SIZE / 2) * fResult;
+    }
+
     if (getValue('sawtoothz') != 0) f += (getValue('sawtoothz') * ARROW_SIZE) * ((0.5 / (getValue('sawtoothzperiod') + 1) * (fYOffset
       + 100.0 * getValue('sawtoothzoffset'))) / ARROW_SIZE
       - Math.floor((0.5 / (getValue('sawtoothperiod') + 1) * (fYOffset + 100.0 * getValue('sawtoothzoffset'))) / ARROW_SIZE));
 
+    if (getValue('sawtoothz$iCol') != 0) f += (getValue('sawtoothz$iCol') * ARROW_SIZE) * ((0.5 / (getValue('sawtoothzperiod$iCol') + 1) * (fYOffset
+      + 100.0 * getValue('sawtoothzoffset$iCol'))) / ARROW_SIZE
+      - Math.floor((0.5 / (getValue('sawtoothperiod$iCol') + 1) * (fYOffset + 100.0 * getValue('sawtoothzoffset$iCol'))) / ARROW_SIZE));
+
     if (getValue('squarez') != 0)
     {
-      var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (1.0 * (getValue('squarezoffset')))) / (ARROW_SIZE
+      var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (100.0 * (getValue('squarezoffset')))) / (ARROW_SIZE
         + (getValue('squarezperiod') * ARROW_SIZE))));
 
       f += (getValue('squarez') * ARROW_SIZE * 0.5) * fResult;
@@ -1417,12 +1545,15 @@ class Modchart
 
     if (getValue('spiralz') != 0) f += fYOffset * getValue('spiralz') * ModchartMath.fastCos((fYOffset + getValue('spiralzoffset')) * (1
       + getValue('spiralzperiod')));
-    var zoomz:Float = getValue('zoomz') * getValue('zoomz$iCol');
-    f *= zoomz;
+
+    if (getValue('cubicz') != 0)
+    {
+      f += Math.pow((fYOffset + 2 * getValue('cubiczoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicz');
+    }
     return f;
   }
 
-  public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false, travelDir:Float):Float
+  public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false, travelDir:Float, isHoldBody:Bool = false):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1463,7 +1594,7 @@ class Modchart
     {
       fRotation += getValue('rotationz') * 100;
     }
-    if (getValue('orient') != 0)
+    if (getValue('orient') != 0 && !isHoldBody)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
@@ -1472,7 +1603,7 @@ class Modchart
     return fRotation;
   }
 
-  public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false):Float
+  public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1505,10 +1636,16 @@ class Modchart
     {
       fRotation += getValue('rotationx') * 100;
     }
+    if (getValue('orientx') != 0)
+    {
+      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
+      fRotation += value * getValue('orientx');
+    }
     return fRotation;
   }
 
-  public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false):Float
+  public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1540,6 +1677,12 @@ class Modchart
     if (getValue('rotationy') != 0)
     {
       fRotation += getValue('rotationy') * 100;
+    }
+    if (getValue('orienty') != 0)
+    {
+      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));
+      fRotation += value * getValue('orienty');
     }
     return fRotation;
   }
@@ -1575,7 +1718,7 @@ class Modchart
     return fRotation;
   }
 
-  public function ReceptorGetRotationX(iCol:Int):Float
+  public function ReceptorGetRotationX(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1597,10 +1740,16 @@ class Modchart
     {
       fRotation += getValue('rotationx') * 100;
     }
+    if (getValue('orientx') != 0)
+    {
+      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
+      fRotation += value * getValue('orientx');
+    }
     return fRotation;
   }
 
-  public function ReceptorGetRotationY(iCol:Int):Float
+  public function ReceptorGetRotationY(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
     var beat:Float = Conductor.instance.currentBeatTime;
@@ -1621,6 +1770,12 @@ class Modchart
     if (getValue('rotationy') != 0)
     {
       fRotation += getValue('rotationy') * 100;
+    }
+    if (getValue('orienty') != 0)
+    {
+      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));
+      fRotation += value * getValue('orienty');
     }
     return fRotation;
   }
@@ -1690,16 +1845,19 @@ class Modchart
     {
       fVisibleAdjust -= getValue('tapstealth$iCol');
     }
+    if (getValue('holdheadstealth') != 0 && !isHoldBody && isHoldHead) fVisibleAdjust -= getValue('holdheadstealth');
+    if (getValue('holdheadstealth$iCol') != 0 && !isHoldBody && isHoldHead) fVisibleAdjust -= getValue('holdheadstealth$iCol');
     if (getValue('blink') != 0)
     {
-      var f:Float = ModchartMath.fastSin(getTime() * 10);
+      var f:Float = ModchartMath.fastSin(getTime() * 10, getValue('sinclip'));
       f = ModchartMath.Quantize(f, 0.3333);
       fVisibleAdjust += ModchartMath.scale(f, 0, 1, -1, 0);
     }
-    if (getValue('randomvanish') != 0)
+    if (getValue('vanish') != 0)
     {
-      var fRealFadeDist:Float = 80 + 80 * getValue('vanishoffset');
-      fVisibleAdjust += ModchartMath.scale(Math.abs(fDistFromCenterLine), fRealFadeDist, 2 * fRealFadeDist, -1, 0) * getValue('randomvanish');
+      var fRealFadeDist:Float = 80 + 80 * getValue('vanishsize');
+      fVisibleAdjust += ModchartMath.scale(Math.abs(fDistFromCenterLine + 100 * getValue('vanishoffset')), fRealFadeDist, 2 * fRealFadeDist, -1,
+        0) * getValue('vanish');
     }
     return ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);
   }
@@ -1726,19 +1884,18 @@ class Modchart
     return ModchartMath.scale(fDistFromHalf, 0, 0.5, 1.3, 0);
   }
 
-  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>, isHoldBody:Bool = false):Array<Float>
+  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>, isHoldBody:Bool = false, isNote:Bool = false):Array<Float>
   {
     var x:Float = defaultScale[0];
     var y:Float = defaultScale[1];
     var z:Float = 1;
 
     x *= getValue('scale') * getValue('scale$iCol') * getValue('scalex$iCol') * getValue('scalex');
-    y *= getValue('scale') * getValue('scale$iCol') * getValue('scaley$iCol') * getValue('scaley');
+
+    if (!isHoldBody) y *= getValue('scale') * getValue('scale$iCol') * getValue('scaley$iCol') * getValue('scaley');
+
     z *= getValue('scale') * getValue('scale$iCol') * getValue('scalez$iCol') * getValue('scalez');
 
-    x *= getValue('zoomx') * getValue('zoomx$iCol');
-    y *= getValue('zoomy') * getValue('zoomy$iCol');
-    z *= getValue('zoomz') * getValue('zoomz$iCol');
     // notitg's tinyx tinyy mod
     x *= Math.pow(0.5, getValue('tinyx'));
     x *= Math.pow(0.5, getValue('tinyx$iCol'));
@@ -1765,13 +1922,19 @@ class Modchart
     // skewx skewy
     var skewx:Float = 0;
     var skewy:Float = 0;
-    if (!isHoldBody)
+    if (!isHoldBody && isNote)
     {
       skewx += getValue('noteskewx') + getValue('noteskewx$iCol');
       skewy += getValue('noteskewy') + getValue('noteskewy$iCol');
+      if (getValue('noteskewtype') != 0)
+      {
+        if (iCol == 0 || iCol == 3)
+        {
+          skewx *= -1;
+          skewy *= -1;
+        }
+      }
     }
-    skewx += getValue('skewx');
-    skewy += getValue('skewy');
     return [x, y, skewx, skewy, z];
   }
 
@@ -1779,8 +1942,6 @@ class Modchart
   {
     var fZoom:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5); // the same as 1 - mini * 0.5
     var fPulseInner:Float = 1.0;
-    var notefieldZoom:Float = getValue('zoom') * getValue('zoom$iCol');
-    fZoom *= notefieldZoom;
 
     if (getValue('pulseinner') != 0 || getValue('pulseouter') != 0 || getValue('pulse') != 0)
     {
@@ -1792,7 +1953,8 @@ class Modchart
     if (getValue('pulseinner') != 0 || getValue('pulseouter') != 0 || getValue('pulse') != 0)
     {
       var outer:Float = getValue('pulseouter') == 0 ? getValue('pulse') : getValue('pulseouter');
-      var sine:Float = ModchartMath.fastSin(((fYOffset + (100.0 * (getValue('pulseoffset')))) / (0.4 * (ARROW_SIZE + (getValue('pulseperiod') * ARROW_SIZE)))));
+      var sine:Float = ModchartMath.fastSin(((fYOffset + (100.0 * (getValue('pulseoffset')))) / (0.4 * (ARROW_SIZE + (getValue('pulseperiod') * ARROW_SIZE)))),
+        getValue('sinclip'));
 
       fZoom *= (sine * (outer * 0.5)) + fPulseInner;
     }
@@ -1831,18 +1993,58 @@ class Modchart
     return fZoom;
   }
 
+  // control full playfield
+  // it's like Player.cpp
+
   @:nullSafety
-  public function modifyPos(pos:Vector3D, xoff:Array<Float>, yReversedOffset:Float):Void
+  public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
       var originPos:Vector3D = new Vector3D(0, yReversedOffset / 2);
       var s:Vector3D = pos.subtract(originPos);
-      var out:Vector3D = ModchartMath.rotateVector3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
+      var out:Vector3D = ModchartMath.rotateVec3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);
       pos.x = newpos.x;
       pos.y = newpos.y;
       pos.z = newpos.z;
+    }
+    if (getValue('x') != 0) pos.x += getValue('x') * ARROW_SIZE * 1.5625; // cuz 320% x = 500% movex
+    if (getValue('y') != 0) pos.y += getValue('y') * ARROW_SIZE * 1.5625;
+    if (getValue('z') != 0) pos.z += getValue('z') * ARROW_SIZE * 1.5625;
+    if (getValue('skewx') != 0)
+    {
+      skew.x += getValue('skewx');
+      pos.x -= 2 * ARROW_SIZE * getValue('skewx');
+    }
+    if (getValue('skewy') != 0)
+    {
+      skew.y += getValue('skewy');
+      pos.y -= 2 * ARROW_SIZE * getValue('skewy');
+    }
+    if (getValue('zoomx') != 0)
+    {
+      scale.x *= getValue('zoomx');
+      pos.x *= getValue('zoomx');
+    }
+    if (getValue('zoomy') != 0)
+    {
+      scale.y *= getValue('zoomy');
+      pos.y *= getValue('zoomy');
+    }
+    if (getValue('zoomz') != 0)
+    {
+      scale.z *= getValue('zoomz');
+      // pos.z *= getValue('zoomz');
+    }
+    if (getValue('zoom') != 0)
+    {
+      scale.x *= getValue('zoom');
+      pos.x *= getValue('zoom');
+      scale.y *= getValue('zoom');
+      pos.y *= getValue('zoom');
+      scale.z *= getValue('zoom');
+      // pos.z *= getValue('zoom');
     }
   }
 

@@ -1,8 +1,8 @@
 # Modchart System
 
-This modchart system is easy to port i think
+Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
-When it is finished, i'll only put the modchart stuff into this repo
+Not Original, I just wants to play modifiers in fnf
 
 # Friday Night Funkin'
 

@@ -312,7 +312,7 @@ class SustainTrail extends FlxSprite
     var timeDiff:Float = (parentStrumline?.mods?.baseHoldSize ?? 0);
     var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, column, strumTime) ?? 0.0) + ofs;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false, true) ?? 0.0,
-      parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     currentZValue = pos.z;
     var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
@@ -325,7 +325,7 @@ class SustainTrail extends FlxSprite
     var yOffset2:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) ?? 0)
       + ofs;
     var pos4:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset2, pn, xoffArray, false, true) ?? 0,
-      parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff) ?? 0,
+      parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) ?? 0,
       parentStrumline?.mods?.GetZPos(column, yOffset2, pn, xoffArray) ?? 0);
     var diff = pos4.subtract(pos);
     var ang = Math.atan2(diff.y, diff.x);
@@ -357,10 +357,17 @@ class SustainTrail extends FlxSprite
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff);
     fullPos = fullPos.add(difference);
+    if (parentStrumline != null)
+    {
+      var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
+      if (spiralHolds < 0) fullPos = ModchartMath.rotateVec3(fullPos, 0, 0, ang * ModchartMath.deg - 90);
+      else if (spiralHolds > 0)
+      {
+        fullPos = ModchartMath.rotateVec3(fullPos, 0, 0, ang * ModchartMath.deg - 90);
+      }
+    }
     var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
-    if (parentStrumline != null) if (parentStrumline.mods.getValue('spiralholds') < 0) rotate = ModchartMath.rotateMatrix(rotate, 0, 0,
-      ang * ModchartMath.deg - 90); // old spiralholds = orient hold (but orient disabled hold effect)
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height, ModchartMath.scale(0, 0.1, 1.0, originVec.x, FlxG.width / 2),
@@ -414,10 +421,7 @@ class SustainTrail extends FlxSprite
     {
       var a:Int = i * 2;
       var time:Float = strumTime + (fullSustainLength / length * i);
-      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
-      {
-        time = Conductor.instance.getTimeWithDelta() + (sustainLength / length * i);
-      }
+      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time += Conductor.instance.getTimeWithDelta() - time;
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       vertices[a * 2] = pos1[0].x + halfWidth;
@@ -459,10 +463,7 @@ class SustainTrail extends FlxSprite
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
     var time:Float = strumTime + (fullSustainLength / length * (length - 1));
-    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
-    {
-      time = Conductor.instance.getTimeWithDelta() + (fullSustainLength / length * (length - 1));
-    }
+    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time += Conductor.instance.getTimeWithDelta() - time;
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
     var hsvShader:ModchartHSVShader = new ModchartHSVShader();
@@ -493,10 +494,7 @@ class SustainTrail extends FlxSprite
     hsvs.push(hsvShader);
     var bottom:Int = (length + 1) * 2;
     var time:Float = strumTime + fullSustainLength;
-    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= strumTime)
-    {
-      // time = Conductor.instance.getTimeWithDelta() + sustainLength;
-    }
+    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time += Conductor.instance.getTimeWithDelta() - time;
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
     vertices[bottom * 2] = pos1[0].x + halfWidth;
@@ -532,10 +530,12 @@ class SustainTrail extends FlxSprite
 
     for (i in 0...length)
     {
+      var fullUVLength:Float = (-partHeight) / graphic.height / zoom;
       var a:Int = i * 2;
+      var array:Array<Int> = [for (i in 0...length) i];
+      array.reverse();
       uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
-      uvtData[a * 2 + 1] = (ModchartMath.lerp(1 / (i + 1), (-partHeight) / graphic.height / zoom, 0)
-        - (-partHeight) / graphic.height / zoom) * (flipY ? -1 : 1);
+      uvtData[a * 2 + 1] = (fullUVLength / length * array[i]);
       uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
       uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
     }

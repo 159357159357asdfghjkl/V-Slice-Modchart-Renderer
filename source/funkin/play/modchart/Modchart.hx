@@ -10,7 +10,7 @@ using StringTools;
 
 /**
  * StepMania Port + NotITG Mods
- * orient / asymptote / cubic / straightholds / clip were made by me
+ * orient(7/28/25) / asymptote(8/10/25) / cubic(8/24/25) / straightholds(3/?/25) / sin|cos|tanclip(8/24/25) were made by me
  */
 class Modchart
 {
@@ -46,9 +46,11 @@ class Modchart
     return (y_offset + (100.0 * offset)) / ((period * 16.0) + 16.0);
   }
 
-  function CalculateDigitalAngle(y_offset:Float, offset:Float, period:Float):Float
+  function CalculateDigitalAngle(y_offset:Float, offset:Float, period:Float, period2:Float, isZ:Bool = false):Float
   {
-    return Math.PI * (y_offset + (1.0 * offset)) / (ARROW_SIZE + (period * ARROW_SIZE));
+    var nITGPeriod:Float = (Math.PI * (60 + (60 * period2)) - (period2 != 0 ? ARROW_SIZE : 0)) / ARROW_SIZE; // easy to convert
+    if (isZ) nITGPeriod = Math.PI * (1 + period2) - 1;
+    return Math.PI * (y_offset + (1.0 * offset)) / ((ARROW_SIZE + ((period + nITGPeriod) * ARROW_SIZE)));
   }
 
   function getTime():Float
@@ -64,7 +66,6 @@ class Modchart
       'wave',
       'waveoffset',
       'waveperiod',
-      'parabolay',
       'boomerang',
       'expand',
       'expandperiod',
@@ -361,10 +362,15 @@ class Modchart
       'spiralholds',
       'sinclip',
       'cosclip',
-      'tanclip'
+      'tanclip',
+      'digitalperiod2',
+      'digitalyperiod2',
+      'digitalzperiod2',
+      'tandigitalperiod2',
+      'tandigitalyperiod2',
+      'tandigitalzperiod2'
     ];
 
-    // spiralholds = holdtype
     var ONE:Array<String> = [
       'overhead', // default, no use
       'xmod',
@@ -1006,14 +1012,12 @@ class Modchart
       + 2 * getValue('parabolaxoffset')) / ARROW_SIZE);
 
     if (getValue('digital') != 0) f += (getValue('digital') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalsteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitaloffset'), getValue('digitalperiod')),
-        getValue('sinclip'))) / (getValue('digitalsteps')
-      + 1);
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitaloffset'), getValue('digitalperiod'), getValue('digitalperiod2')),
+      getValue('sinclip'))) / (getValue('digitalsteps') + 1);
 
     if (getValue('tandigital') != 0) f += (getValue('tandigital') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalsteps') +
-      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitaloffset'), getValue('tandigitalperiod')),
-        getValue('cosecant'))) / (getValue('tandigitalsteps')
-      + 1);
+      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitaloffset'), getValue('tandigitalperiod'), getValue('tandigitalperiod2')),
+      getValue('cosecant'))) / (getValue('tandigitalsteps') + 1);
 
     if (getValue('square') != 0)
     {
@@ -1119,7 +1123,8 @@ class Modchart
     return f;
   }
 
-  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, down:Bool, fYReversedOffset:Float, WithReverse:Bool = true):Float
+  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, down:Bool, fYReversedOffset:Float, WithReverse:Bool = true,
+      isHoldBody:Bool = false):Float
   {
     var f:Float = fYOffset;
     var time:Float = getTime();
@@ -1307,12 +1312,11 @@ class Modchart
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornadoy');
     }
     if (getValue('digitaly') != 0) f += (getValue('digitaly') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalysteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalyoffset'), getValue('digitalyperiod')),
-        getValue('sinclip'))) / (getValue('digitalysteps')
-      + 1);
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalyoffset'), getValue('digitalyperiod'), getValue('digitalyperiod2')),
+      getValue('sinclip'))) / (getValue('digitalysteps') + 1);
 
     if (getValue('tandigitaly') != 0) f += (getValue('tandigitaly') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalysteps') +
-      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalyoffset'), getValue('tandigitalyperiod')),
+      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalyoffset'), getValue('tandigitalyperiod'), getValue('tandigitalyperiod2')),
       getValue('cosecant'))) / (getValue('tandigitalysteps') + 1);
 
     if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastSin((fYOffset + getValue('spiralyoffset')) * (1
@@ -1491,12 +1495,11 @@ class Modchart
     }
 
     if (getValue('digitalz') != 0) f += (getValue('digitalz') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalzsteps') +
-      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalzoffset'), getValue('digitalzperiod')),
-        getValue('sinclip'))) / (getValue('digitalzsteps')
-      + 1);
+      1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalzoffset'), getValue('digitalzperiod'), getValue('digitalzperiod2'), true),
+      getValue('sinclip'))) / (getValue('digitalzsteps') + 1);
 
     if (getValue('tandigitalz') != 0) f += (getValue('tandigitalz') * ARROW_SIZE * 0.5) * Math.round((getValue('tandigitalzsteps') +
-      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalzoffset'), getValue('tandigitalzperiod')),
+      1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalzoffset'), getValue('tandigitalzperiod'), getValue('tandigitalzperiod2'), true),
       getValue('cosecant'))) / (getValue('tandigitalzsteps') + 1);
 
     if (getValue('zigzagz') != 0)
@@ -2030,7 +2033,7 @@ class Modchart
     if (getValue('zoomy') != 0)
     {
       scale.y *= getValue('zoomy');
-      pos.y *= getValue('zoomy');
+      pos.y -= ARROW_SIZE * (getValue('zoomy') - 1);
     }
     if (getValue('zoomz') != 0)
     {

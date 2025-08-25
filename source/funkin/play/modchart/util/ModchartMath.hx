@@ -28,9 +28,11 @@ class ModchartMath
   inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float // same as FlxMath.remapToRange
     return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
 
-  inline public static function clamp(val:Float, low:Float, high:Float):Float
+  inline public static function clamp(n:Float, l:Float, h:Float):Float
   {
-    return Math.max((low), Math.min((val), (high)));
+    if (n > h) n = h;
+    if (n < l) n = l;
+    return n;
   }
 
   inline public static function iClamp(n:Int, l:Int, h:Int):Int
@@ -92,6 +94,7 @@ class ModchartMath
     }
   }
 
+  // deprecated, use initPerspective instead
   public static function PerspectiveProjection(vec3:Vector3D, ?origin:Vector3D):Vector3D
   {
     if (origin == null) origin = new Vector3D(FlxG.width / 2, FlxG.height / 2);
@@ -139,15 +142,15 @@ class ModchartMath
   // add clip thing
   inline public static function fastSin(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return Trigonometric.fastSin(x);
-    if (clipValue >= 1) return -clipValue;
+    if (clipValue < 0) return Trigonometric.fastSin(x);
+    if (clipValue > 1) return -clipValue;
     return clamp(Trigonometric.fastSin(x), -(1 - clipValue), 1 - clipValue);
   }
 
   inline public static function fastCos(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return Trigonometric.fastCos(x);
-    if (clipValue >= 1) return -clipValue;
+    if (clipValue < 0) return Trigonometric.fastCos(x);
+    if (clipValue > 1) return -clipValue;
     return clamp(Trigonometric.fastCos(x), -(1 - clipValue), 1 - clipValue);
   }
 

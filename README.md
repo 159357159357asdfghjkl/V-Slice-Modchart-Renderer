@@ -2,7 +2,9 @@
 
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
-Not Original, I just wants to play modifiers in fnf
+NotITG Modifiers Restoration
+
+Not Original, I just wants to play modifiers in fnf base engine
 
 # Friday Night Funkin'
 

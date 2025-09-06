@@ -22,10 +22,12 @@ class FunkinActor extends FunkinSprite
   public var SCALE:Vector3D = new Vector3D(1, 1);
   public var z:Float = 0;
   public var originVec:Vector3D;
+  public var diffuse:Vector3D = new Vector3D(1, 1, 1, 1);
+  public var glow:Vector3D = new Vector3D(1, 1, 1, 0);
 
-  public var vertices:Vector<Float> = new Vector<Float>();
-  public var indices:Vector<Int> = new Vector<Int>();
-  public var uvtData:Vector<Float> = new Vector<Float>();
+  var vertices:Vector<Float> = new Vector<Float>();
+  var indices:Vector<Int> = new Vector<Int>();
+  var uvtData:Vector<Float> = new Vector<Float>();
 
   public function new(?x:Float, ?y:Float)
   {
@@ -104,7 +106,13 @@ class FunkinActor extends FunkinSprite
         ]);
         indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
-        colorTransform.alphaMultiplier *= alpha;
+        colorTransform.redMultiplier = diffuse.x;
+        colorTransform.greenMultiplier = diffuse.y;
+        colorTransform.blueMultiplier = diffuse.z;
+        colorTransform.alphaMultiplier = diffuse.w;
+        colorTransform.redOffset = glow.x * 255 * glow.w;
+        colorTransform.greenOffset = glow.y * 255 * glow.w;
+        colorTransform.blueOffset = glow.z * 255 * glow.w;
         camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
       }
     }

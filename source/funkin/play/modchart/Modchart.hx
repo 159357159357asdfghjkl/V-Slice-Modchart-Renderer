@@ -58,6 +58,11 @@ class Modchart
     return Conductor.instance.getTimeWithDelta() / 1000;
   }
 
+  function getBeat():Float
+  {
+    return Conductor.instance.getTimeInSteps(getTime() * 1000) / Constants.STEPS_PER_BEAT;
+  }
+
   function initDefaultMods()
   {
     var ZERO:Array<String> = [
@@ -702,7 +707,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 80;
+    return 30;
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
@@ -792,7 +797,7 @@ class Modchart
     }
     if (getValue('randomspeed') > 0)
     {
-      var noteBeat:Float = (parentTime / 1000) * (Conductor.instance.bpm / 60);
+      var noteBeat:Float = Conductor.instance.getTimeInSteps(parentTime) / Constants.STEPS_PER_BEAT;
       var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
 
       for (i in 0...3)
@@ -860,7 +865,7 @@ class Modchart
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
         var beatFactor:Float = 0;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatoffset')) * (getValue('beatmult') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatoffset')) * (getValue('beatmult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         if (fBeat < 0) break;
         fBeat -= ModchartMath.trunc(fBeat);
@@ -891,7 +896,7 @@ class Modchart
       {
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatoffset$iCol')) * (getValue('beatmult$iCol') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatoffset$iCol')) * (getValue('beatmult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1163,7 +1168,7 @@ class Modchart
       {
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatyoffset')) * (getValue('beatymult') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatyoffset')) * (getValue('beatymult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1195,7 +1200,7 @@ class Modchart
       {
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatyoffset$iCol')) * (getValue('beatymult$iCol') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatyoffset$iCol')) * (getValue('beatymult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1436,7 +1441,7 @@ class Modchart
       {
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatzoffset')) * (getValue('beatzmult') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatzoffset')) * (getValue('beatzmult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1468,7 +1473,7 @@ class Modchart
       {
         var fAccelTime:Float = 0.2;
         var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((Conductor.instance.currentBeatTime + fAccelTime + getValue('beatzoffset$iCol')) * (getValue('beatzmult$iCol') + 1));
+        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatzoffset$iCol')) * (getValue('beatzmult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1559,7 +1564,7 @@ class Modchart
   public function GetRotationZ(iCol:Int, fYOffset:Float, noteBeat:Float, isHoldHead:Bool = false, travelDir:Float, isHoldBody:Bool = false):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (!isHoldHead)
     {
       if (getValue('confusion$iCol') != 0) fRotation += getValue('confusion$iCol') * 180.0 / Math.PI;
@@ -1609,7 +1614,7 @@ class Modchart
   public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (!isHoldHead)
     {
       if (getValue('confusionx$iCol') != 0) fRotation += getValue('confusionx$iCol') * 180.0 / Math.PI;
@@ -1639,7 +1644,7 @@ class Modchart
     {
       fRotation += getValue('rotationx') * 100;
     }
-    if (getValue('orientx') != 0)
+    if (getValue('orientx') != 0 && !isHoldHead)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
@@ -1651,7 +1656,7 @@ class Modchart
   public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (!isHoldHead)
     {
       if (getValue('confusiony$iCol') != 0) fRotation += getValue('confusiony$iCol') * 180.0 / Math.PI;
@@ -1681,7 +1686,7 @@ class Modchart
     {
       fRotation += getValue('rotationy') * 100;
     }
-    if (getValue('orienty') != 0)
+    if (getValue('orienty') != 0 && !isHoldHead)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));
@@ -1693,7 +1698,7 @@ class Modchart
   public function ReceptorGetRotationZ(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (getValue('confusion$iCol') != 0) fRotation += getValue('confusion$iCol') * 180.0 / Math.PI;
 
     if (getValue('confusionoffset') != 0) fRotation += getValue('confusionoffset') * 180.0 / Math.PI;
@@ -1724,7 +1729,7 @@ class Modchart
   public function ReceptorGetRotationX(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (getValue('confusionx$iCol') != 0) fRotation += getValue('confusionx$iCol') * 180.0 / Math.PI;
 
     if (getValue('confusionxoffset') != 0) fRotation += getValue('confusionxoffset') * 180.0 / Math.PI;
@@ -1755,7 +1760,7 @@ class Modchart
   public function ReceptorGetRotationY(iCol:Int, travelDir:Float):Float
   {
     var fRotation:Float = 0;
-    var beat:Float = Conductor.instance.currentBeatTime;
+    var beat:Float = getBeat();
     if (getValue('confusiony$iCol') != 0) fRotation += getValue('confusiony$iCol') * 180.0 / Math.PI;
 
     if (getValue('confusionyoffset') != 0) fRotation += getValue('confusionyoffset') * 180.0 / Math.PI;
@@ -1875,7 +1880,7 @@ class Modchart
       var f = ModchartMath.scale(fYPosWithoutReverse, fFullAlphaY, fDrawDistanceBeforeTargetsPixels, 1.0, 0.0);
       return f;
     }
-    return (fPercentVisible > 0.5) ? 1.0 : 0.0;
+    return ModchartMath.clamp(ModchartMath.scale(fPercentVisible, 0.5, 0, 1, 0), 0, 1);
   }
 
   public function GetGlow(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float

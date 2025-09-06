@@ -14,8 +14,6 @@ class NoteSplash extends FunkinActor
   static var frameCollection:FlxFramesCollection;
 
   public var column:Int = 0;
-  // public var offsetX:Float = 0;
-  // public var offsetY:Float = 0;
   public var currentZValue:Float = 0;
   public var defaultScale:Array<Float> = [1, 1];
 

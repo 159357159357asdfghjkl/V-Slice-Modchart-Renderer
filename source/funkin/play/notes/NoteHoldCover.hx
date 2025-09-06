@@ -3,18 +3,19 @@ package funkin.play.notes;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.graphics.frames.FlxFramesCollection;
 import funkin.util.assets.FlxAnimationUtil;
-import flixel.FlxSprite;
+import flixel.FlxSprite as FunkinActor;
 import funkin.play.notes.notestyle.NoteStyle;
 
-class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
+// import funkin.play.modchart.objects.FunkinActor;
+class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
 {
   static final FRAMERATE_DEFAULT:Int = 24;
 
   public var holdNote:SustainTrail;
 
-  public var glow:FlxSprite;
+  public var glow:FunkinActor;
 
-  var sparks:FlxSprite;
+  var sparks:FunkinActor;
 
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
@@ -35,7 +36,7 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
    */
   function setupHoldNoteCover(noteStyle:NoteStyle):Void
   {
-    glow = new FlxSprite();
+    glow = new FunkinActor();
     add(glow);
 
     // TODO: null check here like how NoteSplash does

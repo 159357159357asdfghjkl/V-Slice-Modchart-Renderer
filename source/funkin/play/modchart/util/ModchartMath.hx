@@ -49,7 +49,7 @@ class ModchartMath
       return Math.ceil(x);
   }
 
-  inline public static function lerp(x:Float, l:Float, h:Float):Float // FlxMath.lerp but x is the first argument
+  inline public static function lerp(x:Float, l:Float, h:Float):Float
     return x * (h - l) + l;
 
   inline public static function mod(x:Float, y:Float):Float

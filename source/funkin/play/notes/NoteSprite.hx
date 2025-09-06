@@ -4,7 +4,7 @@ import funkin.data.song.SongData.SongNoteData;
 import funkin.data.song.SongData.NoteParamData;
 import funkin.play.notes.notestyle.NoteStyle;
 import funkin.graphics.FunkinSprite;
-import funkin.play.modchart.shaders.ModchartHSVShader as HSVShader;
+import funkin.graphics.shaders.HSVShader;
 
 class NoteSprite extends funkin.play.modchart.objects.FunkinActor
 {
@@ -170,7 +170,7 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   {
     noteStyle.buildNoteSprite(this);
 
-    this.shader = hsvShader.shader;
+    this.shader = hsvShader;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -245,14 +245,6 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
     this.hsvShader.hue = 1.0;
     this.hsvShader.saturation = 1.0;
     this.hsvShader.value = 1.0;
-    this.hsvShader.diffuser = 1.0;
-    this.hsvShader.diffuseg = 1.0;
-    this.hsvShader.diffuseb = 1.0;
-    this.hsvShader.a = 1.0;
-    this.hsvShader.glow = 0.0;
-    this.hsvShader.glowdiffuser = 1.0;
-    this.hsvShader.glowdiffuseg = 1.0;
-    this.hsvShader.glowdiffuseb = 1.0;
   }
 
   public override function kill():Void

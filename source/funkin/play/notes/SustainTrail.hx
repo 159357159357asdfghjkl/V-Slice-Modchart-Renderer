@@ -347,7 +347,7 @@ class SustainTrail extends FlxSprite
     var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, pn) ?? 1;
     var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+    if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
     fullPos = fullPos.add(difference);
     if (parentStrumline != null)
     {
@@ -413,16 +413,16 @@ class SustainTrail extends FlxSprite
     for (i in 0...length)
     {
       var a:Int = i * 2;
-      var time:Float = strumTime + (fullSustainLength / length * i) * longHolds;
+      var time:Float = strumTime + (fullSustainLength / length * i);
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       vertices[a * 2] = pos1[0].x + halfWidth;
-      vertices[a * 2 + 1] = pos1[0].y;
+      vertices[a * 2 + 1] = pos1[0].y * longHolds / (i == 0 ? longHolds : 1);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
-      vertices[(a + 1) * 2 + 1] = pos2[0].y;
+      vertices[(a + 1) * 2 + 1] = pos2[0].y * longHolds / (i == 0 ? longHolds : 1);
       ct.push(getShader(pos1[1], pos1[2]));
       ct.push(getShader(pos2[1], pos2[2]));
       if (i == length - 1)
@@ -440,14 +440,14 @@ class SustainTrail extends FlxSprite
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
 
     var bottom:Int = (length + 1) * 2;
-    var time:Float = strumTime + fullSustainLength * longHolds + 60;
+    var time:Float = strumTime + (fullSustainLength - 1) + 60;
     if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
     vertices[bottom * 2] = pos1[0].x + halfWidth;
-    vertices[bottom * 2 + 1] = pos1[0].y;
+    vertices[bottom * 2 + 1] = pos1[0].y * longHolds;
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-    vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
+    vertices[(bottom + 1) * 2 + 1] = pos2[0].y * longHolds;
     ct.push(getShader(pos1[1], pos1[2]));
     ct.push(getShader(pos2[1], pos2[2]));
 

@@ -376,7 +376,7 @@ class Strumline extends FlxSpriteGroup
     var zoom:Float = mods.GetZoom(column, yOffset, modNumber) ?? 1;
     var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
     fullPos = fullPos.add(difference);
     var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
@@ -740,7 +740,7 @@ class Strumline extends FlxSpriteGroup
       var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
       var rotation:Vector3D = new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null, ang),
         mods.GetRotationY(col, realofs, note.holdNoteSprite != null, ang), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, ang));
-      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
       note.SCALE.x = scalePos.x;
       note.SCALE.y = scalePos.y;
       note.SCALE.z = scalePos.z;
@@ -883,7 +883,7 @@ class Strumline extends FlxSpriteGroup
       var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
       var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
-      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
       strumNote.rotation.copyFrom(rotation);
       strumNote.SCALE.x = scalePos.x;
       strumNote.SCALE.y = scalePos.y;
@@ -900,8 +900,8 @@ class Strumline extends FlxSpriteGroup
     {
       if (splash == null || !splash.alive) continue;
       var col:Int = splash.column;
-      splash.offsetX = noteStyle.getSplashOffsets()[0] * splash.scale.x - splash.offset.x;
-      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] * splash.scale.y - splash.offset.y;
+      splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
+      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
       splash.x = splash.y = 0;
       var c2:Float = (mods.getValue('centered2') + mods.getValue('centered2$col')) * Strumline.NOTE_SPACING;
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
@@ -921,7 +921,7 @@ class Strumline extends FlxSpriteGroup
       var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
       var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
-      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
       splash.rotation.copyFrom(rotation);
       splash.SCALE.x = scalePos.x;
       splash.SCALE.y = scalePos.y;
@@ -961,7 +961,7 @@ class Strumline extends FlxSpriteGroup
         var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
         var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
         var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
-        mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff);
+        mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
         glow.rotation.copyFrom(rotation);
         glow.SCALE.x = scalePos.x;
         glow.SCALE.y = scalePos.y;

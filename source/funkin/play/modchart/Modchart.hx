@@ -48,8 +48,9 @@ class Modchart
 
   function CalculateDigitalAngle(y_offset:Float, offset:Float, period:Float, period2:Float, isZ:Bool = false):Float
   {
-    var nITGPeriod:Float = (Math.PI * (60 + (60 * period2)) - (period2 != 0 ? ARROW_SIZE : 0)) / ARROW_SIZE; // easy to convert
+    var nITGPeriod:Float = (Math.PI * (60 + (60 * period2)) - ARROW_SIZE) / ARROW_SIZE; // easy to convert
     if (isZ) nITGPeriod = Math.PI * (1 + period2) - 1;
+    if (period2 == 0) nITGPeriod = 0;
     return Math.PI * (y_offset + (1.0 * offset)) / ((ARROW_SIZE + ((period + nITGPeriod) * ARROW_SIZE)));
   }
 
@@ -373,11 +374,17 @@ class Modchart
       'digitalzperiod2',
       'tandigitalperiod2',
       'tandigitalyperiod2',
-      'tandigitalzperiod2'
+      'tandigitalzperiod2',
+      'squareperiod2',
+      'squarezperiod2',
+      'overhead',
+      'incoming',
+      'space',
+      'hallway',
+      'distant'
     ];
 
     var ONE:Array<String> = [
-      'overhead', // default, no use
       'xmod',
       'zoom',
       'zoomx',
@@ -1026,8 +1033,10 @@ class Modchart
 
     if (getValue('square') != 0)
     {
+      var nITGPeriod:Float = (Math.PI * (60 + (60 * getValue('squareperiod2'))) - ARROW_SIZE) / ARROW_SIZE;
+      if (getValue('squareperiod2') == 0) nITGPeriod = 0;
       var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (100.0 * (getValue('squareoffset')))) / (ARROW_SIZE
-        + (getValue('squareperiod') * ARROW_SIZE))));
+        + ((getValue('squareperiod') + nITGPeriod) * ARROW_SIZE))));
 
       f += (getValue('square') * ARROW_SIZE * 0.5) * fResult;
     }
@@ -1122,8 +1131,7 @@ class Modchart
       f += fAsymptoteEffect;
     }
 
-    var mini:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5);
-    f += xOffset[iCol] * notefieldZoom * mini;
+    f += xOffset[iCol] * notefieldZoom;
     if (isNote || isHoldBody) f += getValue('skewx') * fYOffset;
     return f;
   }
@@ -1331,7 +1339,6 @@ class Modchart
     {
       f += Math.pow((fYOffset + 2 * getValue('cubicyoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicy');
     }
-    f *= (ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5) < 0 ? -1 : 1);
     f *= (down ? -1 : 1);
     return f;
   }
@@ -1533,8 +1540,10 @@ class Modchart
 
     if (getValue('squarez') != 0)
     {
+      var nITGPeriod:Float = Math.PI * (1 + getValue('period2')) - 1;
+      if (getValue('squarezperiod2') == 0) nITGPeriod == 0;
       var fResult:Float = ModchartMath.square((Math.PI * (fYOffset + (100.0 * (getValue('squarezoffset')))) / (ARROW_SIZE
-        + (getValue('squarezperiod') * ARROW_SIZE))));
+        + ((getValue('squarezperiod') + nITGPeriod) * ARROW_SIZE))));
 
       f += (getValue('squarez') * ARROW_SIZE * 0.5) * fResult;
     }
@@ -1948,7 +1957,7 @@ class Modchart
 
   public function GetZoom(iCol:Int, fYOffset:Float, pn:Int):Float
   {
-    var fZoom:Float = ModchartMath.scale(getValue('mini'), 0.0, 1.0, 1.0, 0.5); // the same as 1 - mini * 0.5
+    var fZoom:Float = 1;
     var fPulseInner:Float = 1.0;
 
     if (getValue('pulseinner') != 0 || getValue('pulseouter') != 0 || getValue('pulse') != 0)
@@ -2005,7 +2014,7 @@ class Modchart
   // it's like Player.cpp
 
   @:nullSafety
-  public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float):Void
+  public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float, iCol:Int):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
@@ -2050,10 +2059,55 @@ class Modchart
       scale.x *= getValue('zoom');
       pos.x *= getValue('zoom');
       scale.y *= getValue('zoom');
-      pos.y *= getValue('zoom');
+      pos.y -= ARROW_SIZE * (getValue('zoom') - 1);
       scale.z *= getValue('zoom');
       // pos.z *= getValue('zoom');
     }
+    var fTilt:Float = 0;
+    var fSkew:Float = 0;
+    if (getValue('incoming') != 0)
+    {
+      fTilt = -getValue('incoming');
+      fSkew = getValue('incoming');
+    }
+    if (getValue('space') != 0)
+    {
+      fTilt = getValue('space');
+      fSkew = getValue('space');
+    }
+    if (getValue('hallway') != 0)
+    {
+      fTilt = -getValue('hallway');
+    }
+    if (getValue('distant') != 0)
+    {
+      fTilt = getValue('distant');
+    }
+    if (getValue('overhead') != 0)
+    {
+      fTilt == 0;
+      fSkew == 0;
+    }
+    var reverse_mult:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+    var tilt_degrees:Float = ModchartMath.scale(fTilt, -1., 1., 30, -30) * reverse_mult;
+    var zoom:Float = ModchartMath.scale(getValue('mini'), 0., 1., 1., .5);
+    var y_offset:Float = 0;
+    if (fTilt > 0)
+    {
+      zoom *= ModchartMath.scale(fTilt, 0., 1., 1., 0.9);
+      y_offset = ModchartMath.scale(fTilt, 0., 1., 0., -45.) * reverse_mult;
+    }
+    else
+    {
+      zoom *= ModchartMath.scale(fTilt, 0., -1., 1., 0.9);
+      y_offset = ModchartMath.scale(fTilt, 0., -1., 0., -20.) * reverse_mult;
+    }
+    pos.y += y_offset;
+    pos.x *= zoom;
+    pos.y *= zoom;
+    scale.x *= zoom;
+    scale.y *= zoom;
+    rotation.x += tilt_degrees;
   }
 
   public var opened:Bool = false;

@@ -42,6 +42,14 @@ class Farm
     }
   }
 
+  public static function setupBuild(build:String)
+  {
+    var parser:Parser = new Parser();
+    parser.allowTypes = true;
+    var result:Dynamic = new Interp().execute(parser.parseString(build));
+    return result;
+  }
+
   public function destroyFarm()
   {
     farm = [];

@@ -750,7 +750,7 @@ class Modchart
 
   var checkedName:Array<String> = [];
 
-  public function getName(s:String)
+  public function getName(s:String):String
   {
     var default_name:String = 'overhead';
     if (s == null) return default_name;

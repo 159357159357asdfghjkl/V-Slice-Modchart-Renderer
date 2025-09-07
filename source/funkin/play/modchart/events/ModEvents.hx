@@ -30,6 +30,11 @@ typedef FuncExtraVars =
   @:optional var flip:Bool;
 }
 
+typedef NodeExtraVars =
+{
+  @:optional var defer:Bool;
+}
+
 class ModEvents
 {
   public var mods:Array<Map<String, Float>> = [];
@@ -296,6 +301,59 @@ class ModEvents
     }
   }
 
+  var auxes:Map<String, Bool> = [];
+
+  public function aux(self:Array<String>)
+  {
+    for (i in 0...self.length)
+    {
+      auxes.set(self[i], true);
+    }
+    return this;
+  }
+
+  var nodes:Array<Map<String, Dynamic>> = [];
+
+  public function node(self:Array<Dynamic>, extra:NodeExtraVars)
+  {
+    if (Std.isOfType(self[2], Float) || Std.isOfType(self[2], Int))
+    {
+      var multipliers = [];
+      var i:Int = 2;
+      while (self[i] != null)
+      {
+        var removed:Float = self.splice(i, 1)[0];
+        var amt = 'p * ' + removed * 0.01;
+        multipliers.push(amt);
+        i++;
+      }
+      var ret:String = multipliers.join(', ');
+      var code:String = 'return function(p:Float) return [' + ret + '];';
+      var fn = Farm.setupBuild(code)();
+      self[2] = fn;
+    }
+
+    var i:Int = 1;
+    var inputs:Array<String> = [];
+    while (Std.isOfType(self[i], String))
+    {
+      inputs.push(self[i]);
+      i++;
+    }
+    var fn = self[i];
+    i++;
+    var out:Array<Dynamic> = [];
+    while (self[i] != null)
+    {
+      out.push(self[i]);
+      i++;
+    }
+    var result:Map<String, Dynamic> = ['inputs' => inputs, 'out' => out, 'fn' => fn];
+    result.set('priority', (extra.defer ? -1 : 1) * (nodes.length + 1));
+    nodes.push(result);
+    return this;
+  }
+
   function sort()
   {
     Sort.stable_sort(eases, (a:Map<String, Dynamic>, b:Map<String, Dynamic>) -> {
@@ -354,6 +412,15 @@ class ModEvents
     var i:Int = 0;
     while (i < MAX_PN)
     {
+      for (a => b in auxes)
+      {
+        if (b == true)
+        {
+          a = modState[i].getName(a);
+          modState[i].getModTable().remove(a);
+          modState[i + 1].getModTable().remove(a);
+        }
+      }
       mods[i] = modState[i].getModTable();
       mods[i + 1] = modState[i + 1].getModTable();
       i += 2;

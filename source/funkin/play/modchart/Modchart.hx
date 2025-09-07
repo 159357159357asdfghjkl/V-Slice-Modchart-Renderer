@@ -381,7 +381,8 @@ class Modchart
       'incoming',
       'space',
       'hallway',
-      'distant'
+      'distant',
+      'mmod'
     ];
 
     var ONE:Array<String> = [
@@ -397,8 +398,8 @@ class Modchart
       'scaley',
       'scalez',
       'scrollspeedmult',
-
     ];
+
     for (i in 0...Strumline.KEY_COUNT)
     {
       ZERO.push('reverse$i');
@@ -653,6 +654,70 @@ class Modchart
     altname.set(alias, name);
   }
 
+  var approaches:Array<Map<String, Array<Null<Float>>>> = [];
+
+  public function fromString(mod:String)
+  {
+    var a:Array<String> = mod.split(',');
+    for (sOneMod in a)
+    {
+      var sBit:String = sOneMod;
+      sBit = sBit.toLowerCase();
+      sBit = sBit.trim();
+
+      var level:Float = 1.0;
+      var speed:Float = 1.0;
+      var asParts:Array<String> = sBit.split(" ");
+
+      for (s in asParts)
+      {
+        s = s.trim();
+        if (s == "no")
+        {
+          level = 0.0;
+        }
+        else if ((Std.parseInt(s.charAt(0)) != null) || s.charAt(0) == '-')
+        {
+          level = Std.parseFloat(s) / 100.0;
+        }
+        else if (s.charAt(0) == '*')
+        {
+          speed = Std.parseFloat(s.split('*')[1]);
+        }
+      }
+      sBit = asParts[asParts.length - 1].trim();
+
+      var on:Bool = (level > 0.5);
+      var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/;
+      var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
+      var mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
+      var name:String = sBit;
+      if (mult.match(name))
+      {
+        var a:String = mult.matched(1);
+        level = Std.parseFloat(a);
+        name = 'xmod';
+      }
+      else if (cReg.match(name))
+      {
+        var numStr:String = cReg.matched(1);
+        level = Std.parseFloat(numStr) / 100.0;
+        name = 'cmod';
+        if (!Math.isFinite(level) || level <= 0.0)
+        {
+          level = 200;
+        }
+      }
+      else if (mReg.match(name))
+      {
+        var numStr:String = mReg.matched(1);
+        level = Std.parseFloat(numStr) / 100.0;
+        name = 'mmod';
+      }
+      approaches.push([name => [level, speed]]);
+    }
+  }
+
   public function setValue(s:String, val:Float):Void
   {
     var name:String = getName(s);
@@ -687,19 +752,23 @@ class Modchart
 
   public function getName(s:String)
   {
+    var default_name:String = 'overhead';
+    if (s == null) return default_name;
     var s1:String = s.toLowerCase();
     if (s1 == 'straightholds') return s1;
     var name:String = altname.exists(s1) ? altname.get(s1) : s1;
-    if (!modList.exists(name))
+    if (!modList.exists(name) && !defaults.exists(name))
     {
       if (!checkedName.contains(name))
       {
         checkedName.push(s1);
         lime.app.Application.current.window.alert('Modifier name "$s1" does not exist. Check your script!', 'Modchart Script');
       }
-      return 'overhead';
+      return default_name;
     }
-    return name;
+    else
+      return name;
+    return default_name;
   }
 
   function CalculateTipsyOffset(time:Float, offset:Float, speed:Float, col:Int, real_offset:Float, ?tan:Float = 0)
@@ -708,6 +777,34 @@ class Modchart
     var arrow_times_mag:Float = ARROW_SIZE * 0.4;
     return (tan == 0 ? ModchartMath.fastCos(time_times_timer + (col * ((offset * 1.8) + 1.8)),
       getValue('cosclip')) * arrow_times_mag : selectTanType(time_times_timer + (col * ((offset * 1.8) + 1.8)), getValue('cosecant')) * arrow_times_mag);
+  }
+
+  var approachIndex:Int = 0;
+
+  public function update():Void
+  {
+    var a = approaches[approachIndex];
+    if (a != null)
+    {
+      for (name => value in a)
+      {
+        if (value[0] == null || value[1] == null) continue;
+        if (!(getValue(name) == value[0]))
+        {
+          var to_move:Float = getTime() * value[1];
+          var last_value:Float = getValue(name);
+          var fDelta:Float = value[0] - last_value;
+          var fSign:Float = fDelta / Math.abs(fDelta);
+          var fToMove:Float = fSign * to_move;
+          if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
+          setValue(name, last_value * 100 + fToMove);
+        }
+        else
+        {
+          approachIndex++;
+        }
+      }
+    }
   }
 
   public var baseHoldSize(get, never):Float; // ms
@@ -722,7 +819,8 @@ class Modchart
     var scrollSpeed:Float = speed;
     var curTime:Float = getTime();
     scrollSpeed *= getValue('xmod');
-    if (getValue('cmod') > 0) scrollSpeed *= getValue('cmod') / 2;
+    if (getValue('cmod') > 0) scrollSpeed = speed * getValue('cmod') / 2;
+    if (getValue('mmod') != 0) scrollSpeed = speed * getValue('mmod') * 100 / Conductor.instance.bpm;
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     var fYAdjust:Float = 0;
@@ -2107,6 +2205,7 @@ class Modchart
     pos.y *= zoom;
     scale.x *= zoom;
     scale.y *= zoom;
+    skew.z = fSkew;
     rotation.x += tilt_degrees;
   }
 

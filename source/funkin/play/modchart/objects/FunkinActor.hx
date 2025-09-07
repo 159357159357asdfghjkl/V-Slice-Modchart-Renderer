@@ -24,6 +24,7 @@ class FunkinActor extends FunkinSprite
   public var originVec:Vector3D;
   public var diffuse:Vector3D = new Vector3D(1, 1, 1, 1);
   public var glow:Vector3D = new Vector3D(1, 1, 1, 0);
+  public var _skew:Float = 0;
 
   var vertices:Vector<Float> = new Vector<Float>();
   var indices:Vector<Int> = new Vector<Int>();
@@ -51,8 +52,8 @@ class FunkinActor extends FunkinSprite
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
     var scale:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, SCALE.x, SCALE.y, SCALE.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, skew.x, skew.y);
-    var persp:Vector3D = ModchartMath.initPerspective(vec, skew, 45, FlxG.width, FlxG.height, ModchartMath.scale(0, 0.1, 1.0, originVec.x, FlxG.width / 2),
-      originVec.y);
+    var persp:Vector3D = ModchartMath.initPerspective(vec, skew, 45, FlxG.width, FlxG.height,
+      ModchartMath.scale(_skew, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     if (persp == null) return null;
     return persp;
   }

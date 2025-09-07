@@ -362,8 +362,8 @@ class SustainTrail extends FlxSprite
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height, ModchartMath.scale(0, 0.1, 1.0, originVec.x, FlxG.width / 2),
-      originVec.y);
+    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
+      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
     var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, parentStrumline?.defaultHeight ?? 0.0, false) ?? 0.0;

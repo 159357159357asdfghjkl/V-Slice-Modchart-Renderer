@@ -320,6 +320,7 @@ class Strumline extends FlxSpriteGroup
   public override function update(elapsed:Float):Void
   {
     super.update(elapsed);
+    mods.update();
     updateNotes();
 
     #if FEATURE_GHOST_TAPPING
@@ -382,8 +383,8 @@ class Strumline extends FlxSpriteGroup
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height, ModchartMath.scale(0, 0.1, 1.0, originVec.x, FlxG.width / 2),
-      originVec.y);
+    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
+      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
     zPos.x += 50; // offset but less accurate, i have no idea
     zPos.y += 90;
@@ -713,7 +714,7 @@ class Strumline extends FlxSpriteGroup
     var difference:Vector3D = getDifference();
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = (FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2);
-    var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
+    var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania origin x is FlxG.width / 2
     // Update rendering of notes.
     for (note in notes.members)
     {
@@ -748,6 +749,7 @@ class Strumline extends FlxSpriteGroup
       note.skew.y = skewPos.y;
       note.x = note.y = 0;
       note.pos.copyFrom(pos.add(difference));
+      note._skew = skewPos.z;
       note.originVec = zOrigin;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff, false);
       note.diffuse.w = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
@@ -884,6 +886,7 @@ class Strumline extends FlxSpriteGroup
       var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      strumNote._skew = skewPos.z;
       strumNote.rotation.copyFrom(rotation);
       strumNote.SCALE.x = scalePos.x;
       strumNote.SCALE.y = scalePos.y;
@@ -922,6 +925,7 @@ class Strumline extends FlxSpriteGroup
       var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      splash._skew = skewPos.z;
       splash.rotation.copyFrom(rotation);
       splash.SCALE.x = scalePos.x;
       splash.SCALE.y = scalePos.y;

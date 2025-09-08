@@ -412,6 +412,8 @@ class ModEvents
     var i:Int = 0;
     while (i < MAX_PN)
     {
+      mods[i] = modState[i].getModTable();
+      mods[i + 1] = modState[i + 1].getModTable();
       for (a => b in auxes)
       {
         if (b == true)
@@ -421,8 +423,6 @@ class ModEvents
           modState[i + 1].getModTable().remove(a);
         }
       }
-      mods[i] = modState[i].getModTable();
-      mods[i + 1] = modState[i + 1].getModTable();
       i += 2;
     }
     while (eases_index <= eases.length - 1)
@@ -434,8 +434,8 @@ class ModEvents
       var idx:Int = 0;
       while (idx < e['mod'].length)
       {
+        e['mod'][idx + 1] = modState[plr].getName(e['mod'][idx + 1]);
         var mod = e['mod'][idx + 1];
-        e['mod'][idx + 1] = modState[plr].getName(mod);
         e.set('_$mod', (e['startVal'] != null ? e['startVal'] : mods.copy()[plr].copy()[mod]));
         e.set('__$mod', e['mod'][idx] - (e['relative'] == true ? 0 : e['_$mod']));
         idx += 2;
@@ -457,9 +457,7 @@ class ModEvents
         while (i < e['mod'].length)
         {
           var mod = e['mod'][i + 1];
-          var a:Int = 1;
-          if (mod == 'straightholds') a = -1;
-          mods[plr][mod] = e['_$mod'] + e3 * e['__$mod'] * a;
+          mods[plr][mod] = e['_$mod'] + e3 * e['__$mod'];
           i += 2;
         }
         active_eases_index++;

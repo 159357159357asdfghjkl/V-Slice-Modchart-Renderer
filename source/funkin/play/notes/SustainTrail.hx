@@ -353,10 +353,7 @@ class SustainTrail extends FlxSprite
     {
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
       if (spiralHolds < 0) fullPos = ModchartMath.rotateVec3(fullPos, 0, 0, ang * ModchartMath.deg - 90);
-      else if (spiralHolds > 0)
-      {
-        // idk
-      }
+      else if (spiralHolds > 0) {}
     }
     var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);

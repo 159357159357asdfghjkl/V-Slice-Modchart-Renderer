@@ -384,7 +384,6 @@ class Modchart
       'distant',
       'mmod'
     ];
-
     var ONE:Array<String> = [
       'xmod',
       'zoom',
@@ -721,26 +720,12 @@ class Modchart
   public function setValue(s:String, val:Float):Void
   {
     var name:String = getName(s);
-    if (name == 'straightholds')
-    {
-      modList.set('gayholds', -val);
-      return;
-    }
     modList.set(name, val);
   }
 
   public function getValue(s:String):Float
   {
     var name:String = getName(s);
-    if (name == 'straightholds')
-    {
-      var val:Null<Float> = modList.get('gayholds');
-      if (val == null) return 0;
-      else
-        val /= 100;
-      val *= -1;
-      return val;
-    }
     var val:Null<Float> = modList.get(name);
     if (val == null) return 0;
     else
@@ -753,11 +738,9 @@ class Modchart
   public function getName(s:String):String
   {
     var default_name:String = 'overhead';
-    if (s == null) return default_name;
     var s1:String = s.toLowerCase();
-    if (s1 == 'straightholds') return s1;
     var name:String = altname.exists(s1) ? altname.get(s1) : s1;
-    if (!modList.exists(name) && !defaults.exists(name))
+    if (!modList.exists(name))
     {
       if (!checkedName.contains(name))
       {
@@ -766,9 +749,7 @@ class Modchart
       }
       return default_name;
     }
-    else
-      return name;
-    return default_name;
+    return name;
   }
 
   function CalculateTipsyOffset(time:Float, offset:Float, speed:Float, col:Int, real_offset:Float, ?tan:Float = 0)
@@ -1705,10 +1686,6 @@ class Modchart
       fDizzyRotation *= 180 / Math.PI;
       fRotation += fDizzyRotation;
     }
-    if (getValue('rotationz') != 0)
-    {
-      fRotation += getValue('rotationz') * 100;
-    }
     if (getValue('orient') != 0 && !isHoldBody)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
@@ -1746,10 +1723,6 @@ class Modchart
     if (getValue('roll$iCol') != 0)
     {
       fRotation += getValue('roll$iCol') * fYOffset / 2;
-    }
-    if (getValue('rotationx') != 0)
-    {
-      fRotation += getValue('rotationx') * 100;
     }
     if (getValue('orientx') != 0 && !isHoldHead)
     {
@@ -1789,10 +1762,6 @@ class Modchart
     {
       fRotation += getValue('twirl$iCol') * fYOffset / 2;
     }
-    if (getValue('rotationy') != 0)
-    {
-      fRotation += getValue('rotationy') * 100;
-    }
     if (getValue('orienty') != 0 && !isHoldHead)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
@@ -1819,10 +1788,6 @@ class Modchart
       fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
-    }
-    if (getValue('rotationz') != 0)
-    {
-      fRotation += getValue('rotationz') * 100;
     }
     if (getValue('orient') != 0)
     {
@@ -1851,10 +1816,6 @@ class Modchart
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
     }
-    if (getValue('rotationx') != 0)
-    {
-      fRotation += getValue('rotationx') * 100;
-    }
     if (getValue('orientx') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
@@ -1881,10 +1842,6 @@ class Modchart
       fConfRotation = ModchartMath.mod(fConfRotation, 2 * Math.PI);
       fConfRotation *= -180 / Math.PI;
       fRotation += fConfRotation;
-    }
-    if (getValue('rotationy') != 0)
-    {
-      fRotation += getValue('rotationy') * 100;
     }
     if (getValue('orienty') != 0)
     {
@@ -2123,6 +2080,9 @@ class Modchart
       pos.x = newpos.x;
       pos.y = newpos.y;
       pos.z = newpos.z;
+      rotation.x += getValue('rotationx') * 100;
+      rotation.y += getValue('rotationy') * 100;
+      rotation.z += getValue('rotationz') * 100;
     }
     if (getValue('x') != 0) pos.x += getValue('x') * ARROW_SIZE * 1.5625; // cuz 320% x = 500% movex
     if (getValue('y') != 0) pos.y += getValue('y') * ARROW_SIZE * 1.5625;

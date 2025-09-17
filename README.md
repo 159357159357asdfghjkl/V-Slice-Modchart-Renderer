@@ -1,6 +1,8 @@
-# Modchart System
+# NotITG FNF ver
 
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
+
+some modchart codes are from stepmania / mirin template / Schmovin / Troll Engine / Psych Engine, credit them first (except some notitg mods)
 
 NotITG Modifiers Restoration
 

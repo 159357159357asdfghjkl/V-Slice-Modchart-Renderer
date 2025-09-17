@@ -11,6 +11,7 @@ import openfl.Vector;
 import openfl.geom.Vector3D;
 import funkin.graphics.FunkinSprite;
 import funkin.play.modchart.util.ModchartMath;
+import openfl.geom.ColorTransform;
 
 class FunkinActor extends FunkinSprite
 {
@@ -107,6 +108,7 @@ class FunkinActor extends FunkinSprite
         ]);
         indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
+        var colorTransform = new ColorTransform();
         colorTransform.redMultiplier = diffuse.x;
         colorTransform.greenMultiplier = diffuse.y;
         colorTransform.blueMultiplier = diffuse.z;

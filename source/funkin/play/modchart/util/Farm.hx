@@ -28,18 +28,10 @@ class Farm
 
   public function setupFarm()
   {
-    if (farmBuilding != null)
-    {
-      var parser:Parser = new Parser();
-      parser.allowTypes = true;
-      var result:Dynamic = new Interp().execute(parser.parseString(farmBuilding));
-      return result;
-    }
-    else
-    {
-      trace('error');
-      return;
-    }
+    var parser:Parser = new Parser();
+    parser.allowTypes = true;
+    var result:Dynamic = new Interp().execute(parser.parseString(farmBuilding));
+    return result;
   }
 
   public static function setupBuild(build:String)

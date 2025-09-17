@@ -752,7 +752,13 @@ class Strumline extends FlxSpriteGroup
       note._skew = skewPos.z;
       note.originVec = zOrigin;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff, false);
+      note.diffuse.x *= mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'red');
+      note.diffuse.y *= mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'green');
+      note.diffuse.z *= mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'blue');
       note.diffuse.w = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.glow.x *= mods.getValue('stealthglowred') * mods.getValue('stealthglowred$col');
+      note.glow.y *= mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$col');
+      note.glow.z *= mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
       note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       note.rotation.copyFrom(rotation);
       // If the note is miss

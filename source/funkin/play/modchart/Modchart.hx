@@ -382,7 +382,25 @@ class Modchart
       'space',
       'hallway',
       'distant',
-      'mmod'
+      'mmod',
+      'stealthred',
+      'stealthgreen',
+      'stealthblue',
+      'suddenred',
+      'suddengreen',
+      'suddenblue',
+      'suddenredoffset',
+      'suddengreenoffset',
+      'suddenblueoffset',
+      'hiddenred',
+      'hiddengreen',
+      'hiddenblue',
+      'hiddenredoffset',
+      'hiddengreenoffset',
+      'hiddenblueoffset',
+      'blinkred',
+      'blinkgreen',
+      'blinkblue',
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -397,6 +415,9 @@ class Modchart
       'scaley',
       'scalez',
       'scrollspeedmult',
+      'stealthglowred',
+      'stealthglowgreen',
+      'stealthglowblue'
     ];
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -519,6 +540,9 @@ class Modchart
       ZERO.push('centered$i');
       ZERO.push('arrowpathsize$i');
       ZERO.push('centered2$i');
+      ONE.push('stealthglowred$i');
+      ONE.push('stealthglowgreen$i');
+      ONE.push('stealthglowblue$i');
     }
 
     for (mod in ZERO)
@@ -527,7 +551,7 @@ class Modchart
     for (mod in ONE)
       defaults.set(mod, 100);
 
-    defaults.set('cmod', 200);
+    defaults.set('cmod', 20000);
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
@@ -599,6 +623,27 @@ class Modchart
     altname.set('longboys', 'longholds');
     altname.set('holdtype', 'spiralholds');
     altname.set('asymptotesize', 'asymptotescale');
+    altname.set('stealthr', 'stealthred');
+    altname.set('stealthg', 'stealthgreen');
+    altname.set('stealthb', 'stealthblue');
+    altname.set('suddenr', 'suddenred');
+    altname.set('suddeng', 'suddengreen');
+    altname.set('suddenb', 'suddenblue');
+    altname.set('suddenro', 'suddenredoffest');
+    altname.set('suddengo', 'suddengreenoffset');
+    altname.set('suddenbo', 'suddenblueoffset');
+    altname.set('hiddenr', 'hiddenred');
+    altname.set('hiddeng', 'hiddengreen');
+    altname.set('hiddenb', 'hiddenblue');
+    altname.set('hiddenro', 'hiddenredoffest');
+    altname.set('hiddengo', 'hiddengreenoffset');
+    altname.set('hiddenbo', 'hiddenblueoffset');
+    altname.set('blinkr', 'blinkred');
+    altname.set('blinkg', 'blinkgreen');
+    altname.set('blinkb', 'blinkblue');
+    altname.set('stealthgr', 'stealthglowred');
+    altname.set('stealthgg', 'stealthglowgreen');
+    altname.set('stealthgb', 'stealthglowblue');
 
     for (i in 0...Strumline.KEY_COUNT)
     {
@@ -636,6 +681,9 @@ class Modchart
       altname.set('arrowpathgirth$i', 'arrowpathsize$i');
       altname.set('arrowpathwidth$i', 'arrowpathsize$i');
       altname.set('centeredpath$i', 'centered2$i');
+      altname.set('stealthgr$i', 'stealthglowred$i');
+      altname.set('stealthgg$i', 'stealthglowgreen$i');
+      altname.set('stealthgb$i', 'stealthglowblue$i');
     }
   }
 
@@ -800,10 +848,13 @@ class Modchart
     var scrollSpeed:Float = speed;
     var curTime:Float = getTime();
     scrollSpeed *= getValue('xmod');
-    if (getValue('cmod') > 0) scrollSpeed = speed * getValue('cmod') / 2;
-    if (getValue('mmod') != 0) scrollSpeed = speed * getValue('mmod') * 100 / Conductor.instance.bpm;
+    if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
+    if (getValue('cmod') > 0)
+    {
+      fYOffset *= getValue('cmod') / 200;
+    }
     var fYAdjust:Float = 0;
     if (fYOffset < 0)
     {
@@ -1934,6 +1985,63 @@ class Modchart
     return ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);
   }
 
+  function GetHiddenSudden2(s:String):Float
+    return getValue('hidden$s') * getValue('sudden$s');
+
+  function GetHiddenEndLine2(s:String):Float
+    return SCREEN_HEIGHT / 2
+      + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., -1.0, -1.25)
+      + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
+
+  function GetHiddenStartLine2(s:String):Float
+    return SCREEN_HEIGHT / 2
+      + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., 0.0, -0.25)
+      + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
+
+  function GetSuddenEndLine2(s:String):Float
+    return SCREEN_HEIGHT / 2
+      + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., -0.0, 0.25)
+      + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
+
+  function GetSuddenStartLine2(s:String):Float
+    return SCREEN_HEIGHT / 2
+      + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., 1.0, 1.25)
+      + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
+
+  public function ArrowGetPercentRGB(iCol:Int, fYOffset:Float, fYPosWithoutReverse:Float, color:String):Float
+  {
+    var fYPos:Float;
+    if (getValue('stealthtype') != 0) fYPos = fYOffset;
+    else
+      fYPos = fYPosWithoutReverse;
+
+    if (fYPos < 0 && getValue('stealthpastreceptors') == 0) return 1;
+    var fVisibleAdjust:Float = 0;
+    if (getValue('hidden$color') != 0)
+    {
+      var fHiddenVisibleAdjust:Float = ModchartMath.scale(fYPos, GetHiddenStartLine2(color), GetHiddenEndLine2(color), 0, -1);
+      fHiddenVisibleAdjust = ModchartMath.clamp(fHiddenVisibleAdjust, -1, 0);
+      fVisibleAdjust += getValue('hidden$color') * fHiddenVisibleAdjust;
+    }
+    if (getValue('sudden$color') != 0)
+    {
+      var fSuddenVisibleAdjust:Float = ModchartMath.scale(fYPos, GetSuddenStartLine2(color), GetSuddenEndLine2(color), -1, 0);
+      fSuddenVisibleAdjust = ModchartMath.clamp(fSuddenVisibleAdjust, -1, 0);
+      fVisibleAdjust += getValue('sudden$color') * fSuddenVisibleAdjust;
+    }
+
+    if (getValue('stealth$color') != 0) fVisibleAdjust -= getValue('stealth$color');
+
+    if (getValue('blink$color') != 0)
+    {
+      var f:Float = ModchartMath.fastSin(getTime() * 10, getValue('sinclip'));
+      f = ModchartMath.Quantize(f, 0.3333);
+      fVisibleAdjust += ModchartMath.scale(f, 0, 1, -1, 0);
+    }
+    var alpha:Float = ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);
+    return ModchartMath.clamp(ModchartMath.scale(alpha, 0.5, 0, 1, 0), 0, 1);
+  }
+
   public function GetAlpha(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
     var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset, isHoldHead, isHoldBody);
@@ -2143,8 +2251,8 @@ class Modchart
     }
     if (getValue('overhead') != 0)
     {
-      fTilt == 0;
-      fSkew == 0;
+      fTilt = 0;
+      fSkew = 0;
     }
     var reverse_mult:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
     var tilt_degrees:Float = ModchartMath.scale(fTilt, -1., 1., 30, -30) * reverse_mult;

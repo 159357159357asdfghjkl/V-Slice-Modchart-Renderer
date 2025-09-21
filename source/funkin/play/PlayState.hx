@@ -878,9 +878,34 @@ class PlayState extends MusicBeatSubState
     refresh();
   }
 
+  var luaArray:Array<ModchartLuaState> = [];
+
   function initModEvents()
   {
+    var folders:Array<String> = [];
+    if (currentChart != null)
+    {
+      folders.push('assets/scripts/songs/');
+      for (mod in PolymodHandler.loadedModIds)
+        folders.push('mods/' + mod + '/scripts/songs/');
+      for (folder in folders)
+      {
+        if (FileSystem.exists(folder))
+        {
+          for (file in FileSystem.readDirectory(folder))
+          {
+            if (file.endsWith('.lua') && file.startsWith(currentChart.songName.toLowerCase()))
+            {
+              luaArray.push(new ModchartLuaState(folder + file));
+            }
+          }
+        }
+      }
+    }
+
     modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
+    for (lua in luaArray)
+      lua.call('onInit', []);
     var event:ScriptEvent = new ScriptEvent(INIT, false);
     ScriptEventDispatcher.callEvent(currentSong, event);
     ScriptEventDispatcher.callEvent(currentConversation, event);
@@ -950,6 +975,8 @@ class PlayState extends MusicBeatSubState
 
     super.update(elapsed);
     modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition / 1000);
+    for (lua in luaArray)
+      lua.call('onUpdate', []);
     updateHealthBar();
     updateScoreText();
 
@@ -3417,6 +3444,15 @@ class PlayState extends MusicBeatSubState
       remove(currentConversation);
       currentConversation.kill();
     }
+
+    for (lua in luaArray)
+    {
+      if (lua != null)
+      {
+        lua.stop();
+      }
+    }
+    luaArray = [];
 
     if (currentChart != null)
     {

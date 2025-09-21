@@ -549,9 +549,9 @@ class Modchart
       defaults.set(mod, 0);
 
     for (mod in ONE)
-      defaults.set(mod, 1);
+      defaults.set(mod, 100);
 
-    defaults.set('cmod', 200);
+    defaults.set('cmod', 20000);
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
@@ -748,7 +748,7 @@ class Modchart
       else if (cReg.match(name))
       {
         var numStr:String = cReg.matched(1);
-        level = Std.parseFloat(numStr);
+        level = Std.parseFloat(numStr) / 100.0;
         name = 'cmod';
         if (!Math.isFinite(level) || level <= 0.0)
         {
@@ -758,7 +758,7 @@ class Modchart
       else if (mReg.match(name))
       {
         var numStr:String = mReg.matched(1);
-        level = Std.parseFloat(numStr);
+        level = Std.parseFloat(numStr) / 100.0;
         name = 'mmod';
       }
       approaches.push([name => [level, speed]]);
@@ -776,6 +776,7 @@ class Modchart
     var name:String = getName(s);
     var val:Null<Float> = modList.get(name);
     if (val == null) return 0;
+    val /= 100;
     return val;
   }
 
@@ -824,7 +825,7 @@ class Modchart
           var fSign:Float = fDelta / Math.abs(fDelta);
           var fToMove:Float = fSign * to_move;
           if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
-          setValue(name, last_value + fToMove / 100);
+          setValue(name, last_value * 100 + fToMove);
         }
         else
         {

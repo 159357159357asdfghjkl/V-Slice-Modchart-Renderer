@@ -411,7 +411,7 @@ class SustainTrail extends FlxSprite
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
       if (spiralHolds > 0)
       {
-        length = Std.int(fullSustainLength / Strumline.NOTE_SPACING); // by me
+        length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
       }
     }
     if (length <= 1) length = 1;

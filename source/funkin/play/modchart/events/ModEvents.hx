@@ -404,15 +404,12 @@ class ModEvents
     for (nd in nodes)
     {
       var terminator:Bool = nd['terminator'];
-
       if (!terminator)
       {
-        var children:Array<Map<String, Dynamic>> = [];
-        var outputs:Array<Map<String, Array<Float>>> = [];
-        nd.set('children', children);
-        nd.set('outputs', outputs);
+        nd.set('children', []);
+        nd.set('outputs', []);
         for (pn in 0...MAX_PN)
-          nd['outputs'][pn] = [];
+          nd['outputs'][pn] = {}
       }
       nd['parents'] = [[]];
       var inputs:Array<String> = nd['inputs'];
@@ -421,7 +418,6 @@ class ModEvents
       var parents:Array<Array<Map<String, Dynamic>>> = nd['parents'];
       var outputs:Array<Map<String, Array<Float>>> = nd['outputs'];
       var reverse_in:Map<String, Bool> = [];
-      var az:Bool = false;
       for (v in inputs)
       {
         reverse_in.set(v, true);
@@ -429,7 +425,7 @@ class ModEvents
         var i:Int = inputs.indexOf(v);
         parents[i] = [];
         if (start[v][locked] != null && start[v][locked] == false) start[v].push(nd);
-        if (start[v][locked] == true) az = true;
+        if (start[v][locked] == true) parents[i][0].set('dsb', true);
         for (_ => pre in (last[v] != null ? last[v] : new Map<String, Dynamic>()))
         {
           pre[4].push(nd);
@@ -466,7 +462,7 @@ class ModEvents
             list(code, j, '+');
             code.addpart('parents[$i][$j][pn]["' + (escapestr(mod)) + '"]');
           }
-          if (az == false)
+          if (parents[i][0].get('dsb') == false || parents[i][0].get('dsb') == null)
           {
             list(code, parents[i].length, '+');
             code.addpart('mods[pn]["' + (escapestr(mod)) + '"]');
@@ -480,14 +476,8 @@ class ModEvents
           var i:Int = out.indexOf(mod);
           list(code, i, ',');
           code.addpart('outputs[pn]["' + (escapestr(mod)) + '"]');
-          if (!terminator)
-          {
-            if (out[0] != null) code.addpart(' = ');
-            code.addpart('fn(');
-            emit_inputs();
-            code.addpart(', pn);\n');
-          }
         }
+        return out[0];
       }
       code.addpart('return function(outputs:Array<Map<String, Array<Float>>>, parents:Array<Array<Map<String, Dynamic>>>, mods:Array<Map<String, Float>>, fn){\n'
         + 'return function(pn:Int){\n');
@@ -499,7 +489,10 @@ class ModEvents
       }
       else
       {
-        emit_outputs();
+        if (emit_outputs() != null) code.addpart(' = ');
+        code.addpart('fn(');
+        emit_inputs();
+        code.addpart(', pn);\n');
       }
       code.addpart('}\n' + '}\n');
       code.buildFarm();

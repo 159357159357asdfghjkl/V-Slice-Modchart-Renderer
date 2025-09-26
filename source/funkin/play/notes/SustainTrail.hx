@@ -42,7 +42,6 @@ class SustainTrail extends FlxSprite
   public var fullSustainLength:Float = 0;
   public var noteData:Null<SongNoteData>;
   public var parentStrumline:Strumline;
-  public var renderType:Int = 0;
 
   public var cover:NoteHoldCover = null;
 
@@ -374,16 +373,13 @@ class SustainTrail extends FlxSprite
     return [zPos, diffuses, glowColor];
   }
 
-  public function updateClipping(songTime:Float = 0, useNew:Bool = true)
+  public function updateClipping(songTime:Float = 0)
   {
-    if (useNew) updateClippingNew(songTime);
-    else
-      updateClippingOld(songTime);
+    updateClippingNew(songTime);
   }
 
   public function updateClippingNew(songTime:Float = 0):Void
   {
-    renderType = 1;
     if (graphic == null)
     {
       return;
@@ -503,139 +499,6 @@ class SustainTrail extends FlxSprite
     addShaderArray(ct);
   }
 
-  /**
-   * Sets up new vertex and UV data to clip the trail.
-   * If flipY is true, top and bottom bounds swap places.
-   * @param songTime	The time to clip the note at, in milliseconds.
-   */
-  public function updateClippingOld(songTime:Float = 0):Void
-  {
-    renderType = 0;
-    if (graphic == null || customVertexData)
-    {
-      return;
-    }
-
-    var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
-    if (clipHeight <= 0.1)
-    {
-      visible = false;
-      return;
-    }
-    else
-    {
-      visible = true;
-    }
-
-    var bottomHeight:Float = graphic.height * zoom * endOffset;
-    var partHeight:Float = clipHeight - bottomHeight;
-
-    // ===HOLD VERTICES==
-    // Top left
-    vertices[0 * 2] = 0.0; // Inline with left side
-    vertices[0 * 2 + 1] = flipY ? clipHeight : graphicHeight - clipHeight;
-
-    // Top right
-    vertices[1 * 2] = graphicWidth;
-    vertices[1 * 2 + 1] = vertices[0 * 2 + 1]; // Inline with top left vertex
-
-    // Bottom left
-    vertices[2 * 2] = 0.0; // Inline with left side
-    vertices[2 * 2 + 1] = if (partHeight > 0)
-    {
-      // flipY makes the sustain render upside down.
-      flipY ? 0.0 + bottomHeight : vertices[1] + partHeight;
-    }
-    else
-    {
-      vertices[0 * 2 + 1]; // Inline with top left vertex (no partHeight available)
-    }
-
-    // Bottom right
-    vertices[3 * 2] = graphicWidth;
-    vertices[3 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex
-
-    // ===HOLD UVs===
-
-    // The UVs are a bit more complicated.
-    // UV coordinates are normalized, so they range from 0 to 1.
-    // We are expecting an image containing 8 horizontal segments, each representing a different colored hold note followed by its end cap.
-
-    uvtData[0 * 2] = 1 / 4 * (noteDirection % 4); // 0%/25%/50%/75% of the way through the image
-    uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom; // top bound
-    // Top left
-
-    // Top right
-    uvtData[1 * 2] = uvtData[0 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
-    uvtData[1 * 2 + 1] = uvtData[0 * 2 + 1]; // top bound
-
-    // Bottom left
-    uvtData[2 * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
-    uvtData[2 * 2 + 1] = 0.0; // bottom bound
-
-    // Bottom right
-    uvtData[3 * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
-    uvtData[3 * 2 + 1] = uvtData[2 * 2 + 1]; // bottom bound
-
-    // === END CAP VERTICES ===
-    // Top left
-    vertices[4 * 2] = vertices[2 * 2]; // Inline with bottom left vertex of hold
-    vertices[4 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex of hold
-
-    // Top right
-    vertices[5 * 2] = vertices[3 * 2]; // Inline with bottom right vertex of hold
-    vertices[5 * 2 + 1] = vertices[3 * 2 + 1]; // Inline with bottom right vertex of hold
-
-    // Bottom left
-    vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
-    vertices[6 * 2 + 1] = flipY ? (graphic.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + graphic.height * (bottomClip - endOffset) * zoom);
-
-    // Bottom right
-    vertices[7 * 2] = vertices[3 * 2]; // Inline with right side
-    vertices[7 * 2 + 1] = vertices[6 * 2 + 1]; // Inline with bottom of end cap
-
-    // === END CAP UVs ===
-    // Top left
-    uvtData[4 * 2] = uvtData[2 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-    uvtData[4 * 2 + 1] = if (partHeight > 0)
-    {
-      0;
-    }
-    else
-    {
-      (bottomHeight - clipHeight) / zoom / graphic.height;
-    };
-
-    // Top right
-    uvtData[5 * 2] = uvtData[4 * 2] + 1 / 8; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
-    uvtData[5 * 2 + 1] = uvtData[4 * 2 + 1]; // top bound
-
-    // Bottom left
-    uvtData[6 * 2] = uvtData[4 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-    uvtData[6 * 2 + 1] = bottomClip; // bottom bound
-
-    // Bottom right
-    uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
-    uvtData[7 * 2 + 1] = uvtData[6 * 2 + 1]; // bottom bound
-
-    var idx:Int = 0;
-    while (idx < vertices.length)
-    {
-      var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
-      var defX:Float = parentStrumline?.xoffArray[column] ?? 0.0;
-      var diff:Null<Vector3D> = parentStrumline?.getDifference();
-      vertices[idx] += defX + offsetX;
-      var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
-      vertices[idx + 1] += funkin.util.GRhythmUtil.getNoteY(strumTime, speed, parentStrumline?.isDownscroll ?? false) + offsetY;
-      if (diff != null)
-      {
-        vertices[idx] -= diff.x;
-        vertices[idx + 1] -= diff.y;
-      }
-      idx += 2;
-    }
-  }
-
   var alphas:Array<Float> = [];
   var colorMultipliers:Array<Float> = [];
   var colorOffsets:Array<Float> = [];
@@ -700,31 +563,22 @@ class SustainTrail extends FlxSprite
     {
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
-
-      if (renderType == 0)
-      {
-        getScreenPosition(_point, camera).subtractPoint(offset);
-        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
-      }
-      else if (renderType == 1)
-      {
-        #if !flash
-        var shader:FlxGraphicsShader = new FlxGraphicsShader();
-        shader.bitmap.input = graphic.bitmap;
-        shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
-        shader.bitmap.wrap = REPEAT;
-        shader.hasColorTransform.value = [true];
-        shader.colorMultiplier.value = colorMultipliers;
-        shader.colorOffset.value = colorOffsets;
-        shader.alpha.value = alphas;
-        camera.canvas.graphics.overrideBlendMode(blend);
-        camera.canvas.graphics.beginShaderFill(shader);
-        #else
-        camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
-        #end
-        camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
-        camera.canvas.graphics.endFill();
-      }
+      #if !flash
+      var shader:FlxGraphicsShader = new FlxGraphicsShader();
+      shader.bitmap.input = graphic.bitmap;
+      shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
+      shader.bitmap.wrap = REPEAT;
+      shader.hasColorTransform.value = [true];
+      shader.colorMultiplier.value = colorMultipliers;
+      shader.colorOffset.value = colorOffsets;
+      shader.alpha.value = alphas;
+      camera.canvas.graphics.overrideBlendMode(blend);
+      camera.canvas.graphics.beginShaderFill(shader);
+      #else
+      camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
+      #end
+      camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
+      camera.canvas.graphics.endFill();
     }
 
     #if FLX_DEBUG

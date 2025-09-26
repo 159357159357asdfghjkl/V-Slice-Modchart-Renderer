@@ -15,8 +15,8 @@ using StringTools;
 class Modchart
 {
   public var defaults:Map<String, Float> = new Map<String, Float>();
+  public var modList:Map<String, Float>;
 
-  private var modList:Map<String, Float>;
   private var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
@@ -401,6 +401,7 @@ class Modchart
       'blinkred',
       'blinkgreen',
       'blinkblue',
+      'rendertype'
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -692,9 +693,6 @@ class Modchart
     modList = defaults.copy();
   }
 
-  public function getModTable()
-    return modList;
-
   public function createAliasForMod(alias:String, mod:String)
   {
     var name:String = getName(mod);
@@ -787,7 +785,7 @@ class Modchart
     var default_name:String = 'overhead';
     var s1:String = s.toLowerCase();
     var name:String = altname.exists(s1) ? altname.get(s1) : s1;
-    if (!modList.exists(name))
+    if (!defaults.exists(name))
     {
       if (!checkedName.contains(name))
       {

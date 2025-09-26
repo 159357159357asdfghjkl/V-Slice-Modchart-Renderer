@@ -65,6 +65,20 @@ class ModEvents
     }
   }
 
+  public function setdefault(modArray:Array<Dynamic>)
+  {
+    for (pn in 0...MAX_PN)
+    {
+      var i:Int = 0;
+      while (i < modArray.length)
+      {
+        modState[pn].defaults.set(modState[pn].getName(modArray[i + 1]), modArray[i]);
+        i += 2;
+      }
+    }
+    return this;
+  }
+
   public var trollModMgr:TrollEngineModchartScripts;
 
   public function new(state:Array<Modchart>)
@@ -82,20 +96,6 @@ class ModEvents
     var reversedState:Array<Modchart> = state.copy();
     reversedState.reverse();
     trollModMgr = new TrollEngineModchartScripts(this, reversedState);
-  }
-
-  public function setdefault(modArray:Array<Dynamic>)
-  {
-    for (pn in 0...MAX_PN)
-    {
-      var i:Int = 0;
-      while (i < modArray.length)
-      {
-        modState[pn].defaults[modArray[i + 1]] = modArray[i];
-        i += 2;
-      }
-    }
-    return this;
   }
 
   var eases:Array<Map<String, Dynamic>> = [];
@@ -309,12 +309,12 @@ class ModEvents
 
   var nodes:Array<Map<String, Dynamic>> = [];
 
-  public function node(self:Array<Dynamic>, extra:NodeExtraVars)
+  public function node(self:Array<Dynamic>, ?extra:NodeExtraVars)
   {
-    if (Std.isOfType(self[2], Float) || Std.isOfType(self[2], Int))
+    if (Std.isOfType(self[1], Float) || Std.isOfType(self[1], Int))
     {
       var multipliers = [];
-      var i:Int = 2;
+      var i:Int = 1;
       while (self[i] != null)
       {
         var removed:Float = self.splice(i, 1)[0];
@@ -325,10 +325,10 @@ class ModEvents
       var ret:String = multipliers.join(', ');
       var code:String = 'return function(p:Float) return [' + ret + '];';
       var fn = Farm.setupBuild(code)();
-      self[2] = fn;
+      self[1] = fn;
     }
 
-    var i:Int = 1;
+    var i:Int = 0;
     var inputs:Array<String> = [];
     while (Std.isOfType(self[i], String))
     {
@@ -346,6 +346,14 @@ class ModEvents
     var result:Map<String, Dynamic> = ['inputs' => inputs, 'out' => out, 'fn' => fn];
     result.set('priority', (extra.defer ? -1 : 1) * (nodes.length + 1));
     nodes.push(result);
+    return this;
+  }
+
+  public function definemod(self:Array<Dynamic>, ?extra:NodeExtraVars)
+  {
+    for (i in 0...self.length)
+      if (Std.isOfType(self[i], String)) aux(self[i]);
+    node(self, extra);
     return this;
   }
 
@@ -373,179 +381,16 @@ class ModEvents
     });
   }
 
-  var node_start:Map<String, Dynamic> = [];
-
-  function compile_nodes()
-  {
-    var terminators:Map<String, Bool> = [];
-    for (nd in nodes)
-    {
-      var out:Array<String> = cast nd.get('out');
-      for (_ => mod in out)
-        terminators.set(mod, true);
-    }
-    var priority:Int = -1 * (nodes.length + 1);
-    for (k => _ in terminators)
-      nodes.push([
-        'inputs' => [k],
-        'out' => [],
-        'fn' => null,
-        'children' => null,
-        'parents' => null,
-        'real_fn' => null,
-        'outputs' => null,
-        'terminator' => true,
-        'priority' => priority
-      ]);
-
-    var start:Map<String, Dynamic> = node_start;
-    var locked:Int = 0;
-    var last:Map<String, Map<String, Dynamic>> = [];
-    for (nd in nodes)
-    {
-      var terminator:Bool = nd['terminator'];
-      if (!terminator)
-      {
-        nd.set('children', []);
-        nd.set('outputs', []);
-        for (pn in 0...MAX_PN)
-          nd['outputs'][pn] = {}
-      }
-      nd['parents'] = [[]];
-      var inputs:Array<String> = nd['inputs'];
-      var out:Array<String> = nd['out'];
-      var fn = nd['fn'];
-      var parents:Array<Array<Map<String, Dynamic>>> = nd['parents'];
-      var outputs:Array<Map<String, Array<Float>>> = nd['outputs'];
-      var reverse_in:Map<String, Bool> = [];
-      for (v in inputs)
-      {
-        reverse_in.set(v, true);
-        if (start.get(v) == null) start.set(v, []);
-        var i:Int = inputs.indexOf(v);
-        parents[i] = [];
-        if (start[v][locked] != null && start[v][locked] == false) start[v].push(nd);
-        if (start[v][locked] == true) parents[i][0].set('dsb', true);
-        for (_ => pre in (last[v] != null ? last[v] : new Map<String, Dynamic>()))
-        {
-          pre[4].push(nd);
-          parents[i].push(pre.get('outputs'));
-        }
-      }
-      for (v in out)
-      {
-        if (reverse_in[v] == true)
-        {
-          start[v][locked] = true;
-          last.set(v, nd);
-        }
-        else if (last[v] == null) last[v] = nd;
-        else
-          last.set(v, nd);
-      }
-
-      function escapestr(s)
-        return EReg.escape(s);
-
-      function list(code:Farm, i:Int, sep:String)
-        if (i > 0) code.addpart(sep);
-
-      var code = new Farm();
-      function emit_inputs()
-      {
-        for (mod in inputs)
-        {
-          var i:Int = inputs.indexOf(mod);
-          list(code, i, ',');
-          for (j in 0...parents[i].length)
-          {
-            list(code, j, '+');
-            code.addpart('parents[$i][$j][pn]["' + (escapestr(mod)) + '"]');
-          }
-          if (parents[i][0].get('dsb') == false || parents[i][0].get('dsb') == null)
-          {
-            list(code, parents[i].length, '+');
-            code.addpart('mods[pn]["' + (escapestr(mod)) + '"]');
-          }
-        }
-      }
-      function emit_outputs()
-      {
-        for (mod in out)
-        {
-          var i:Int = out.indexOf(mod);
-          list(code, i, ',');
-          code.addpart('outputs[pn]["' + (escapestr(mod)) + '"]');
-        }
-        return out[0];
-      }
-      code.addpart('return function(outputs:Array<Map<String, Array<Float>>>, parents:Array<Array<Map<String, Dynamic>>>, mods:Array<Map<String, Float>>, fn){\n'
-        + 'return function(pn:Int){\n');
-      if (terminator)
-      {
-        code.addpart('mods[pn]["' + (escapestr(inputs[0])) + '"] = ');
-        emit_inputs();
-        code.addpart(';\n');
-      }
-      else
-      {
-        if (emit_outputs() != null) code.addpart(' = ');
-        code.addpart('fn(');
-        emit_inputs();
-        code.addpart(', pn);\n');
-      }
-      code.addpart('}\n' + '}\n');
-      code.buildFarm();
-      var compiled = code.setupFarm();
-      nd['real_fn'] = compiled(outputs, parents, mods, fn);
-      if (terminator == false) for (pn in 0...MAX_PN)
-        nd['real_fn'](pn);
-    }
-
-    for (mod => v in start)
-      v[locked] = null;
-  }
-
-  var activeNodes:Array<Map<String, Dynamic>> = [];
-  var activeTerminators:Array<Map<String, Dynamic>> = [];
-
-  function propagateAll(nodesToPropagate:Null<Array<Map<String, Dynamic>>>):Void
-  {
-    if (nodesToPropagate != null) for (nd in nodesToPropagate)
-      propagate(nd);
-  }
-
-  function propagate(nd:Map<String, Dynamic>):Void
-  {
-    var t:Bool = cast nd['terminator'];
-    if (t == true)
-    {
-      activeTerminators.push(nd);
-    }
-    else
-    {
-      propagateAll(nd['children']);
-      activeNodes.push(nd);
-    }
-  }
-
-  function run_nodes()
-  {
-    for (pn in 0...MAX_PN)
-    {
-      for (k => v in mods[pn])
-        propagateAll(node_start[k]);
-      for (_ in 0...activeNodes.length)
-        activeNodes.splice(activeNodes.length - 1, 1)[0].get('real_fn')(pn);
-      for (_ in 0...activeTerminators.length)
-        activeTerminators.splice(activeTerminators.length - 1, 1)[0].get('real_fn')(pn);
-    }
-  }
-
   public function onReady():Void
   {
+    var i:Int = 0;
+    while (i < MAX_PN)
+    {
+      mods[i] = modState[i].defaults.copy();
+      mods[i + 1] = modState[i + 1].defaults.copy();
+      i += 2;
+    }
     sort();
-    compile_nodes();
   }
 
   public function clear():Void
@@ -579,22 +424,6 @@ class ModEvents
 
   public function update(beat:Float, step:Float, time:Float)
   {
-    var i:Int = 0;
-    while (i < MAX_PN)
-    {
-      mods[i] = modState[i].getModTable();
-      mods[i + 1] = modState[i + 1].getModTable();
-      for (a => b in auxes)
-      {
-        if (b == true)
-        {
-          a = modState[i].getName(a);
-          modState[i].getModTable().remove(a);
-          modState[i + 1].getModTable().remove(a);
-        }
-      }
-      i += 2;
-    }
     while (eases_index <= eases.length - 1)
     {
       var e:Map<String, Dynamic> = eases[eases_index];
@@ -606,7 +435,7 @@ class ModEvents
       {
         e['mod'][idx + 1] = modState[plr].getName(e['mod'][idx + 1]);
         var mod = e['mod'][idx + 1];
-        e.set('_$mod', (e['startVal'] != null ? e['startVal'] : mods.copy()[plr].copy()[mod]));
+        e.set('_$mod', (e['startVal'] != null ? e['startVal'] : mods.copy()[plr][mod]));
         e.set('__$mod', e['mod'][idx] - (e['relative'] == true ? 0 : e['_$mod']));
         idx += 2;
       }
@@ -681,6 +510,12 @@ class ModEvents
         active_funcs.remove();
       }
     }
-    run_nodes();
+    for (pn in 0...MAX_PN)
+    {
+      for (k => v in mods[pn])
+      {
+        if (auxes.get(k) == false || auxes.get(k) == null) modState[pn].modList.set(k, v);
+      }
+    }
   }
 }

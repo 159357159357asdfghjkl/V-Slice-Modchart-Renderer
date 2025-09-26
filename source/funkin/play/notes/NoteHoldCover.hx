@@ -3,10 +3,10 @@ package funkin.play.notes;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.graphics.frames.FlxFramesCollection;
 import funkin.util.assets.FlxAnimationUtil;
-import flixel.FlxSprite as FunkinActor;
+import flixel.FlxSprite;
 import funkin.play.notes.notestyle.NoteStyle;
+import funkin.play.modchart.objects.FunkinActor;
 
-// import funkin.play.modchart.objects.FunkinActor;
 class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
 {
   static final FRAMERATE_DEFAULT:Int = 24;

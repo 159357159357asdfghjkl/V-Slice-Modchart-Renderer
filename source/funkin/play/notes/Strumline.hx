@@ -982,7 +982,7 @@ class Strumline extends FlxSpriteGroup
         glow.originVec = zOrigin;
         var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
         fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-        glow.alpha = fBaseAlpha;
+        glow.diffuse.w = fBaseAlpha;
     }*/
     // Update rendering of pressed keys.
 

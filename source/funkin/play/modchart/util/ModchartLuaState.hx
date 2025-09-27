@@ -117,7 +117,7 @@ class ModchartLuaState
     Lua_helper.add_callback(lua, "setdefault", function(modArray:Array<Dynamic>) {
       PlayState.instance.modEvents.setdefault(modArray);
     });
-    Lua_helper.add_callback(lua, "apply_modifiers", function(str:String, ?pn:Int) {
+    Lua_helper.add_callback(lua, "ApplyModifiers", function(str:String, ?pn:Int) {
       if (pn == 0) PlayState.instance.opponentStrumline.mods.fromString(str);
       else if (pn == 1) PlayState.instance.playerStrumline.mods.fromString(str);
       else if (pn == null)
@@ -131,6 +131,9 @@ class ModchartLuaState
     });
     Lua_helper.add_callback(lua, 'getBeat', function() {
       return Conductor.instance.getTimeInSteps(Conductor.instance.getTimeWithDelta()) / Constants.STEPS_PER_BEAT;
+    });
+    Lua_helper.add_callback(lua, 'getTimeFromBeat', function(a:Float) {
+      return Conductor.instance.getBeatTimeInMs(a);
     });
   }
 

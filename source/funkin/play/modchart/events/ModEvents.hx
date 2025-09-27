@@ -72,7 +72,7 @@ class ModEvents
       var i:Int = 0;
       while (i < modArray.length)
       {
-        modState[pn].defaults.set(modState[pn].getName(modArray[i + 1]), modArray[i]);
+        modState[pn].defaults.set(modArray[i + 1], modArray[i]);
         i += 2;
       }
     }
@@ -311,31 +311,14 @@ class ModEvents
 
   public function node(self:Array<Dynamic>, ?extra:NodeExtraVars)
   {
-    if (Std.isOfType(self[1], Float) || Std.isOfType(self[1], Int))
-    {
-      var multipliers = [];
-      var i:Int = 1;
-      while (self[i] != null)
-      {
-        var removed:Float = self.splice(i, 1)[0];
-        var amt = 'p * ' + removed * 0.01;
-        multipliers.push(amt);
-        i++;
-      }
-      var ret:String = multipliers.join(', ');
-      var code:String = 'return function(p:Float) return [' + ret + '];';
-      var fn = Farm.setupBuild(code)();
-      self[1] = fn;
-    }
-
     var i:Int = 0;
     var inputs:Array<String> = [];
-    while (Std.isOfType(self[i], String))
+    while (self[i] is String)
     {
       inputs.push(self[i]);
       i++;
     }
-    var fn = self[i];
+    var fn:(Array<Float>) -> Array<Float> = self[i];
     i++;
     var out:Array<String> = [];
     while (self[i] != null)
@@ -344,7 +327,7 @@ class ModEvents
       i++;
     }
     var result:Map<String, Dynamic> = ['inputs' => inputs, 'out' => out, 'fn' => fn];
-    result.set('priority', (extra.defer ? -1 : 1) * (nodes.length + 1));
+    result.set('priority', (extra.defer == true ? -1 : 1) * (nodes.length + 1));
     nodes.push(result);
     return this;
   }

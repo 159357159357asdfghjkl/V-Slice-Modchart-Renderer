@@ -400,8 +400,7 @@ class Modchart
       'hiddenblueoffset',
       'blinkred',
       'blinkgreen',
-      'blinkblue',
-      'rendertype'
+      'blinkblue'
     ];
     var ONE:Array<String> = [
       'xmod',

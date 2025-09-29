@@ -549,9 +549,9 @@ class Modchart
       defaults.set(mod, 0);
 
     for (mod in ONE)
-      defaults.set(mod, 100);
+      defaults.set(mod, 1);
 
-    defaults.set('cmod', 20000);
+    defaults.set('cmod', 200);
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
@@ -692,12 +692,6 @@ class Modchart
     modList = defaults.copy();
   }
 
-  public function createAliasForMod(alias:String, mod:String)
-  {
-    var name:String = getName(mod);
-    altname.set(alias, name);
-  }
-
   var approaches:Array<Map<String, Array<Null<Float>>>> = [];
 
   public function fromString(mod:String)
@@ -758,43 +752,22 @@ class Modchart
         level = Std.parseFloat(numStr) / 100.0;
         name = 'mmod';
       }
+      else if (altname.exists(name))
+      {
+        name = altname.get(name);
+      }
       approaches.push([name => [level, speed]]);
     }
   }
 
-  public function setValue(s:String, val:Float):Void
+  public function getValue(name:String):Float
   {
-    var name:String = getName(s);
-    modList.set(name, val);
-  }
-
-  public function getValue(s:String):Float
-  {
-    var name:String = getName(s);
     var val:Null<Float> = modList.get(name);
     if (val == null) return 0;
-    val /= 100;
     return val;
   }
 
   var checkedName:Array<String> = [];
-
-  public function getName(s:String):String
-  {
-    var default_name:String = 'overhead';
-    var s1:String = s.toLowerCase();
-    var name:String = altname.exists(s1) ? altname.get(s1) : s1;
-    if (!defaults.exists(name))
-    {
-      if (!checkedName.contains(name))
-      {
-        checkedName.push(s1);
-        lime.app.Application.current.window.alert('Modifier name "$s1" does not exist. Check your script!', 'Modchart Script');
-      }
-      return default_name;
-    }
-    return name;
-  }
 
   function CalculateTipsyOffset(time:Float, offset:Float, speed:Float, col:Int, real_offset:Float, ?tan:Float = 0)
   {
@@ -822,7 +795,7 @@ class Modchart
           var fSign:Float = fDelta / Math.abs(fDelta);
           var fToMove:Float = fSign * to_move;
           if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
-          setValue(name, last_value * 100 + fToMove);
+          modList.set(name, last_value + fToMove);
         }
         else
         {
@@ -836,7 +809,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 30;
+    return 16;
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
@@ -2199,7 +2172,7 @@ class Modchart
     if (getValue('skewy') != 0)
     {
       skew.y += getValue('skewy');
-      pos.y -= 2 * ARROW_SIZE * getValue('skewy');
+      pos.y += pos.x * getValue('skewy');
     }
     if (getValue('zoomx') != 0)
     {

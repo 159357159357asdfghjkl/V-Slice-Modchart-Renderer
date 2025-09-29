@@ -62,7 +62,6 @@ import funkin.util.HapticUtil;
 import funkin.util.GRhythmUtil;
 import haxe.Int64;
 import funkin.play.modchart.Modchart;
-import funkin.play.modchart.events.ModEvents;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.util.ModchartLuaState;
 import sys.FileSystem;
@@ -640,8 +639,6 @@ class PlayState extends MusicBeatSubState
 
   var skipEndingTransition:Bool = false;
 
-  public var modEvents:ModEvents;
-
   static final BACKGROUND_COLOR:FlxColor = FlxColor.BLACK;
 
   /**
@@ -770,7 +767,7 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
-    initModEvents();
+    initMods();
     #if mobile
     if (!ControlsHandler.usingExternalInputDevice)
     {
@@ -880,7 +877,7 @@ class PlayState extends MusicBeatSubState
 
   var luaArray:Array<ModchartLuaState> = [];
 
-  function initModEvents()
+  function initMods()
   {
     var folders:Array<String> = [];
     if (currentChart != null)
@@ -902,15 +899,12 @@ class PlayState extends MusicBeatSubState
         }
       }
     }
-
-    modEvents = new ModEvents([opponentStrumline.mods, playerStrumline.mods]);
     for (lua in luaArray)
       lua.call('onInit', []);
     var event:ScriptEvent = new ScriptEvent(INIT, false);
     ScriptEventDispatcher.callEvent(currentSong, event);
     ScriptEventDispatcher.callEvent(currentConversation, event);
     ScriptEventDispatcher.callEvent(currentStage, event);
-    modEvents.onReady();
     opponentStrumline.mods.initMods();
     playerStrumline.mods.initMods();
   }
@@ -974,7 +968,6 @@ class PlayState extends MusicBeatSubState
     if (criticalFailure) return;
 
     super.update(elapsed);
-    modEvents.update(Conductor.instance.currentBeatTime, Conductor.instance.currentStepTime, Conductor.instance.songPosition / 1000);
     for (lua in luaArray)
       lua.call('onUpdate', []);
     updateHealthBar();

@@ -944,46 +944,46 @@ class Strumline extends FlxSpriteGroup
       fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
       splash.diffuse.w = fBaseAlpha;
     }
-    /*for (cover in noteHoldCovers)
-      {
-        if (cover == null || !cover.alive) continue;
-        var glow = cover.glow;
-        var col:Int = cover.column;
-        glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
-        glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
-        cover.x = cover.y = 0;
-        var c2:Float = (mods.getValue('centered2') + mods.getValue('centered2$col')) * Strumline.NOTE_SPACING;
-        var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
-        cover.currentZValue = zpos;
-        var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
-        var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
-        var scale:Array<Float> = mods.GetScale(col, c2, modNumber, cover.defaultScale);
-        var zoom:Float = mods.GetZoom(col, c2, modNumber);
-        var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-        var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
-        var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-          mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-        var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
-        var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
-          mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-        var diff = pos2.subtract(pos3);
-        var ang = Math.atan2(diff.y, diff.x);
-        var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
-        var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-        var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
-        mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
-        glow.rotation.copyFrom(rotation);
-        glow.SCALE.x = scalePos.x;
-        glow.SCALE.y = scalePos.y;
-        glow.SCALE.z = scalePos.z;
-        glow.skew.x = skewPos.x;
-        glow.skew.y = skewPos.y;
-        glow.pos.copyFrom(pos.add(difference));
-        glow.originVec = zOrigin;
-        var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
-        fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-        glow.diffuse.w = fBaseAlpha;
-    }*/
+    for (cover in noteHoldCovers)
+    {
+      if (cover == null || !cover.alive) continue;
+      var glow = cover.glow;
+      var col:Int = cover.column;
+      glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
+      glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
+      cover.x = cover.y = 0;
+      var c2:Float = (mods.getValue('centered2') + mods.getValue('centered2$col')) * Strumline.NOTE_SPACING;
+      var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
+      cover.currentZValue = zpos;
+      var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
+      var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
+      var scale:Array<Float> = mods.GetScale(col, c2, modNumber, cover.defaultScale);
+      var zoom:Float = mods.GetZoom(col, c2, modNumber);
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+      var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
+      var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
+        mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
+      var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
+      var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
+        mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
+      var diff = pos2.subtract(pos3);
+      var ang = Math.atan2(diff.y, diff.x);
+      var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
+      var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+      var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, ang), mods.ReceptorGetRotationY(col, ang), mods.ReceptorGetRotationZ(col, ang));
+      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      glow.rotation.copyFrom(rotation);
+      glow.SCALE.x = scalePos.x;
+      glow.SCALE.y = scalePos.y;
+      glow.SCALE.z = scalePos.z;
+      glow.skew.x = skewPos.x;
+      glow.skew.y = skewPos.y;
+      glow.pos.copyFrom(pos.add(difference));
+      glow.originVec = zOrigin;
+      var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
+      fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
+      glow.diffuse.w = fBaseAlpha;
+    }
     // Update rendering of pressed keys.
 
     for (dir in DIRECTIONS)

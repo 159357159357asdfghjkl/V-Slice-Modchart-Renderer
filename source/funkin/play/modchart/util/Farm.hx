@@ -5,7 +5,8 @@ import hscript.Interp;
 
 class Farm
 {
-  var farm:Array<String>;
+  public var farm:Array<String>;
+
   var farmBuilding:String;
 
   public function new()
@@ -13,20 +14,20 @@ class Farm
     farm = [];
   }
 
-  public function addpart(a:Dynamic)
+  public function add(a:Dynamic)
   {
     farm.push(Std.string(a));
     return this;
   }
 
-  public function buildFarm(?s:String, ?i:Int, ?j:Int)
+  public function build(?s:String, ?i:Int, ?j:Int)
   {
     var building:String = __concat(s, i, j);
     this.farmBuilding = building;
     return building;
   }
 
-  public function setupFarm()
+  public function setup()
   {
     var parser:Parser = new Parser();
     parser.allowTypes = true;
@@ -34,15 +35,7 @@ class Farm
     return result;
   }
 
-  public static function setupBuild(build:String)
-  {
-    var parser:Parser = new Parser();
-    parser.allowTypes = true;
-    var result:Dynamic = new Interp().execute(parser.parseString(build));
-    return result;
-  }
-
-  public function destroyFarm()
+  public function destroy()
   {
     farm = [];
     return farm;

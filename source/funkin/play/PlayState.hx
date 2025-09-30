@@ -767,7 +767,7 @@ class PlayState extends MusicBeatSubState
     }
     initStrumlines();
     initPopups();
-    initMods();
+
     #if mobile
     if (!ControlsHandler.usingExternalInputDevice)
     {
@@ -853,7 +853,7 @@ class PlayState extends MusicBeatSubState
       hint.deadZones.push(pauseButton);
     });
     #end
-
+    initLuaSystem();
     // Do this last to prevent beatHit from being called before create() is done.
     super.create();
 
@@ -877,7 +877,7 @@ class PlayState extends MusicBeatSubState
 
   var luaArray:Array<ModchartLuaState> = [];
 
-  function initMods()
+  function initLuaSystem()
   {
     var folders:Array<String> = [];
     if (currentChart != null)
@@ -905,8 +905,6 @@ class PlayState extends MusicBeatSubState
     ScriptEventDispatcher.callEvent(currentSong, event);
     ScriptEventDispatcher.callEvent(currentConversation, event);
     ScriptEventDispatcher.callEvent(currentStage, event);
-    opponentStrumline.mods.initMods();
-    playerStrumline.mods.initMods();
   }
 
   public function togglePauseButton(visible:Bool = false):Void

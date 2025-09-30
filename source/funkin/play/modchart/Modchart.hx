@@ -14,8 +14,8 @@ using StringTools;
  */
 class Modchart
 {
-  public var defaults:Map<String, Float> = new Map<String, Float>();
-  public var modList:Map<String, Float>;
+  public var modList:Map<String, Float> = [];
+  public var speedList:Map<String, Float> = [];
 
   private var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
@@ -546,12 +546,20 @@ class Modchart
     }
 
     for (mod in ZERO)
-      defaults.set(mod, 0);
+    {
+      modList.set(mod, 0);
+      speedList.set(mod, 0);
+    }
 
     for (mod in ONE)
-      defaults.set(mod, 1);
+    {
+      modList.set(mod, 1);
+      speedList.set(mod, 0);
+    }
 
-    defaults.set('cmod', 200);
+    modList.set('cmod', 200);
+    speedList.set('cmod', 0);
+
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
     altname.set('converge', 'centered');
@@ -687,13 +695,6 @@ class Modchart
     }
   }
 
-  public function initMods()
-  {
-    modList = defaults.copy();
-  }
-
-  var approaches:Array<Map<String, Array<Null<Float>>>> = [];
-
   public function fromString(mod:String)
   {
     var a:Array<String> = mod.split(',');
@@ -710,7 +711,7 @@ class Modchart
       for (s in asParts)
       {
         s = s.trim();
-        if (s == "no")
+        if (s.toLowerCase() == "no")
         {
           level = 0.0;
         }
@@ -723,7 +724,7 @@ class Modchart
           speed = Std.parseFloat(s.split('*')[1]);
         }
       }
-      sBit = asParts[asParts.length - 1].trim();
+      sBit = asParts[asParts.length - 1].trim().toLowerCase();
 
       var on:Bool = (level > 0.5);
       var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/;
@@ -756,7 +757,11 @@ class Modchart
       {
         name = altname.get(name);
       }
-      approaches.push([name => [level, speed]]);
+      else if (modList.exists(name))
+      {
+        modList.set(name, level);
+        speedList.set(name, speed);
+      }
     }
   }
 
@@ -777,31 +782,19 @@ class Modchart
       getValue('cosclip')) * arrow_times_mag : selectTanType(time_times_timer + (col * ((offset * 1.8) + 1.8)), getValue('cosecant')) * arrow_times_mag);
   }
 
-  var approachIndex:Int = 0;
-
   public function update():Void
   {
-    var a = approaches[approachIndex];
-    if (a != null)
+    for (name => level in modList)
     {
-      for (name => value in a)
-      {
-        if (value[0] == null || value[1] == null) continue;
-        if (!(getValue(name) == value[0]))
-        {
-          var to_move:Float = getTime() * value[1];
-          var last_value:Float = getValue(name);
-          var fDelta:Float = value[0] - last_value;
-          var fSign:Float = fDelta / Math.abs(fDelta);
-          var fToMove:Float = fSign * to_move;
-          if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
-          modList.set(name, last_value + fToMove);
-        }
-        else
-        {
-          approachIndex++;
-        }
-      }
+      var speed:Float = speedList.get(name);
+      var current:Float = getValue(name);
+      if (current == level) continue;
+      var to_move:Float = FlxG.elapsed * speed;
+      var fDelta:Float = level - current;
+      var fSign:Float = fDelta / Math.abs(fDelta);
+      var fToMove:Float = fSign * to_move;
+      if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
+      modList.set(name, current + fToMove);
     }
   }
 

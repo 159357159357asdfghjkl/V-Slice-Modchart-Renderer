@@ -28,9 +28,9 @@ class ModchartLuaState
       return;
     }
     Lua_helper.add_callback(lua, "ApplyModifiers", function(str:String, ?pn:Int) {
-      if (pn == 0) PlayState.instance.opponentStrumline.mods.fromString(str);
-      else if (pn == 1) PlayState.instance.playerStrumline.mods.fromString(str);
-      else if (pn == null)
+      if (pn == 1) PlayState.instance.opponentStrumline.mods.fromString(str);
+      else if (pn == 2) PlayState.instance.playerStrumline.mods.fromString(str);
+      else
       {
         PlayState.instance.opponentStrumline.mods.fromString(str);
         PlayState.instance.playerStrumline.mods.fromString(str);
@@ -40,7 +40,7 @@ class ModchartLuaState
       return Conductor.instance.getTimeWithDelta();
     });
     Lua_helper.add_callback(lua, 'getBeat', function() {
-      return Conductor.instance.getTimeInSteps(Conductor.instance.getTimeWithDelta()) / Constants.STEPS_PER_BEAT;
+      return Conductor.instance.currentBeatTime;
     });
     Lua_helper.add_callback(lua, 'getTimeFromBeat', function(a:Float) {
       return Conductor.instance.getBeatTimeInMs(a);

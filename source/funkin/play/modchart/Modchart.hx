@@ -15,6 +15,7 @@ using StringTools;
 class Modchart
 {
   public var modList:Map<String, Float> = [];
+  public var preModList:Map<String, Float> = [];
   public var speedList:Map<String, Float> = [];
 
   private var altname:Map<String, String> = new Map<String, String>();
@@ -740,7 +741,7 @@ class Modchart
       else if (cReg.match(name))
       {
         var numStr:String = cReg.matched(1);
-        level = Std.parseFloat(numStr) / 100.0;
+        level = Std.parseFloat(numStr);
         name = 'cmod';
         if (!Math.isFinite(level) || level <= 0.0)
         {
@@ -750,16 +751,18 @@ class Modchart
       else if (mReg.match(name))
       {
         var numStr:String = mReg.matched(1);
-        level = Std.parseFloat(numStr) / 100.0;
+        level = Std.parseFloat(numStr);
         name = 'mmod';
       }
       else if (altname.exists(name))
       {
         name = altname.get(name);
+        preModList.set(name, level);
+        speedList.set(name, speed);
       }
       else if (modList.exists(name))
       {
-        modList.set(name, level);
+        preModList.set(name, level);
         speedList.set(name, speed);
       }
     }
@@ -784,9 +787,10 @@ class Modchart
 
   public function update():Void
   {
-    for (name => level in modList)
+    for (name => level in preModList)
     {
       var speed:Float = speedList.get(name);
+      if (speed < 0) speed = 1;
       var current:Float = getValue(name);
       if (current == level) continue;
       var to_move:Float = FlxG.elapsed * speed;

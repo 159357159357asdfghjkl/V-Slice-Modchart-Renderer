@@ -2722,6 +2722,19 @@ class PlayState extends MusicBeatSubState
     opponentStrumline.handleSkippedNotes();
   }
 
+  public function ApplyModifiers(str:String, ?pn:Int)
+  {
+    if (pn % 2 == 0) playerStrumline.mods.fromString(str);
+    else if (pn % 1 == 0) opponentStrumline.mods.fromString(str);
+    else
+    {
+      for (pn in 1...3)
+      {
+        ApplyModifiers(str, pn);
+      }
+    }
+  }
+
   /**
      * PreciseInputEvents are put into a queue between update() calls,
      * and then processed here.

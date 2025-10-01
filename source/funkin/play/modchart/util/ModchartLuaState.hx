@@ -28,22 +28,16 @@ class ModchartLuaState
       return;
     }
     Lua_helper.add_callback(lua, "ApplyModifiers", function(str:String, ?pn:Int) {
-      if (pn == 1) PlayState.instance.opponentStrumline.mods.fromString(str);
-      else if (pn == 2) PlayState.instance.playerStrumline.mods.fromString(str);
-      else
-      {
-        PlayState.instance.opponentStrumline.mods.fromString(str);
-        PlayState.instance.playerStrumline.mods.fromString(str);
-      }
+      PlayState.instance.ApplyModifiers(str, pn);
     });
     Lua_helper.add_callback(lua, 'getTime', function() {
-      return Conductor.instance.getTimeWithDelta();
+      return Conductor.instance.getTimeWithDelta() / 1000;
     });
     Lua_helper.add_callback(lua, 'getBeat', function() {
       return Conductor.instance.currentBeatTime;
     });
     Lua_helper.add_callback(lua, 'getTimeFromBeat', function(a:Float) {
-      return Conductor.instance.getBeatTimeInMs(a);
+      return Conductor.instance.getBeatTimeInMs(a) / 1000;
     });
   }
 

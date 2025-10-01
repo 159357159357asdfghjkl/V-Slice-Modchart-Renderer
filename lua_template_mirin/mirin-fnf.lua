@@ -389,10 +389,95 @@ inBack = with1param(inBackInternal, 1.70158)
 outBack = with1param(outBackInternal, 1.70158)
 inOutBack = with1param(inOutBackInternal, 1.70158)
 outInBack = with1param(outInBackInternal, 1.70158)
-local max_pn = 8
-local default_plr = {1, 2}
-function get_plr()
-	return default_plr
+function deepcopy(src)
+	local dest = {}
+	for k, v in pairs(src) do
+		local k, v = k, v
+		if type(k) == 'table' then k = deepcopy(k) end
+		if type(v) == 'table' then v = deepcopy(v) end
+		dest[k] = v
+	end
+	return dest
+end
+function clear(t)
+	for k, v in pairs(t) do
+		t[k] = nil
+	end
+	return t
+end
+function iclear(t)
+	for i = 1, #t do
+		table.remove(t)
+	end
+	return t
+end
+local methods = {}
+function methods:add(obj)
+	local stage = self.stage
+	self.n = self.n + 1
+	stage.n = stage.n + 1
+	stage[stage.n] = obj
+end
+function methods:remove()
+	local swap = self.swap
+	swap[swap.n] = nil
+	swap.n = swap.n - 1
+	self.n = self.n - 1
+end
+function methods:next()
+	if self.n == 0 then return end
+	local swap = self.swap
+	local stage = self.stage
+	local list = self.list
+	if swap.n == 0 then
+		stable_sort(stage, self.reverse_comparator)
+	end
+	if stage.n == 0 then
+		if list.n == 0 then
+			while swap.n ~= 0 do
+				list.n = list.n + 1
+				list[list.n] = swap[swap.n]
+				swap[swap.n] = nil
+				swap.n = swap.n - 1
+			end
+		else
+			swap.n = swap.n + 1
+			swap[swap.n] = list[list.n]
+			list[list.n] = nil
+			list.n = list.n - 1
+		end
+	else
+		if list.n == 0 then
+			swap.n = swap.n + 1
+			swap[swap.n] = stage[stage.n]
+			stage[stage.n] = nil
+			stage.n = stage.n - 1
+		else
+			if self.comparator(list[list.n], stage[stage.n]) then
+				swap.n = swap.n + 1
+				swap[swap.n] = list[list.n]
+				list[list.n] = nil
+				list.n = list.n - 1
+			else
+				swap.n = swap.n + 1
+				swap[swap.n] = stage[stage.n]
+				stage[stage.n] = nil
+				stage.n = stage.n - 1
+			end
+		end
+	end
+	return swap[swap.n]
+end
+local mt = {__index = methods}
+function perframe_data_structure(comparator)
+	return setmetatable({
+		comparator = comparator,
+		reverse_comparator = function(a, b) return comparator(b, a) end,
+		stage = {n = 0},
+		list = {n = 0},
+		swap = {n = 0},
+		n = 0,
+	}, mt)
 end
 local stringbuilder_mt =  {
 	__index = {
@@ -408,6 +493,12 @@ local stringbuilder_mt =  {
 function stringbuilder()
 	return setmetatable({}, stringbuilder_mt)
 end
+local max_pn = 8
+local default_plr = {1, 2}
+function get_plr()
+	return default_plr
+end
+
 function copy(src)
 	local dest = {}
 	for k, v in pairs(src) do
@@ -599,11 +690,9 @@ function sort_tables()
 		end
 	end)
 end
-
 function initMods()
-	-- write mods here
+	set{0,100,'movex'}
 end
-
 function onInit()
 	initMods()
   sort_tables()
@@ -613,6 +702,8 @@ function onInit()
 	run_mods()
 end
 function onUpdate()
-  run_eases(getBeat(), getTime())
+	local beat = getBeat()
+	local time = getTime()
+  run_eases(beat, time)
   run_mods()
 end

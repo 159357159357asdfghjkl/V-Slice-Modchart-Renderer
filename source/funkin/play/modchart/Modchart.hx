@@ -347,7 +347,6 @@ class Modchart
       'orientx',
       'orientxoffset',
       'noreorientx',
-      'holdgirth',
       'variableboomerang',
       'reversetype',
       'holdheadstealth',
@@ -453,7 +452,6 @@ class Modchart
       ZERO.push('bumpyyperiod$i');
       ZERO.push('tanbumpyyoffset$i');
       ZERO.push('tanbumpyyperiod$i');
-      ZERO.push('holdgirth$i');
       ONE.push('scalex$i');
       ONE.push('scaley$i');
       ONE.push('scalez$i');
@@ -757,16 +755,31 @@ class Modchart
       {
         name = 'centeredpath';
       }
-      else if (altname.exists(name))
-      {
-        name = altname.get(name);
-      }
       else if (name == 'gayholds')
       {
         level *= -1;
         name = 'straightholds';
       }
-
+      else if (name == 'holdgirth')
+      {
+        level *= -1;
+        name = 'holdtinyx';
+      }
+      else
+      {
+        for (i in 0...Strumline.KEY_COUNT)
+        {
+          if (name == 'holdgirth$i')
+          {
+            level *= -1;
+            name = 'holdtinyx$i';
+          }
+        }
+      }
+      if (altname.exists(name))
+      {
+        name = altname.get(name);
+      }
       if (modList.exists(name))
       {
         preModList.set(name, level);
@@ -2065,8 +2078,6 @@ class Modchart
     {
       x *= Math.pow(0.5, getValue('holdtinyx'));
       x *= Math.pow(0.5, getValue('holdtinyx$iCol'));
-      x *= Math.pow(0.5, -getValue('holdgirth'));
-      x *= Math.pow(0.5, -getValue('holdgirth$iCol'));
     }
     if (getValue('shrinkmultx') != 0 && fYOffset >= 0) x *= 1 / (1 + (fYOffset * (getValue('shrinkmultx') / 100.0)));
     if (getValue('shrinklinearx') != 0 && fYOffset >= 0) x += fYOffset * (0.5 * getValue('shrinklinearx') / ARROW_SIZE);

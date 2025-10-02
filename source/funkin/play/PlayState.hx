@@ -64,6 +64,8 @@ import haxe.Int64;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.util.ModchartLuaState;
+import funkin.play.modchart.util.ModchartLuaState.DebugLuaText;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import sys.FileSystem;
 import funkin.modding.PolymodHandler;
 #if mobile
@@ -682,6 +684,8 @@ class PlayState extends MusicBeatSubState
     // Don't do anything else here! Wait until create() when we attach to the camera.
   }
 
+  var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
+
   /**
    * Called when the PlayState is switched to.
    */
@@ -854,6 +858,9 @@ class PlayState extends MusicBeatSubState
     });
     #end
     initLuaSystem();
+    luaDebugGroup = new FlxTypedGroup<DebugLuaText>();
+    luaDebugGroup.cameras = [camHUD];
+    add(luaDebugGroup);
     // Do this last to prevent beatHit from being called before create() is done.
     super.create();
 
@@ -870,6 +877,8 @@ class PlayState extends MusicBeatSubState
 
     initialized = true;
 
+    for (lua in luaArray)
+      lua.call('onReady', []);
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.
     refresh();
@@ -901,10 +910,23 @@ class PlayState extends MusicBeatSubState
     }
     for (lua in luaArray)
       lua.call('onInit', []);
-    var event:ScriptEvent = new ScriptEvent(INIT, false);
-    ScriptEventDispatcher.callEvent(currentSong, event);
-    ScriptEventDispatcher.callEvent(currentConversation, event);
-    ScriptEventDispatcher.callEvent(currentStage, event);
+  }
+
+  public function addTextToDebug(text:String, color:FlxColor)
+  {
+    var newText:DebugLuaText = luaDebugGroup.recycle(DebugLuaText);
+    newText.text = text;
+    newText.color = color;
+    newText.disableTime = 6;
+    newText.alpha = 1;
+    newText.setPosition(10, 8 - newText.height);
+
+    luaDebugGroup.forEachAlive(function(spr:DebugLuaText) {
+      spr.y += newText.height + 2;
+    });
+    luaDebugGroup.add(newText);
+
+    Sys.println(text);
   }
 
   public function togglePauseButton(visible:Bool = false):Void

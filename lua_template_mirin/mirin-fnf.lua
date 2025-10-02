@@ -1,4 +1,3 @@
--- mirin template but in fnf omg
 local sort = {}
 sort.max_chunk_size = 32
 function sort._insertion_sort_impl(array, first, last, less)
@@ -479,6 +478,13 @@ function perframe_data_structure(comparator)
 		n = 0,
 	}, mt)
 end
+function copy(src)
+	local dest = {}
+	for k, v in pairs(src) do
+		dest[k] = v
+	end
+	return dest
+end
 local stringbuilder_mt =  {
 	__index = {
 		build = table.concat,
@@ -494,17 +500,9 @@ function stringbuilder()
 	return setmetatable({}, stringbuilder_mt)
 end
 local max_pn = 8
-local default_plr = {1, 2}
-function get_plr()
-	return default_plr
-end
-
-function copy(src)
-	local dest = {}
-	for k, v in pairs(src) do
-		dest[k] = v
-	end
-	return dest
+local touched_mods = {}
+for pn = 1, max_pn do
+	touched_mods[pn] = {}
 end
 local default_mods = {}
 setmetatable(default_mods, {
@@ -513,23 +511,49 @@ setmetatable(default_mods, {
 		return 0
 	end
 })
-local targets = {}
-local targets_mt = {__index = default_mods}
-for pn = 1, max_pn do
-	targets[pn] = setmetatable({}, targets_mt)
-end
-local mods = {}
-local mods_mt = {}
-for pn = 1, max_pn do
-	mods_mt[pn] = {__index = targets[pn]}
-	mods[pn] = setmetatable({}, mods_mt[pn])
-end
-local mod_buffer = {}
-for pn = 1, max_pn do
-	mod_buffer[pn] = stringbuilder()
-end
 local eases = {}
+local funcs = {}
 local auxes = {}
+local aliases = {}
+local nodes = {}
+local default_plr = {1, 2}
+function get_plr()
+	return default_plr
+end
+
+local banned_chars = {}
+local _ = string.gsub('\'\\{}(),;* ', '.', function(t)
+	banned_chars[t] = true
+end)
+local function ensure_mod_name_is_valid(name)
+	if banned_chars[string.sub(name, 1, 1)] or banned_chars[string.sub(name, #name, #name)] then
+		error(
+			'You have a typo in your mod name. '..
+			'You wrote \''..name..'\', but you probably meant '..
+			'\''..string.gsub(name, '[\'\\{}(),;* ]', '')..'\''
+		)
+	end
+	if string.find(name, '^c[0-9]+$') then
+		error(
+			'You can\'t name your mod \''..name..'\'.\n'..
+			'Use \'cmod\' if you want to set a cmod.'
+		)
+	end
+	if string.find(name, '^[0-9.]+x$') then
+		error(
+			'You can\'t name your mod \''..name..'\'.\n'..
+			'Use \'xmod\' if you want to set an xmod.'
+		)
+	end
+end
+local function normalize_mod_no_checks(name)
+	name = string.lower(name)
+	return aliases[name] or name
+end
+local function normalize_mod(name)
+	if not auxes[name] then ensure_mod_name_is_valid(name) end
+	return normalize_mod_no_checks(name)
+end
 function ease(self)
 	self.mode = self.mode == 'end' or self.m == 'e'
 	if self.mode then
@@ -583,6 +607,124 @@ function reset(self)
 	end
 	ease(self)
 end
+function func_function(self)
+	if type(self[2]) == 'string' then
+		local args, syms = {}, {}
+		for i = 1, #self - 2 do
+			syms[i] = 'arg' .. i
+			args[i] = self[i + 2]
+		end
+		local symstring = table.concat(syms, ', ')
+		local code = 'return function('..symstring..') return function() '..self[2]..'('..symstring..') end end'
+		self[2] = assert(loadstring(code, 'func_generated'))()(unpack(args))
+		while self[3] do
+			table.remove(self)
+		end
+	end
+	self[2], self[3] = nil, self[2]
+	local persist = self.persist
+	self.mode = self.mode == 'end' or self.m == 'e'
+	if type(persist) == 'number' and self.mode then
+		persist = persist - self[1]
+	end
+	if persist == false then
+		persist = 0.5
+	end
+	if type(persist) == 'number' then
+		local fn = self[3]
+		local final_time = self[1] + persist
+		self[3] = function(beat)
+			if beat < final_time then
+				fn(beat)
+			end
+		end
+	end
+	self.priority = (self.defer and -1 or 1) * (#funcs + 1)
+	self.start_time = self.time and self[1] or getTimeFromBeat(self[1])
+	table.insert(funcs, self)
+end
+local disallowed_poptions_perframe_persist = setmetatable({}, {__index = function(_)
+	error('you cannot use poptions and persist at the same time. </3')
+end})
+function func_perframe(self, deny_poptions)
+	if self.mode then
+		self[2] = self[2] - self[1]
+	end
+	if not deny_poptions then
+		self.mods = {}
+		for pn = 1, max_pn do
+			self.mods[pn] = {}
+		end
+	end
+	self.priority = (self.defer and -1 or 1) * (#funcs + 1)
+	self.start_time = self.time and self[1] or getTimeFromBeat(self[1])
+
+	local persist = self.persist
+	if persist then
+		if type(persist) == 'number' and self.mode then
+			persist = persist - self[1] - self[2]
+		end
+		func {
+			self[1] + self[2],
+			function()
+				self[3](getBeat(), disallowed_poptions_perframe_persist)
+			end,
+			persist = self.persist,
+		}
+		end
+	table.insert(funcs, self)
+end
+function func_ease(self)
+	self.mode = self.mode == 'end' or self.m == 'e'
+	if self.mode then
+		self[2] = self[2] - self[1]
+	end
+	local fn = table.remove(self)
+	local eas = self[3]
+	local start_percent = #self >= 5 and table.remove(self, 4) or 0
+	local end_percent = #self >= 4 and table.remove(self, 4) or 1
+	local end_beat = self[1] + self[2]
+	if type(fn) == 'string' then
+		fn = assert(loadstring('return function(p) '..fn..'(p) end', 'func_generated'))()
+	end
+	self[3] = function(beat)
+		local progress = (beat - self[1]) / self[2]
+		fn(start_percent + (end_percent - start_percent) * eas(progress))
+	end
+	if self.persist ~= false then
+		local final_percent = eas(1) > 0.5 and end_percent or start_percent
+		func {
+			end_beat,
+			function()
+				fn(final_percent)
+			end,
+			persist = self.persist,
+			defer = self.defer,
+		}
+	end
+	self.persist = false
+	perframe(self, true)
+end
+function func(self)
+	if type(self[2]) == 'string' or #self == 2 then
+		func_function(self)
+	elseif #self == 3 then
+		func_perframe(self, true)
+	else
+		func_ease(self)
+	end
+end
+function alias(self)
+	local a, b = self[1], self[2]
+	a, b = string.lower(a), string.lower(b)
+	aliases[a] = b
+end
+function setdefault(self)
+	for i = 1, #self, 2 do
+		default_mods[self[i + 1]] = self[i]
+	end
+	return setdefault
+end
 function aux(self)
 	if type(self) == 'string' then
 		local v = self
@@ -594,6 +736,83 @@ function aux(self)
 	end
 	return aux
 end
+function node(self)
+	if type(self[2]) == 'number' then
+		local multipliers = {}
+		local i = 2
+		while self[i] do
+			local amt = string.format('p * %f', table.remove(self, i) * 0.01)
+			table.insert(multipliers, amt)
+			i = i + 1
+		end
+		local ret = table.concat(multipliers, ', ')
+		local code = 'return function(p) return '..ret..' end'
+		local fn = loadstring(code, 'node_generated')()
+		table.insert(self, 2, fn)
+	end
+	local i = 1
+	local inputs = {}
+	while type(self[i]) == 'string' do
+		table.insert(inputs, self[i])
+		i = i + 1
+	end
+	local fn = self[i]
+	i = i + 1
+	local out = {}
+	while self[i] do
+		table.insert(out, self[i])
+		i = i + 1
+	end
+	local result = {inputs, out, fn}
+	result.priority = (self.defer and -1 or 1) * (#nodes + 1)
+	table.insert(nodes, result)
+	return node
+end
+function definemod(self)
+	for i = 1, #self do
+		if type(self[i]) ~= 'string' then
+			break
+		end
+		aux(self[i])
+	end
+	node(self)
+	return definemod
+end
+local targets = {}
+local targets_mt = {__index = default_mods}
+for pn = 1, max_pn do
+	targets[pn] = setmetatable({}, targets_mt)
+end
+local mods = {}
+local mods_mt = {}
+for pn = 1, max_pn do
+	mods_mt[pn] = {__index = targets[pn]}
+	mods[pn] = setmetatable({}, mods_mt[pn])
+end
+local mod_buffer = {}
+for pn = 1, max_pn do
+	mod_buffer[pn] = stringbuilder()
+end
+local node_start = {}
+local poptions = {}
+local poptions_logging_target
+for pn = 1, max_pn do
+	local pn = pn
+	local mods_pn = mods[pn]
+	local mt = {
+		__index = function(_, k)
+			return mods_pn[normalize_mod_no_checks(k)]
+		end,
+		__newindex = function(_, k, v)
+			k = normalize_mod_no_checks(k)
+			mods_pn[k] = v
+			if v then
+				poptions_logging_target[pn][k] = true
+			end
+		end,
+	}
+	poptions[pn] = setmetatable({}, mt)
+end
 function touch_mod(mod, pn)
 	if pn then
 		mods[pn][mod] = mods[pn][mod]
@@ -601,6 +820,171 @@ function touch_mod(mod, pn)
 		for pn = 1, max_pn do
 			touch_mod(mod, pn)
 		end
+	end
+end
+function sort_tables()
+	stable_sort(eases, function(a, b)
+		if a.start_time == b.start_time then
+			return a.reset and not b.reset
+		else
+			return a.start_time < b.start_time
+		end
+	end)
+	stable_sort(funcs, function(a, b)
+		if a.start_time == b.start_time then
+			local x, y = a.priority, b.priority
+			return x * x * y < x * y * y
+		else
+			return a.start_time < b.start_time
+		end
+	end)
+	stable_sort(nodes, function(a, b)
+		local x, y = a.priority, b.priority
+		return x * x * y < x * y * y
+	end)
+end
+function resolve_aliases()
+	local old_auxes = copy(auxes)
+	clear(auxes)
+	for mod, _ in pairs(old_auxes) do
+		auxes[normalize_mod_no_checks(mod)] = true
+	end
+	for _, e in ipairs(eases) do
+		for i = 5, #e, 2 do
+			e[i] = normalize_mod(e[i])
+		end
+		if e.exclude then
+			local exclude = {}
+			for k, v in pairs(e.exclude) do
+				exclude[normalize_mod(k)] = v
+			end
+			e.exclude = exclude
+		end
+		if e.only then
+			for i = 1, #e.only do
+				e.only[i] = normalize_mod(e.only[i])
+			end
+		end
+	end
+	for _, node_entry in ipairs(nodes) do
+		local input = node_entry[1]
+		local output = node_entry[2]
+		for i = 1, #input do input[i] = normalize_mod(input[i]) end
+		for i = 1, #output do output[i] = normalize_mod(output[i]) end
+	end
+	local old_default_mods = copy(default_mods)
+	clear(default_mods)
+	for mod, percent in pairs(old_default_mods) do
+		local normalized = normalize_mod(mod)
+		default_mods[normalized] = percent
+		for pn = 1, max_pn do
+			touched_mods[pn][normalized] = true
+		end
+	end
+end
+function compile_nodes()
+	local terminators = {}
+	for _, nd in ipairs(nodes) do
+		for _, mod in ipairs(nd[2]) do
+			terminators[mod] = true
+		end
+	end
+	local priority = -1 * (#nodes + 1)
+	for k, _ in pairs(terminators) do
+		table.insert(nodes, {{k}, {}, nil, nil, nil, nil, nil, true, priority = priority})
+	end
+	local start = node_start
+	local locked = {}
+	local last = {}
+	for _, nd in ipairs(nodes) do
+		local terminator = nd[8]
+		if not terminator then
+			nd[4] = {}
+			nd[7] = {}
+			for pn = 1, max_pn do
+				nd[7][pn] = {}
+			end
+		end
+		nd[5] = {}
+		local inputs = nd[1]
+		local out = nd[2]
+		local fn = nd[3]
+		local parents = nd[5]
+		local outputs = nd[7]
+		local reverse_in = {}
+		for i, v in ipairs(inputs) do
+			reverse_in[v] = true
+			start[v] = start[v] or {}
+			parents[i] = {}
+			if not start[v][locked] then
+				table.insert(start[v], nd)
+			end
+			if start[v][locked] then
+				parents[i][0] = true
+			end
+			for _, pre in ipairs(last[v] or {}) do
+				table.insert(pre[4], nd)
+				table.insert(parents[i], pre[7])
+			end
+		end
+		for _, v in ipairs(out) do
+			if reverse_in[v] then
+				start[v][locked] = true
+				last[v] = {nd}
+			elseif not last[v] then
+				last[v] = {nd}
+			else
+				table.insert(last[v], nd)
+			end
+		end
+		local function escapestr(s)
+			return '\'' .. string.gsub(s, '[\\\']', '\\%1') .. '\''
+		end
+		local function list(code, i, sep)
+			if i ~= 1 then code(sep) end
+		end
+		local code = stringbuilder()
+		local function emit_inputs()
+			for i, mod in ipairs(inputs) do
+				list(code, i, ',')
+				for j = 1, #parents[i] do
+					list(code, j, '+')
+					code'parents['(i)']['(j)'][pn]['(escapestr(mod))']'
+				end
+				if not parents[i][0] then
+					list(code, #parents[i] + 1, '+')
+					code'mods[pn]['(escapestr(mod))']'
+				end
+			end
+		end
+		local function emit_outputs()
+			for i, mod in ipairs(out) do
+				list(code, i, ',')
+				code'outputs[pn]['(escapestr(mod))']'
+			end
+			return out[1]
+		end
+		code
+		'return function(outputs, parents, mods, fn)\n'
+			'return function(pn)\n'
+				if terminator then
+					code'mods[pn]['(escapestr(inputs[1]))'] = ' emit_inputs() code'\n'
+				else
+					if emit_outputs() then code' = ' end code 'fn(' emit_inputs() code', pn)\n'
+				end
+				code
+			'end\n'
+		'end\n'
+		local compiled = assert(loadstring(code:build(), 'node_generated'))()
+		nd[6] = compiled(outputs, parents, mods, fn)
+		if not terminator then
+			for pn = 1, max_pn do
+				nd[6](pn)
+			end
+		end
+	end
+	for mod, v in pairs(start) do
+		v[locked] = nil
 	end
 end
 local eases_index = 1
@@ -656,13 +1040,90 @@ function run_eases(beat, time)
 		else
 			for i = 4, #e, 2 do
 				local mod = e[i + 1]
-				touch_mod(mod, plr)
+				--touch_mod(mod, plr)
 			end
 			if active_eases_index ~= #active_eases then
 				active_eases[active_eases_index] = table.remove(active_eases)
 			else
 				table.remove(active_eases)
 			end
+		end
+	end
+end
+
+local funcs_index = 1
+local active_funcs = perframe_data_structure(function(a, b)
+	local x, y = a.priority, b.priority
+	return x * x * y < x * y * y
+end)
+local function run_funcs(beat, time)
+	while funcs_index <= #funcs do
+		local e = funcs[funcs_index]
+		local measure = e.time and time or beat
+		if measure < e[1] then break end
+		if not e[2] then
+			e[3](measure)
+		elseif measure < e[1] + e[2] then
+			active_funcs:add(e)
+		end
+		funcs_index = funcs_index + 1
+	end
+	while true do
+		local e = active_funcs:next()
+		if not e then break end
+		local measure = e.time and time or beat
+		if measure < e[1] + e[2] then
+			poptions_logging_target = e.mods
+			e[3](measure, poptions)
+		else
+			if e.mods then
+				for pn = 1, max_pn do
+					for mod, _ in pairs(e.mods[pn]) do
+						touch_mod(mod, pn)
+					end
+				end
+			end
+			active_funcs:remove()
+		end
+	end
+end
+local seen = 1
+local active_nodes = {}
+local active_terminators = {}
+local propagateAll, propagate
+function propagateAll(nodes_to_propagate)
+	if nodes_to_propagate then
+		for _, nd in ipairs(nodes_to_propagate) do
+			propagate(nd)
+		end
+	end
+end
+function propagate(nd)
+	if nd[9] ~= seen then
+		nd[9] = seen
+		if nd[8] then
+			table.insert(active_terminators, nd)
+		else
+			propagateAll(nd[4])
+			table.insert(active_nodes, nd)
+		end
+	end
+end
+function run_nodes()
+	for pn = 1, max_pn do
+		for mod, _ in pairs(touched_mods[pn]) do
+			touch_mod(mod, pn)
+			touched_mods[pn][mod] = nil
+		end
+		seen = seen + 1
+		for k in pairs(mods[pn]) do
+			propagateAll(node_start[k])
+		end
+		for _ = 1, #active_nodes do
+			table.remove(active_nodes)[6](pn)
+		end
+		for _ = 1, #active_terminators do
+			table.remove(active_terminators)[6](pn)
 		end
 	end
 end
@@ -681,29 +1142,32 @@ function run_mods()
 			end
 	end
 end
-function sort_tables()
-	stable_sort(eases, function(a, b)
-		if a.start_time == b.start_time then
-			return a.reset and not b.reset
-		else
-			return a.start_time < b.start_time
-		end
-	end)
-end
 function initMods()
-	set{0,100,'movex'}
+definemod{'blacksphere', function(blacksphere)
+	local invert = 50 - 50 * math.cos(blacksphere * math.pi / 180)
+	local alternate = 25 * math.sin(blacksphere * math.pi / 180)
+	local reverse = -12.5 * math.sin(blacksphere * math.pi / 180)
+	return invert, alternate, reverse
+	end,'invert', 'alternate', 'reverse'}
+setdefault{0,'blacksphere'}
+ease{0,3,linear,360,'blacksphere'}
 end
-function onInit()
+function onReady()
 	initMods()
   sort_tables()
+	resolve_aliases()
+	compile_nodes()
 	for i = 1, max_pn do
 		mod_buffer[i]:clear()
 	end
+	run_nodes()
 	run_mods()
 end
 function onUpdate()
 	local beat = getBeat()
 	local time = getTime()
   run_eases(beat, time)
+	run_funcs(beat, time)
+	run_nodes()
   run_mods()
 end

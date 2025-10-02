@@ -723,10 +723,10 @@ class Modchart
         else if (s.charAt(0) == '*')
         {
           speed = Std.parseFloat(s.split('*')[1]);
+          if (!Math.isFinite(speed)) speed = 1.0;
         }
       }
       sBit = asParts[asParts.length - 1].trim().toLowerCase();
-
       var on:Bool = (level > 0.5);
       var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/;
       var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
@@ -790,9 +790,13 @@ class Modchart
     for (name => level in preModList)
     {
       var speed:Float = speedList.get(name);
-      if (speed < 0) speed = 1;
       var current:Float = getValue(name);
       if (current == level) continue;
+      if (speed < 0)
+      {
+        modList.set(name, level);
+        continue;
+      }
       var to_move:Float = FlxG.elapsed * speed;
       var fDelta:Float = level - current;
       var fSign:Float = fDelta / Math.abs(fDelta);

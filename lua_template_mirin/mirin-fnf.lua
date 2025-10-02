@@ -703,7 +703,7 @@ function func_ease(self)
 		}
 	end
 	self.persist = false
-	perframe(self, true)
+	func_perframe(self, true)
 end
 function func(self)
 	if type(self[2]) == 'string' or #self == 2 then

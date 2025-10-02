@@ -3,6 +3,7 @@ package funkin.play.modchart.util;
 import openfl.geom.Vector3D;
 import funkin.play.notes.Strumline;
 import openfl.Lib;
+import flixel.math.FlxMath;
 
 /**
  * most of these funcs were from stepmania
@@ -279,10 +280,7 @@ class ModchartMath
   {
     if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
       return 0;
-    var tempMult:Float = 1.0;
-    for (_ in 0...2)
-      tempMult *= 10.0;
-    return Math.ffloor((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses) * tempMult) / tempMult;
+    return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
 
   private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Array<Array<Float>>>

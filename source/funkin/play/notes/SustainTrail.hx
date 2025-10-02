@@ -307,7 +307,7 @@ class SustainTrail extends FlxSprite
       parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) ?? 0.0,
       parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
     currentZValue = pos.z;
-    var effect:Float = 1 + (parentStrumline?.mods?.getValue('gayholds') ?? 0);
+    var effect:Float = 1 - (parentStrumline?.mods?.getValue('straightholds') ?? 0);
     var noteYOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) ?? 0.0) + ofs;
     var notePos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, noteYOffset, pn, xoffArray, true) ?? 0.0,
       parentStrumline?.mods?.GetYPos(column, noteYOffset, pn, xoffArray, down, reversedOff) ?? 0.0,

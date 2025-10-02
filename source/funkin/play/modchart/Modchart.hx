@@ -315,7 +315,7 @@ class Modchart
       'spiralzoffset',
       'spiralzperiod',
       'granulate',
-      'gayholds',
+      'straightholds',
       'arrowpath',
       'arrowpathgranulate',
       'arrowpathsize',
@@ -760,6 +760,11 @@ class Modchart
       else if (altname.exists(name))
       {
         name = altname.get(name);
+      }
+      else if (name == 'gayholds')
+      {
+        level *= -1;
+        name = 'straightholds';
       }
 
       if (modList.exists(name))

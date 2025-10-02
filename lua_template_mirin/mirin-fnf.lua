@@ -1142,6 +1142,47 @@ function run_mods()
 			end
 	end
 end
+aux 'zoom'
+node {
+	'zoom', 'zoomx', 'zoomy',
+	function(zoom, x, y)
+		local m = zoom * 0.01
+		return m * x, m * y
+	end,
+	'zoomx', 'zoomy',
+	defer = true,
+}
+setdefault {
+	100, 'zoom',
+	100, 'zoomx',
+	100, 'zoomy',
+	100, 'zoomz',
+}
+setdefault {400, 'grain'}
+local function repeat8(a)
+	return a, a, a, a, a, a, a, a
+end
+for _, a in ipairs {'x', 'y', 'z'} do
+	definemod {
+		'move' .. a,
+		repeat8,
+		'move'..a..'0', 'move'..a..'1', 'move'..a..'2', 'move'..a..'3',
+		'move'..a..'4', 'move'..a..'5', 'move'..a..'6', 'move'..a..'7',
+		defer = true,
+	}
+end
+setdefault {1, 'xmod'}
+definemod {
+	'xmod', 'cmod',
+	function(xmod, cmod, pn)
+		if cmod == 0 then
+			mod_buffer[pn](string.format('*-1 %fx', xmod))
+		else
+			mod_buffer[pn](string.format('*-1 %fx,*-1 c%f', xmod, cmod))
+		end
+	end,
+	defer = true,
+}
 function initMods()
 definemod{'blacksphere', function(blacksphere)
 	local invert = 50 - 50 * math.cos(blacksphere * math.pi / 180)

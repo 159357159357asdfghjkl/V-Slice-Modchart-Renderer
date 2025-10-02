@@ -338,7 +338,6 @@ class Modchart
       'shrinkmultz',
       'tapstealth',
       'holdstealth',
-      'centered2',
       'orient',
       'orientoffset',
       'noreorient',
@@ -401,7 +400,8 @@ class Modchart
       'hiddenblueoffset',
       'blinkred',
       'blinkgreen',
-      'blinkblue'
+      'blinkblue',
+      'centeredpath'
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -538,9 +538,9 @@ class Modchart
       ZERO.push('sawtoothz$i');
       ZERO.push('sawtoothzoffset$i');
       ZERO.push('sawtoothzperiod$i');
-      ZERO.push('centered$i');
       ZERO.push('arrowpathsize$i');
-      ZERO.push('centered2$i');
+      ZERO.push('centeredcol$i');
+      ZERO.push('centeredpath$i');
       ONE.push('stealthglowred$i');
       ONE.push('stealthglowgreen$i');
       ONE.push('stealthglowblue$i');
@@ -627,7 +627,6 @@ class Modchart
     altname.set('sawtoothzsize', 'sawtoothzperiod');
     altname.set('unboundedreverse', 'reversetype');
     altname.set('cosec', 'cosecant');
-    altname.set('centeredpath', 'centered2');
     altname.set('longboy', 'longholds');
     altname.set('longboys', 'longholds');
     altname.set('holdtype', 'spiralholds');
@@ -686,10 +685,9 @@ class Modchart
       altname.set('zigzagzsize$i', 'zigzagzperiod$i');
       altname.set('sawtoothsize$i', 'sawtoothperiod$i');
       altname.set('sawtoothzsize$i', 'sawtoothzperiod$i');
-      altname.set('converge$i', 'centered$i');
+      altname.set('converge$i', 'centeredcol$i');
       altname.set('arrowpathgirth$i', 'arrowpathsize$i');
       altname.set('arrowpathwidth$i', 'arrowpathsize$i');
-      altname.set('centeredpath$i', 'centered2$i');
       altname.set('stealthgr$i', 'stealthglowred$i');
       altname.set('stealthgg$i', 'stealthglowgreen$i');
       altname.set('stealthgb$i', 'stealthglowblue$i');
@@ -731,11 +729,12 @@ class Modchart
       var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/;
       var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
       var mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
+      var centeredReg:EReg = ~/centered(\d+)/;
       var name:String = sBit;
       if (mult.match(name))
       {
         var a:String = mult.matched(1);
-        level = Std.parseFloat(a);
+        level = Std.parseFloat(a) * 100;
         name = 'xmod';
       }
       else if (cReg.match(name))
@@ -754,13 +753,16 @@ class Modchart
         level = Std.parseFloat(numStr);
         name = 'mmod';
       }
+      else if (centeredReg.match(name))
+      {
+        name = 'centeredpath';
+      }
       else if (altname.exists(name))
       {
         name = altname.get(name);
-        preModList.set(name, level);
-        speedList.set(name, speed);
       }
-      else if (modList.exists(name))
+
+      if (modList.exists(name))
       {
         preModList.set(name, level);
         speedList.set(name, speed);
@@ -1243,16 +1245,14 @@ class Modchart
     var time:Float = getTime();
     if (WithReverse)
     {
-      f -= (getValue('centered2') + getValue('centered2$iCol')) * ARROW_SIZE;
+      f -= (getValue('centeredpath')) * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
       var yReversedOffset:Float = fYReversedOffset / zoom;
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
       var fShift:Float = fPercentReverse * yReversedOffset;
-      fShift = ModchartMath.scale(getValue('centered'), 0., 1., fShift, yReversedOffset / 2);
-      fShift = ModchartMath.scale(getValue('centered$iCol'), 0., 1., fShift, yReversedOffset / 2);
-      fShift = ModchartMath.scale(getValue('centered2'), 0., 1., fShift, ARROW_SIZE);
-      fShift = ModchartMath.scale(getValue('centered2$iCol'), 0., 1., fShift, ARROW_SIZE);
+      fShift = ModchartMath.scale(getValue('centered') + getValue('centeredcol$iCol'), 0., 1., fShift, yReversedOffset / 2);
+      fShift = ModchartMath.scale(getValue('centeredpath') + getValue('centeredpath$iCol'), 0., 1., fShift, ARROW_SIZE);
       var fScale:Float = ModchartMath.scale(fPercentReverse, 0.0, 1.0, 1.0, -1.0);
       f *= fScale;
       f += fShift;

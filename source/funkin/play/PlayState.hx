@@ -2748,12 +2748,10 @@ class PlayState extends MusicBeatSubState
   {
     if (pn % 2 == 0) playerStrumline.mods.fromString(str);
     else if (pn % 1 == 0) opponentStrumline.mods.fromString(str);
-    else
+    else if (pn == null)
     {
-      for (pn in 1...3)
-      {
-        ApplyModifiers(str, pn);
-      }
+      ApplyModifiers(str, 1);
+      ApplyModifiers(str, 2);
     }
   }
 

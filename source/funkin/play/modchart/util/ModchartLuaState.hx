@@ -41,6 +41,12 @@ class ModchartLuaState
     Lua_helper.add_callback(lua, 'getTimeFromBeat', function(a:Float) {
       return Conductor.instance.getBeatTimeInMs(a) / 1000;
     });
+    Lua_helper.add_callback(lua, 'setHealth', function(a:Float) {
+      PlayState.instance.health = a;
+    });
+    Lua_helper.add_callback(lua, 'getHealth', function(a:Float) {
+      return PlayState.instance.health;
+    });
   }
 
   public var closed:Bool = false;

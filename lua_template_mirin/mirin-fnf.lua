@@ -1040,7 +1040,7 @@ function run_eases(beat, time)
 		else
 			for i = 4, #e, 2 do
 				local mod = e[i + 1]
-				--touch_mod(mod, plr)
+				touch_mod(mod, plr)
 			end
 			if active_eases_index ~= #active_eases then
 				active_eases[active_eases_index] = table.remove(active_eases)

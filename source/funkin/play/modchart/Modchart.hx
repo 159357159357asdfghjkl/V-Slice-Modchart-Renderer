@@ -1263,7 +1263,7 @@ class Modchart
     var time:Float = getTime();
     if (WithReverse)
     {
-      f -= (getValue('centeredpath')) * ARROW_SIZE;
+      f -= (getValue('centeredpath') + getValue('centeredpath$iCol')) * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
       var yReversedOffset:Float = fYReversedOffset / zoom;

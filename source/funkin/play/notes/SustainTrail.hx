@@ -16,6 +16,7 @@ import funkin.play.modchart.util.ModchartMath;
 import flixel.graphics.tile.FlxGraphicsShader;
 import openfl.geom.ColorTransform;
 import openfl.display.TriangleCulling;
+import funkin.util.GRhythmUtil;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -113,6 +114,7 @@ class SustainTrail extends FlxSprite
   public var offsetX:Float;
   public var offsetY:Float;
   public var currentZValue:Float = 0;
+  public var useNew:Bool = false;
 
   /**
    * Normally you would take strumTime:Float, noteData:Int, sustainLength:Float, parentNote:Note (?)
@@ -120,7 +122,7 @@ class SustainTrail extends FlxSprite
    * @param SustainLength Length in milliseconds.
    * @param fileName
    */
-  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle)
+  public function new(noteDirection:NoteDirection, sustainLength:Float, noteStyle:NoteStyle, useNew:Bool = false)
   {
     super(0, 0);
 
@@ -131,6 +133,7 @@ class SustainTrail extends FlxSprite
 
     setupHoldNoteGraphic(noteStyle);
     defaultScale = [scale.x, scale.y];
+    this.useNew = useNew;
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
     setIndices(TRIANGLE_VERTEX_INDICES);
@@ -376,7 +379,9 @@ class SustainTrail extends FlxSprite
 
   public function updateClipping(songTime:Float = 0)
   {
-    updateClippingNew(songTime);
+    if (useNew) updateClippingNew(songTime);
+    else
+      updateClippingOld(songTime);
   }
 
   public function updateClippingNew(songTime:Float = 0):Void
@@ -414,6 +419,8 @@ class SustainTrail extends FlxSprite
     if (length <= 1) length = 1;
     var halfWidth:Float = graphicWidth / 2;
     var ct:Array<ColorTransform> = [];
+    var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
+    var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
     for (i in 0...length)
     {
       var a:Int = i * 2;
@@ -449,13 +456,13 @@ class SustainTrail extends FlxSprite
     if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-
     vertices[bottom * 2] = pos1[0].x + halfWidth;
     vertices[bottom * 2 + 1] = pos1[0].y * longHolds;
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
     vertices[(bottom + 1) * 2 + 1] = pos2[0].y * longHolds;
     ct.push(getShader(pos1[1], pos1[2]));
     ct.push(getShader(pos2[1], pos2[2]));
+
     for (i in 0...length)
     {
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
@@ -555,6 +562,116 @@ class SustainTrail extends FlxSprite
     }
   }
 
+  public function updateClippingOld(songTime:Float = 0):Void
+  {
+    if (graphic == null || customVertexData)
+    {
+      return;
+    }
+    var clipHeight:Float = sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0).clamp(0, graphicHeight);
+    if (clipHeight <= 0.1)
+    {
+      visible = false;
+      return;
+    }
+    else
+    {
+      visible = true;
+    }
+
+    var bottomHeight:Float = graphic.height * zoom * endOffset;
+    var partHeight:Float = clipHeight - bottomHeight;
+
+    // ===HOLD VERTICES==
+    // Top left
+    vertices[0 * 2] = 0.0; // Inline with left side
+    vertices[0 * 2 + 1] = flipY ? clipHeight : graphicHeight - clipHeight;
+
+    // Top right
+    vertices[1 * 2] = graphicWidth;
+    vertices[1 * 2 + 1] = vertices[0 * 2 + 1]; // Inline with top left vertex
+
+    // Bottom left
+    vertices[2 * 2] = 0.0; // Inline with left side
+    vertices[2 * 2 + 1] = if (partHeight > 0)
+    {
+      // flipY makes the sustain render upside down.
+      flipY ? 0.0 + bottomHeight : vertices[1] + partHeight;
+    }
+    else
+    {
+      vertices[0 * 2 + 1]; // Inline with top left vertex (no partHeight available)
+    }
+
+    // Bottom right
+    vertices[3 * 2] = graphicWidth;
+    vertices[3 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex
+
+    // ===HOLD UVs===
+
+    // The UVs are a bit more complicated.
+    // UV coordinates are normalized, so they range from 0 to 1.
+    // We are expecting an image containing 8 horizontal segments, each representing a different colored hold note followed by its end cap.
+
+    uvtData[0 * 2] = 1 / 4 * (noteDirection % 4); // 0%/25%/50%/75% of the way through the image
+    uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom; // top bound
+    // Top left
+
+    // Top right
+    uvtData[1 * 2] = uvtData[0 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
+    uvtData[1 * 2 + 1] = uvtData[0 * 2 + 1]; // top bound
+
+    // Bottom left
+    uvtData[2 * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
+    uvtData[2 * 2 + 1] = 0.0; // bottom bound
+
+    // Bottom right
+    uvtData[3 * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
+    uvtData[3 * 2 + 1] = uvtData[2 * 2 + 1]; // bottom bound
+
+    // === END CAP VERTICES ===
+    // Top left
+    vertices[4 * 2] = vertices[2 * 2]; // Inline with bottom left vertex of hold
+    vertices[4 * 2 + 1] = vertices[2 * 2 + 1]; // Inline with bottom left vertex of hold
+
+    // Top right
+    vertices[5 * 2] = vertices[3 * 2]; // Inline with bottom right vertex of hold
+    vertices[5 * 2 + 1] = vertices[3 * 2 + 1]; // Inline with bottom right vertex of hold
+
+    // Bottom left
+    vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
+    vertices[6 * 2 + 1] = flipY ? (graphic.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + graphic.height * (bottomClip - endOffset) * zoom);
+
+    // Bottom right
+    vertices[7 * 2] = vertices[3 * 2]; // Inline with right side
+    vertices[7 * 2 + 1] = vertices[6 * 2 + 1]; // Inline with bottom of end cap
+
+    // === END CAP UVs ===
+    // Top left
+    uvtData[4 * 2] = uvtData[2 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
+    uvtData[4 * 2 + 1] = if (partHeight > 0)
+    {
+      0;
+    }
+    else
+    {
+      (bottomHeight - clipHeight) / zoom / graphic.height;
+    };
+
+    // Top right
+    uvtData[5 * 2] = uvtData[4 * 2] + 1 / 8; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
+    uvtData[5 * 2 + 1] = uvtData[4 * 2 + 1]; // top bound
+
+    // Bottom left
+    uvtData[6 * 2] = uvtData[4 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
+    uvtData[6 * 2 + 1] = bottomClip; // bottom bound
+
+    // Bottom right
+    uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
+    uvtData[7 * 2 + 1] = uvtData[6 * 2 + 1]; // bottom bound
+    setIndices(TRIANGLE_VERTEX_INDICES);
+  }
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
@@ -564,22 +681,31 @@ class SustainTrail extends FlxSprite
     {
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
-      #if !flash
-      var shader:FlxGraphicsShader = new FlxGraphicsShader();
-      shader.bitmap.input = graphic.bitmap;
-      shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
-      shader.bitmap.wrap = REPEAT;
-      shader.hasColorTransform.value = [true];
-      shader.colorMultiplier.value = colorMultipliers;
-      shader.colorOffset.value = colorOffsets;
-      shader.alpha.value = alphas;
-      camera.canvas.graphics.overrideBlendMode(blend);
-      camera.canvas.graphics.beginShaderFill(shader);
-      #else
-      camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
-      #end
-      camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
-      camera.canvas.graphics.endFill();
+
+      if (useNew)
+      {
+        #if !flash
+        var shader:FlxGraphicsShader = new FlxGraphicsShader();
+        shader.bitmap.input = graphic.bitmap;
+        shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
+        shader.bitmap.wrap = REPEAT;
+        shader.hasColorTransform.value = [true];
+        shader.colorMultiplier.value = colorMultipliers;
+        shader.colorOffset.value = colorOffsets;
+        shader.alpha.value = alphas;
+        camera.canvas.graphics.overrideBlendMode(blend);
+        camera.canvas.graphics.beginShaderFill(shader);
+        #else
+        camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
+        #end
+        camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
+        camera.canvas.graphics.endFill();
+      }
+      else
+      {
+        getScreenPosition(_point, camera).subtractPoint(offset);
+        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
+      }
     }
 
     #if FLX_DEBUG

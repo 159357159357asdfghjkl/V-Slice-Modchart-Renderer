@@ -789,7 +789,10 @@ class Strumline extends FlxSpriteGroup
       }
 
       final magicNumberIGuess:Float = 8;
-      var renderWindowEnd:Float = holdNote.strumTime + holdNote.fullSustainLength + Constants.HIT_WINDOW_MS + (renderDistanceMs / magicNumberIGuess);
+      var renderWindowEnd:Float = holdNote.strumTime
+        + holdNote.fullSustainLength
+        + Constants.HIT_WINDOW_MS
+        + (renderDistanceMs * (1 + mods.getValue('drawsizeback')) / magicNumberIGuess);
 
       if (holdNote.missedNote && conductorInUse.songPosition >= renderWindowEnd)
       {
@@ -1538,7 +1541,7 @@ class Strumline extends FlxSpriteGroup
     {
       // The note sprite pool is full and all note splashes are active.
       // We have to create a new note.
-      result = new SustainTrail(0, 0, noteStyle);
+      result = new SustainTrail(0, 0, noteStyle, true);
       this.holdNotes.add(result);
     }
 

@@ -732,7 +732,7 @@ class Modchart
       if (mult.match(name))
       {
         var a:String = mult.matched(1);
-        level = Std.parseFloat(a) * 100;
+        level = Std.parseFloat(a);
         name = 'xmod';
       }
       else if (cReg.match(name))

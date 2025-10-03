@@ -403,10 +403,11 @@ class SustainTrail extends FlxSprite
     }
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
-    var roughness:Float = parentStrumline?.mods?.baseHoldSize ?? 64;
+    var roughness:Float = parentStrumline?.mods?.baseHoldSize ?? 1;
     var longHolds:Float = 1 + (parentStrumline?.mods?.getValue('longholds') ?? 0.0);
     var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
-    var length:Int = Math.floor((fullSustainLength) / (roughness * (1 + grain)));
+    if (grain == 0) grain = 4;
+    var length:Int = Math.floor((fullSustainLength) / (roughness * grain));
     if (grain < 0) length = Math.floor((fullSustainLength) / (roughness / (1 + Math.abs(grain))));
     if (parentStrumline != null)
     {

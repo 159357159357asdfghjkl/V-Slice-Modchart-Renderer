@@ -571,21 +571,25 @@ function ease(self)
 		self.plr = plr
 		table.insert(eases, self)
 	end
+	return ease
 end
 function add(self)
 	self.relative = true
 	ease(self)
+	return add
 end
 function set(self)
 	table.insert(self, 2, 0)
 	table.insert(self, 3, instant)
 	ease(self)
+	return set
 end
 function acc(self)
 	self.relative = true
 	table.insert(self, 2, 0)
 	table.insert(self, 3, instant)
 	ease(self)
+	return acc
 end
 function reset(self)
 	self[2] = self[2] or 0
@@ -606,6 +610,7 @@ function reset(self)
 		self.exclude = exclude
 	end
 	ease(self)
+	return reset
 end
 function func_function(self)
 	if type(self[2]) == 'string' then
@@ -713,11 +718,13 @@ function func(self)
 	else
 		func_ease(self)
 	end
+	return func
 end
 function alias(self)
 	local a, b = self[1], self[2]
 	a, b = string.lower(a), string.lower(b)
 	aliases[a] = b
+	return alias
 end
 function setdefault(self)
 	for i = 1, #self, 2 do

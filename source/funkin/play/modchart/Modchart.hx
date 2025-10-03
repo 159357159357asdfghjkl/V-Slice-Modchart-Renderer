@@ -830,7 +830,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 16;
+    return 16; // default = 1
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float

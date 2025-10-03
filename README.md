@@ -4,11 +4,7 @@ Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
 some modchart codes are from stepmania / mirin template / Schmovin / Troll Engine / Psych Engine, credit them first (except some notitg mods)
 
-Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into mods/your mod/scripts/ and rename it by song name
-
-NotITG Modifiers Restoration
-
-Not Original, I just wants to play modifiers in fnf base engine
+Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 
 # Friday Night Funkin'
 

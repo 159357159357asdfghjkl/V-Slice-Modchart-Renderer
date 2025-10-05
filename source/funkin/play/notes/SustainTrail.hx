@@ -374,7 +374,8 @@ class SustainTrail extends FlxSprite
     var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), glow);
-    return [zPos, diffuses, glowColor];
+    var reversed:Vector3D = new Vector3D(parentStrumline?.mods?.GetReversePercentForColumn(column) ?? 0);
+    return [zPos, diffuses, glowColor, reversed];
   }
 
   public function updateClipping(songTime:Float = 0)
@@ -417,7 +418,7 @@ class SustainTrail extends FlxSprite
         length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
       }
     }
-    if (length <= 1) length = 1;
+    if (length < 2) length = 2;
     var halfWidth:Float = graphicWidth / 2;
     var ct:Array<ColorTransform> = [];
     var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
@@ -431,8 +432,6 @@ class SustainTrail extends FlxSprite
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      var endPos:Float = -200 * 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0);
-      var frontPos:Float = 1500 * 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0);
       vertices[a * 2] = pos1[0].x + halfWidth;
       vertices[a * 2 + 1] = pos1[0].y * longHolds / (i == 0 ? longHolds : 1);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
@@ -453,14 +452,14 @@ class SustainTrail extends FlxSprite
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
 
-    var time:Float = strumTime + (fullSustainLength - 1) + 60;
+    var time:Float = strumTime + fullSustainLength + 50;
     if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
     vertices[bottom * 2] = pos1[0].x + halfWidth;
-    vertices[bottom * 2 + 1] = pos1[0].y * longHolds;
+    vertices[bottom * 2 + 1] = vertices[next * 2 + 1] + 50 * (pos1[3].x > 0.5 ? -1 : 1);
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-    vertices[(bottom + 1) * 2 + 1] = pos2[0].y * longHolds;
+    vertices[(bottom + 1) * 2 + 1] = vertices[(next + 1) * 2 + 1] + 50 * (pos2[3].x > 0.5 ? -1 : 1);
     ct.push(getShader(pos1[1], pos1[2]));
     ct.push(getShader(pos2[1], pos2[2]));
 
@@ -676,7 +675,7 @@ class SustainTrail extends FlxSprite
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    if (alpha == 0 || graphic == null || vertices == null) return;
+    if (alpha == 0 || graphic == null || vertices == null || !visible) return;
 
     for (camera in cameras)
     {

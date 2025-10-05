@@ -116,7 +116,8 @@ class FunkinActor extends FunkinSprite
         colorTransform.redOffset = glow.x * 255 * glow.w;
         colorTransform.greenOffset = glow.y * 255 * glow.w;
         colorTransform.blueOffset = glow.z * 255 * glow.w;
-        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, true, antialiasing, colorTransform, shader);
+        camera.drawTriangles(graphic, vertices, indices, uvtData, new Vector<Int>(4, true, [0, 0, 0, 0]), _point, blend, true, antialiasing, colorTransform,
+          shader); // fucking color array has no use
       }
     }
 

@@ -2088,16 +2088,19 @@ class Modchart
     // skewx skewy
     var skewx:Float = 0;
     var skewy:Float = 0;
-    if (!isHoldBody && isNote)
+    if (!isHoldBody)
     {
       skewx += getValue('noteskewx') + getValue('noteskewx$iCol');
       skewy += getValue('noteskewy') + getValue('noteskewy$iCol');
-      if (getValue('noteskewtype') != 0)
+      if (isNote)
       {
-        if (iCol == 0 || iCol == 3)
+        if (getValue('noteskewtype') != 0)
         {
-          skewx *= -1;
-          skewy *= -1;
+          if (iCol == 0 || iCol == 3)
+          {
+            skewx *= -1;
+            skewy *= -1;
+          }
         }
       }
     }

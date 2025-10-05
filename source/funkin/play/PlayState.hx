@@ -889,6 +889,7 @@ class PlayState extends MusicBeatSubState
   function initLuaSystem()
   {
     var folders:Array<String> = [];
+    luaArray = [];
     if (currentChart != null)
     {
       folders.push('assets/scripts/songs/');
@@ -1085,6 +1086,12 @@ class PlayState extends MusicBeatSubState
       // Reset the health icons.
       currentStage?.getBoyfriend()?.initHealthIcon(false);
       currentStage?.getDad()?.initHealthIcon(true);
+
+      for (lua in luaArray)
+      {
+        if (lua != null) lua.stop();
+      }
+      initLuaSystem();
 
       needsReset = false;
     }
@@ -2713,7 +2720,7 @@ class PlayState extends MusicBeatSubState
 
             // Play the miss sound.
             vocals.playerVolume = 0;
-            FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
+            // FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
           }
           else
           {
@@ -2935,7 +2942,7 @@ class PlayState extends MusicBeatSubState
     if (playSound)
     {
       vocals.playerVolume = 0;
-      FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
+      // FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
     }
   }
 
@@ -2981,7 +2988,7 @@ class PlayState extends MusicBeatSubState
     if (event.playSound)
     {
       vocals.playerVolume = 0;
-      FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
+      // FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
     }
   }
 

@@ -335,8 +335,7 @@ class Strumline extends FlxSpriteGroup
     time += conductorInUse.getTimeWithDelta();
     var speed:Float = scrollSpeed;
     var pn:Int = modNumber;
-    var ofs = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING * (1
-      - 2 * mods.GetReversePercentForColumn(column));
+    var ofs = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var reversedOff:Float = (FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2);
     var difference:Vector3D = getDifference();
@@ -724,8 +723,7 @@ class Strumline extends FlxSpriteGroup
       var col:Int = note.noteData.getDirection();
       note.offsetX = -NUDGE;
       note.offsetY = -INITIAL_OFFSET + note.yOffset;
-      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING * (1
-        - 2 * mods.GetReversePercentForColumn(col));
+      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       var realofs = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, col, note.strumTime) + c2;
       var zpos = mods.GetZPos(col, realofs, modNumber, xoffArray);
       var xpos = mods.GetXPos(col, realofs, modNumber, xoffArray, true);
@@ -875,8 +873,7 @@ class Strumline extends FlxSpriteGroup
     {
       if (strumNote == null || !strumNote.alive) continue;
       var col:Int = strumNote.column;
-      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING * (1
-        - 2 * mods.GetReversePercentForColumn(col));
+      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       strumNote.x = strumNote.y = 0;
       strumNote.offsetX = INITIAL_OFFSET + noteStyle.getStrumlineOffsets()[0];
       strumNote.offsetY = noteStyle.getStrumlineOffsets()[1];
@@ -918,8 +915,7 @@ class Strumline extends FlxSpriteGroup
       splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
       splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
       splash.x = splash.y = 0;
-      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING * (1
-        - 2 * mods.GetReversePercentForColumn(col));
+      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
       var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
       var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
@@ -959,8 +955,7 @@ class Strumline extends FlxSpriteGroup
       glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
       glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
       cover.x = cover.y = 0;
-      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING * (1
-        - 2 * mods.GetReversePercentForColumn(col));
+      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
       cover.currentZValue = zpos;
       var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);

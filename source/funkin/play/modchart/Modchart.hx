@@ -1264,14 +1264,12 @@ class Modchart
     var time:Float = getTime();
     if (WithReverse)
     {
-      f -= (getValue('centeredpath') + getValue('centeredpath$iCol')) * ARROW_SIZE;
       var zoom:Float = 1 - 0.5 * getValue('mini');
       if (Math.abs(zoom) < 0.01) zoom = 0.01;
       var yReversedOffset:Float = fYReversedOffset / zoom;
       var fPercentReverse:Float = GetReversePercentForColumn(iCol);
       var fShift:Float = fPercentReverse * yReversedOffset;
       fShift = ModchartMath.scale(getValue('centered') + getValue('centeredcol$iCol'), 0., 1., fShift, yReversedOffset / 2);
-      fShift = ModchartMath.scale(getValue('centeredpath') + getValue('centeredpath$iCol'), 0., 1., fShift, ARROW_SIZE);
       var fScale:Float = ModchartMath.scale(fPercentReverse, 0.0, 1.0, 1.0, -1.0);
       f *= fScale;
       f += fShift;

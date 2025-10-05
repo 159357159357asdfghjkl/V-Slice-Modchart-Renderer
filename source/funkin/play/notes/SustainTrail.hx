@@ -304,7 +304,7 @@ class SustainTrail extends FlxSprite
     var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
     var ofs = ((parentStrumline?.mods?.getValue('centeredpath') ?? 0.0)
       + (parentStrumline?.mods?.getValue('centeredpath$column') ?? 0.0)) * Strumline.NOTE_SPACING * (1
-        - 2 * (parentStrumline?.mods?.GetReversePercentForColumn(col) ?? 0));
+        - 2 * (parentStrumline?.mods?.GetReversePercentForColumn(column) ?? 0));
     var timeDiff:Float = (parentStrumline?.mods?.baseHoldSize ?? 0);
     var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, column, strumTime) ?? 0.0) + ofs;
     var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false, true) ?? 0.0,

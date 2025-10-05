@@ -335,7 +335,8 @@ class Strumline extends FlxSpriteGroup
     time += conductorInUse.getTimeWithDelta();
     var speed:Float = scrollSpeed;
     var pn:Int = modNumber;
-    var ofs = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING * (1 - 2 * mods.GetReversePercentForColumn(col));
+    var ofs = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING * (1
+      - 2 * mods.GetReversePercentForColumn(column));
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var reversedOff:Float = (FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2);
     var difference:Vector3D = getDifference();

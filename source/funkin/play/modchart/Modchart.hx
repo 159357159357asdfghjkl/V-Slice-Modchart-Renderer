@@ -276,6 +276,7 @@ class Modchart
       'shrinklinear',
       'noteskewx',
       'noteskewy',
+      'noteskew',
       'tinyx',
       'tinyy',
       'tinyz',
@@ -2090,8 +2091,8 @@ class Modchart
     var skewy:Float = 0;
     if (!isHoldBody)
     {
-      skewx += getValue('noteskewx') + getValue('noteskewx$iCol');
-      skewy += getValue('noteskewy') + getValue('noteskewy$iCol');
+      skewx += getValue('noteskewx') + getValue('noteskewx$iCol') + getValue('noteskew');
+      skewy += getValue('noteskewy') + getValue('noteskewy$iCol') + getValue('noteskew');
       if (isNote)
       {
         if (getValue('noteskewtype') != 0)

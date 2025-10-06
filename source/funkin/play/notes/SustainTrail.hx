@@ -434,9 +434,9 @@ class SustainTrail extends FlxSprite
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       vertices[a * 2] = pos1[0].x + halfWidth;
-      vertices[a * 2 + 1] = pos1[0].y * longHolds / (i == 0 ? longHolds : 1);
+      vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
-      vertices[(a + 1) * 2 + 1] = pos2[0].y * longHolds / (i == 0 ? longHolds : 1);
+      vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
       ct.push(getShader(pos1[1], pos1[2]));
       ct.push(getShader(pos2[1], pos2[2]));
       if (i == length - 1)

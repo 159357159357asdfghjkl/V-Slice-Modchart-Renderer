@@ -831,7 +831,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 16; // default = 1
+    return 16; // default = 1, but my computer is lag so i made it less accurate
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
@@ -2180,9 +2180,10 @@ class Modchart
       rotation.y += getValue('rotationy') * 100;
       rotation.z += getValue('rotationz') * 100;
     }
-    if (getValue('x') != 0) pos.x += getValue('x') * ARROW_SIZE * 1.5625; // cuz 320% x = 500% movex
-    if (getValue('y') != 0) pos.y += getValue('y') * ARROW_SIZE * 1.5625;
-    if (getValue('z') != 0) pos.z += getValue('z') * ARROW_SIZE * 1.5625;
+    if (getValue('x') != 0) pos.x += getValue('x'); // 320% x = 500% movex
+    // sorry notitg's size is 64, so 500 movex = 320 x
+    if (getValue('y') != 0) pos.y += getValue('y');
+    if (getValue('z') != 0) pos.z += getValue('z');
     if (getValue('skewx') != 0)
     {
       skew.x += getValue('skewx');

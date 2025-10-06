@@ -399,13 +399,14 @@ class Strumline extends FlxSpriteGroup
       // stolen from schmovin but modified a little
       var currentBeat:Float = conductorInUse.currentBeatTime;
       var grain = mods.getValue('arrowpathgranulate');
+      if (grain == 0) grain = 4;
       var roughness:Float = mods.baseHoldSize;
       var backLength:Float = 200;
       backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
       var frontLength:Float = 1000;
       frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
-      var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * (1 + grain)));
-      if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / (1 + Math.abs(grain))));
+      var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
+      if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
       if (subdivisions <= 1) subdivisions = 1;
       for (column in 0...KEY_COUNT)
       {

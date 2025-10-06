@@ -14,11 +14,10 @@ using StringTools;
  */
 class Modchart
 {
-  public var modList:Map<String, Float> = [];
-  public var preModList:Map<String, Float> = [];
-  public var speedList:Map<String, Float> = [];
-
-  private var altname:Map<String, String> = new Map<String, String>();
+  var modList:Map<String, Float> = [];
+  var preModList:Map<String, Float> = [];
+  var speedList:Map<String, Float> = [];
+  var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
 

@@ -2179,10 +2179,10 @@ class Modchart
       rotation.y += getValue('rotationy') * 100;
       rotation.z += getValue('rotationz') * 100;
     }
-    if (getValue('x') != 0) pos.x += getValue('x'); // 320% x = 500% movex
+    if (getValue('x') != 0) pos.x += getValue('x') * 100; // 320% x = 500% movex
     // sorry notitg's size is 64, so 500 movex = 320 x
-    if (getValue('y') != 0) pos.y += getValue('y');
-    if (getValue('z') != 0) pos.z += getValue('z');
+    if (getValue('y') != 0) pos.y += getValue('y') * 100;
+    if (getValue('z') != 0) pos.z += getValue('z') * 100;
     if (getValue('skewx') != 0)
     {
       skew.x += getValue('skewx');

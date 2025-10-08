@@ -813,9 +813,9 @@ for pn = 1, max_pn do
 		__newindex = function(_, k, v)
 			k = normalize_mod_no_checks(k)
 			mods_pn[k] = v
-			if v then
-				poptions_logging_target[pn][k] = true
-			end
+			--if v then
+				--poptions_logging_target[pn][k] = true
+			--end
 		end,
 	}
 	poptions[pn] = setmetatable({}, mt)
@@ -1080,7 +1080,7 @@ local function run_funcs(beat, time)
 		if not e then break end
 		local measure = e.time and time or beat
 		if measure < e[1] + e[2] then
-			poptions_logging_target = e.mods
+			--poptions_logging_target = e.mods
 			e[3](measure, poptions)
 		else
 			if e.mods then

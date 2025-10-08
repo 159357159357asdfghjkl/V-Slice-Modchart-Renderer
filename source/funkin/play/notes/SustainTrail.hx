@@ -424,7 +424,7 @@ class SustainTrail extends FlxSprite
     var ct:Array<ColorTransform> = [];
     var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
     var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
-    for (i in 0...length)
+    for (i in 0...length + 1)
     {
       var a:Int = i * 2;
       var time:Float = strumTime + (fullSustainLength / length * i);
@@ -445,26 +445,27 @@ class SustainTrail extends FlxSprite
         ct.push(getShader(pos2[1], pos2[2]));
       }
     }
-    var end:Int = (length - 1) * 2;
-    var next:Int = length * 2;
-    var bottom:Int = (length + 1) * 2;
+    var end:Int = length * 2;
+    var next:Int = (length + 1) * 2;
+    var bottom:Int = (length + 2) * 2;
     vertices[next * 2] = vertices[end * 2];
     vertices[next * 2 + 1] = vertices[end * 2 + 1];
     vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
     vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
 
-    var time:Float = strumTime + fullSustainLength;
+    var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
+    var time:Float = strumTime + fullSustainLength + capHeight / Constants.PIXELS_PER_MS;
     if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
     var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
     var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
     vertices[bottom * 2] = pos1[0].x + halfWidth;
-    vertices[bottom * 2 + 1] = vertices[next * 2 + 1] + 50 * (pos1[3].x > 0.5 ? -1 : 1);
+    vertices[bottom * 2 + 1] = pos1[0].y;
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-    vertices[(bottom + 1) * 2 + 1] = vertices[(next + 1) * 2 + 1] + 50 * (pos2[3].x > 0.5 ? -1 : 1);
+    vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
     ct.push(getShader(pos1[1], pos1[2]));
     ct.push(getShader(pos2[1], pos2[2]));
 
-    for (i in 0...length)
+    for (i in 0...length + 1)
     {
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
       var a:Int = i * 2;

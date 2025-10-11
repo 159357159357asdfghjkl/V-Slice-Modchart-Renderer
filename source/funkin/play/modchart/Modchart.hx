@@ -2186,7 +2186,7 @@ class Modchart
     if (getValue('skewx') != 0)
     {
       skew.x += getValue('skewx');
-      pos.x -= 2 * ARROW_SIZE * getValue('skewx');
+      pos.x -= 2 * ARROW_SIZE * getValue('skewx'); // I CANT USE pos.y
     }
     if (getValue('skewy') != 0)
     {

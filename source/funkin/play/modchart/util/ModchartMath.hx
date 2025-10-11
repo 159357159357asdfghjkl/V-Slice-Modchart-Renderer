@@ -95,27 +95,6 @@ class ModchartMath
     }
   }
 
-  // deprecated, use initPerspective instead
-  public static function PerspectiveProjection(vec3:Vector3D, ?origin:Vector3D):Vector3D
-  {
-    if (origin == null) origin = new Vector3D(FlxG.width / 2, FlxG.height / 2);
-    var zNear:Float = 0;
-    var zFar:Float = 100;
-    var zRange:Float = zNear - zFar;
-    var FOV:Float = 90.0;
-    var tanHalfFOV:Float = Math.tan(rad * (FOV / 2));
-    var ar:Float = 1;
-    var pos:Vector3D = new Vector3D(vec3.x, vec3.y, vec3.z / 1000).subtract(origin);
-    if (pos.z > 0) pos.z = 0;
-    var a:Float = (-zNear - zFar) / zRange;
-    var b:Float = 2.0 * zFar * zNear / zRange;
-    var newZPos:Float = a * -pos.z + b;
-    var newXPos:Float = pos.x * (1 / tanHalfFOV * ar) / newZPos;
-    var newYPos:Float = pos.y * (1 / tanHalfFOV) / newZPos;
-    var vector:Vector3D = new Vector3D(newXPos, newYPos, newZPos).add(origin);
-    return vector;
-  }
-
   public static function initPerspective(vec:Vector3D, m:Array<Array<Float>>, fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,
       fVanishPointY:Float)
   {

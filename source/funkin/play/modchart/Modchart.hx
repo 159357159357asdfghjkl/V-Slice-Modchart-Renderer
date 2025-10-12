@@ -417,7 +417,8 @@ class Modchart
       'scrollspeedmult',
       'stealthglowred',
       'stealthglowgreen',
-      'stealthglowblue'
+      'stealthglowblue',
+      'zbuffer'
     ];
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -650,6 +651,7 @@ class Modchart
     altname.set('stealthgr', 'stealthglowred');
     altname.set('stealthgg', 'stealthglowgreen');
     altname.set('stealthgb', 'stealthglowblue');
+    altname.set('ztest', 'zbuffer');
 
     for (i in 0...Strumline.KEY_COUNT)
     {
@@ -2158,6 +2160,36 @@ class Modchart
       fZoom *= fTinyPercent;
     }
     return fZoom;
+  }
+
+  // for spiralholds
+  public function NeedZBuffer():Bool
+  {
+    if (getValue('bumpy') != 0 || getValue('twirl') != 0)
+    {
+      return true;
+    }
+    if (getValue('beatz') != 0 || getValue('digitalz') != 0)
+    {
+      return true;
+    }
+    if (getValue('zigzagz') != 0 || getValue('sawtoothz') != 0)
+    {
+      return true;
+    }
+    if (getValue('parabolaz') != 0 || getValue('squarez') != 0)
+    {
+      return true;
+    }
+    if (getValue('zbuffer') > 0 || getValue('attenuatez') != 0)
+    {
+      return true;
+    }
+    if (getValue('bouncez') != 0)
+    {
+      return true;
+    }
+    return false;
   }
 
   // control full playfield

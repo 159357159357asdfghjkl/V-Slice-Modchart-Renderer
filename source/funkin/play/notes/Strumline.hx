@@ -1000,15 +1000,19 @@ class Strumline extends FlxSpriteGroup
       // Added this to prevent sustained vibrations not ending issue.
       if (!isKeyHeld(dir) && isPlayer) noteVibrations.noteStatuses[dir] = NoteStatus.idle;
     }
-    if (notes.members.length > 1) notes.members.insertionSort(compareNoteSprites.bind(FlxSort.ASCENDING));
 
-    if (holdNotes.members.length > 1) holdNotes.members.insertionSort(compareHoldNoteSprites.bind(FlxSort.ASCENDING));
+    if (mods.NeedZBuffer())
+    {
+      if (notes.members.length > 1) notes.members.insertionSort(compareNoteSprites.bind(FlxSort.ASCENDING));
 
-    if (strumlineNotes.members.length > 1) strumlineNotes.members.insertionSort(compareStrumlineNotes.bind(FlxSort.ASCENDING));
+      if (holdNotes.members.length > 1) holdNotes.members.insertionSort(compareHoldNoteSprites.bind(FlxSort.ASCENDING));
 
-    if (noteSplashes.members.length > 1) noteSplashes.members.insertionSort(compareNoteSplashes.bind(FlxSort.ASCENDING));
+      if (strumlineNotes.members.length > 1) strumlineNotes.members.insertionSort(compareStrumlineNotes.bind(FlxSort.ASCENDING));
 
-    if (noteHoldCovers.members.length > 1) noteHoldCovers.members.insertionSort(compareNoteHoldCovers.bind(FlxSort.ASCENDING));
+      if (noteSplashes.members.length > 1) noteSplashes.members.insertionSort(compareNoteSplashes.bind(FlxSort.ASCENDING));
+
+      if (noteHoldCovers.members.length > 1) noteHoldCovers.members.insertionSort(compareNoteHoldCovers.bind(FlxSort.ASCENDING));
+    }
   }
 
   /**
@@ -1051,13 +1055,7 @@ class Strumline extends FlxSpriteGroup
   /**
    * Called on each beat of the song.
    */
-  public function onBeatHit():Void
-  {
-    // why are we doing this every beat? >:(
-    if (notes.members.length > 1) notes.members.insertionSort(compareNoteSprites.bind(FlxSort.ASCENDING));
-
-    if (holdNotes.members.length > 1) holdNotes.members.insertionSort(compareHoldNoteSprites.bind(FlxSort.ASCENDING));
-  }
+  public function onBeatHit():Void {}
 
   /**
    * Called when a key is pressed.

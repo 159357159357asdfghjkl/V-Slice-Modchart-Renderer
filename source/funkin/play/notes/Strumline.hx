@@ -664,7 +664,7 @@ class Strumline extends FlxSpriteGroup
 
   public function getDifference():Vector3D
   {
-    return new Vector3D(x + NOTE_SPACING * 1.5, y); // post add playfield x
+    return new Vector3D(x + NOTE_SPACING * 1.5, y + 2 * NOTE_SPACING); // post add playfield x
   }
 
   public function updateNotes():Void
@@ -715,7 +715,7 @@ class Strumline extends FlxSpriteGroup
     var difference:Vector3D = getDifference();
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = (FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2);
-    var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania origin x is FlxG.width / 2
+    var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
     // Update rendering of notes.
     for (note in notes.members)
     {

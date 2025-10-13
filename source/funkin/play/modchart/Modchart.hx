@@ -1254,7 +1254,6 @@ class Modchart
     }
 
     f += xOffset[iCol] * notefieldZoom;
-    if (isNote || isHoldBody) f += getValue('skewx') * fYOffset;
     return f;
   }
 
@@ -1457,6 +1456,7 @@ class Modchart
     {
       f += Math.pow((fYOffset + 2 * getValue('cubicyoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicy');
     }
+    f -= ARROW_SIZE * 2;
     f *= (down ? -1 : 1);
     return f;
   }
@@ -2200,7 +2200,7 @@ class Modchart
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
-      var originPos:Vector3D = new Vector3D(0, yReversedOffset / 2);
+      var originPos:Vector3D = new Vector3D(0, 0);
       var s:Vector3D = pos.subtract(originPos);
       var out:Vector3D = ModchartMath.rotateVec3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
       var newpos:Vector3D = out.add(originPos);
@@ -2218,7 +2218,7 @@ class Modchart
     if (getValue('skewx') != 0)
     {
       skew.x += getValue('skewx');
-      pos.x -= 2 * ARROW_SIZE * getValue('skewx'); // I CANT USE pos.y
+      pos.x += pos.y * getValue('skewx');
     }
     if (getValue('skewy') != 0)
     {
@@ -2233,7 +2233,7 @@ class Modchart
     if (getValue('zoomy') != 0)
     {
       scale.y *= getValue('zoomy');
-      pos.y -= ARROW_SIZE * (getValue('zoomy') - 1);
+      pos.y *= getValue('zoomy');
     }
     if (getValue('zoomz') != 0)
     {
@@ -2245,7 +2245,7 @@ class Modchart
       scale.x *= getValue('zoom');
       pos.x *= getValue('zoom');
       scale.y *= getValue('zoom');
-      pos.y -= ARROW_SIZE * (getValue('zoom') - 1);
+      pos.y *= getValue('zoom');
       scale.z *= getValue('zoom');
       // pos.z *= getValue('zoom');
     }

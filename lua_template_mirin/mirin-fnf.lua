@@ -1165,7 +1165,7 @@ setdefault {
 	100, 'zoomy',
 	100, 'zoomz',
 }
-setdefault {1600, 'grain'}
+setdefault {400, 'grain'}
 local function repeat8(a)
 	return a, a, a, a, a, a, a, a
 end

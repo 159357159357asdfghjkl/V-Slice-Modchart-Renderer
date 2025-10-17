@@ -736,8 +736,7 @@ class Strumline extends FlxSpriteGroup
       var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
       var realofs2 = mods.GetYOffset(conductorInUse, note.strumTime + timeDiff, scrollSpeed, col, note.strumTime + timeDiff) + c2;
       var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-        mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray),
-        mods.GetZPos(col, realofs2, modNumber, xoffArray));
+        mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
       var diff = pos2.subtract(pos);
       var ang = Math.atan2(diff.y, diff.x); // from hex mod i think
       var angOrientX = Math.atan2(diff.y, diff.z);

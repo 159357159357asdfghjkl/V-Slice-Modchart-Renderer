@@ -324,6 +324,8 @@ class SustainTrail extends FlxSprite
       parentStrumline?.mods?.GetZPos(column, yOffset2, pn, xoffArray) ?? 0);
     var diff = pos4.subtract(pos);
     var ang = Math.atan2(diff.y, diff.x);
+    var angOrientX = Math.atan2(diff.y, diff.z);
+    var angOrientY = Math.atan2(diff.z, diff.x);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;
@@ -339,8 +341,8 @@ class SustainTrail extends FlxSprite
       offset.z = pos3.z - strumPos.z;
     }
     var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-    var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true, ang) ?? 0.0,
-      parentStrumline?.mods?.GetRotationY(column, yOffset, true, ang) ?? 0.0,
+    var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true, angOrientX) ?? 0.0,
+      parentStrumline?.mods?.GetRotationY(column, yOffset, true, angOrientY) ?? 0.0,
       (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true, ang, true) ?? 0.0));
     var fullPos:Vector3D = pos.clone();
     var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);

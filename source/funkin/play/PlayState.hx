@@ -685,6 +685,7 @@ class PlayState extends MusicBeatSubState
   }
 
   var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
+  var strumlines:Array<Strumline> = [];
 
   /**
    * Called when the PlayState is switched to.
@@ -2096,12 +2097,14 @@ class PlayState extends MusicBeatSubState
     var noteStyle:NoteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleId);
     if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
 
-    playerStrumline = new Strumline(noteStyle, !isBotPlayMode, 1);
+    playerStrumline = new Strumline(noteStyle, !isBotPlayMode, 2);
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
-    opponentStrumline = new Strumline(noteStyle, false, 0);
+    opponentStrumline = new Strumline(noteStyle, false, 1);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);
     add(opponentStrumline);
+    strumlines.push(playerStrumline);
+    strumlines.push(opponentStrumline);
 
     final cutoutSize = FullScreenScaleMode.gameCutoutSize.x / 2.5;
     // Position the player strumline on the right half of the screen
@@ -2753,12 +2756,9 @@ class PlayState extends MusicBeatSubState
 
   public function ApplyModifiers(str:String, ?pn:Int)
   {
-    if (pn == 2) playerStrumline.mods.fromString(str);
-    else if (pn == 1) opponentStrumline.mods.fromString(str);
-    else if (pn == null)
+    for (strum in strumlines)
     {
-      ApplyModifiers(str, 1);
-      ApplyModifiers(str, 2);
+      if (strum != null && (pn == strum.modNumber || pn == null)) strum.mods.fromString(str);
     }
   }
 

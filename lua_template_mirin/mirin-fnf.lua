@@ -205,7 +205,12 @@ end, 0.9)
 function instant() return 1 end
 function linear(t) return t end
 function inQuad(t) return t * t end
+accelerate = inQuad
 function outQuad(t) return -t * (t - 2) end
+decelerate = outQuad
+function spring(t)
+	return 1 - cos(f * pi * 2.5) / (1 + f * 3)
+end
 function inOutQuad(t)
 	t = t * 2
 	if t < 1 then

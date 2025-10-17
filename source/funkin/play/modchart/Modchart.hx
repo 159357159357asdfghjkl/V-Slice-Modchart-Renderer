@@ -21,6 +21,8 @@ class Modchart
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
 
+  public static final iColsPerPlayer:Int = 4;
+
   function selectTanType(angle:Float, is_cosec:Float)
   {
     if (is_cosec != 0) return ModchartMath.fastCsc(angle, getValue('tanclip'));
@@ -236,6 +238,7 @@ class Modchart
       'bouncezoffset',
       'bouncezperiod',
       'xmode',
+      'xmode2',
       'tiny',
       'tipsyx',
       'tipsyxspeed',
@@ -832,7 +835,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 4; // default = 1, but my computer is lag so i made it less accurate
+    return 4;
   }
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
@@ -845,7 +848,8 @@ class Modchart
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
-      fYOffset *= getValue('cmod') / 200;
+      var bps:Float = getValue('cmod') / 200;
+      fYOffset *= bps;
     }
     var fYAdjust:Float = 0;
     if (fYOffset < 0)
@@ -1066,7 +1070,7 @@ class Modchart
     if (getValue('flip') != 0)
     {
       var iFirstCol:Int = 0;
-      var iLastCol:Int = 3;
+      var iLastCol:Int = iColsPerPlayer - 1;
       var iNewCol:Int = Std.int(ModchartMath.scale(iCol, iFirstCol, iLastCol, iLastCol, iFirstCol));
       var fOldPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fNewPixelOffset:Float = xOffset[iNewCol] * notefieldZoom;
@@ -1078,7 +1082,7 @@ class Modchart
 
     if (getValue('invert') != 0)
     {
-      final iNumCols:Int = 4;
+      final iNumCols:Int = iColsPerPlayer;
       final iNumSides:Int = 1;
       final iNumColsPerSide:Int = Std.int(iNumCols / iNumSides);
       final iSideIndex:Int = Std.int(iCol / iNumColsPerSide);
@@ -1171,8 +1175,19 @@ class Modchart
       f += getValue('bounce') * ARROW_SIZE * 0.5 * fBounceAmt;
     }
 
-    if (getValue('xmode') != 0) f += getValue('xmode') * (pn == 0 ? fYOffset : -fYOffset);
-
+    if (getValue('xmode') != 0)
+    {
+      var middle:Int = Math.floor(iColsPerPlayer / 2);
+      if (iCol > middle - 1) f += getValue('xmode') * -(fYOffset);
+      else
+        f += getValue('xmode') * fYOffset;
+    }
+    if (getValue('xmode2') != 0)
+    {
+      if (pn == 2) f += getValue('xmode2') * -(fYOffset);
+      else
+        f += getValue('xmode2') * fYOffset;
+    }
     if (getValue('tiny') != 0)
     {
       var fTinyPercent:Float = getValue('tiny');
@@ -1186,7 +1201,7 @@ class Modchart
     if (getValue('tantipsyx') != 0) f += getValue('tantipsyx') * CalculateTipsyOffset(time, getValue('tantipsyxspacing'), getValue('tantipsyxspeed'), iCol,
       getValue('tantipsyxoffset'), 1);
 
-    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 1 ? -1 : 1);
+    if (getValue('swap') != 0) f += FlxG.width / 2 * getValue('swap') * (pn == 2 ? -1 : 1);
 
     if (getValue('tornado') != 0)
     {
@@ -1801,7 +1816,7 @@ class Modchart
     {
       fRotation += getValue('twirl$iCol') * fYOffset / 2;
     }
-    if (getValue('orienty') != 0 && !isHoldHead)
+    if (getValue('orienty') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));

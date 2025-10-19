@@ -702,7 +702,7 @@ class PlayState extends MusicBeatSubState
     // TODO: Figure out how to do the flair for charting mode!! I can't figure it out for the love of god. -Zack
     if (!isChartingMode) FlxG.autoPause = false;
     #end
-
+    initLuaSystem();
     if (!assertChartExists()) return;
 
     // TODO: Add something to toggle this on!
@@ -858,7 +858,7 @@ class PlayState extends MusicBeatSubState
       hint.deadZones.push(pauseButton);
     });
     #end
-    initLuaSystem();
+
     luaDebugGroup = new FlxTypedGroup<DebugLuaText>();
     luaDebugGroup.cameras = [camHUD];
     add(luaDebugGroup);
@@ -2088,6 +2088,8 @@ class PlayState extends MusicBeatSubState
     }
   }
 
+  public var itgMode:Bool = false;
+
   /**
      * Constructs the strumlines for each player.
      */
@@ -2097,9 +2099,9 @@ class PlayState extends MusicBeatSubState
     var noteStyle:NoteStyle = NoteStyleRegistry.instance.fetchEntry(noteStyleId);
     if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
 
-    playerStrumline = new Strumline(noteStyle, !isBotPlayMode, 2);
+    playerStrumline = new Strumline(noteStyle, itgMode ? true : !isBotPlayMode, 2);
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
-    opponentStrumline = new Strumline(noteStyle, false, 1);
+    opponentStrumline = new Strumline(noteStyle, itgMode ? true : false, 1);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);
     add(opponentStrumline);
@@ -2329,7 +2331,7 @@ class PlayState extends MusicBeatSubState
     }
 
     playerStrumline.applyNoteData(playerNoteData);
-    opponentStrumline.applyNoteData(opponentNoteData);
+    opponentStrumline.applyNoteData(itgMode ? playerNoteData : opponentNoteData);
   }
 
   function onStrumlineNoteIncoming(noteSprite:NoteSprite):Void

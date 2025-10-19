@@ -47,6 +47,9 @@ class ModchartLuaState
     Lua_helper.add_callback(lua, 'getHealth', function(a:Float) {
       return PlayState.instance.health;
     });
+    Lua_helper.add_callback(lua, 'setITGMode', function(a:Bool) {
+      PlayState.instance.itgMode = a;
+    });
   }
 
   public var closed:Bool = false;

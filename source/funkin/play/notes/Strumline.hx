@@ -1589,9 +1589,10 @@ class Strumline extends FlxSpriteGroup
    */
   function fadeInArrow(index:Int, arrow:StrumlineNote):Void
   {
-    arrow.y -= 10;
-    arrow.alpha = 0.0;
-    FlxTween.tween(arrow, {y: arrow.y + 10, alpha: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    arrow.pos.y -= 10;
+    arrow.diffuse.w = 0.0;
+    FlxTween.tween(arrow.pos, {y: arrow.pos.y + 10}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    FlxTween.tween(arrow.diffuse, {w: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
   }
 
   /**
@@ -1603,7 +1604,8 @@ class Strumline extends FlxSpriteGroup
    */
   public function fadeOutArrow(index:Int, arrow:StrumlineNote):Void
   {
-    FlxTween.tween(arrow, {y: arrow.y - 10, alpha: 0}, 0.5, {ease: FlxEase.circIn});
+    FlxTween.tween(arrow.pos, {y: arrow.pos.y - 10}, 0.5, {ease: FlxEase.circIn});
+    FlxTween.tween(arrow.diffuse, {w: 0}, 0.5, {ease: FlxEase.circIn});
   }
 
   /**

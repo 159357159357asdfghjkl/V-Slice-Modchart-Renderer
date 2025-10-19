@@ -840,17 +840,18 @@ class Modchart
 
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
-    var scrollSpeed:Float = speed;
+    var scrollSpeed:Float = 1;
     var curTime:Float = getTime();
-    scrollSpeed *= getValue('xmod');
+    scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
-    scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
       var bps:Float = getValue('cmod') / 200;
       fYOffset *= bps;
     }
+    scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
+    scrollSpeed *= speed;
     var fYAdjust:Float = 0;
     if (fYOffset < 0)
     {

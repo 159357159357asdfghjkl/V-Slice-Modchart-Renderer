@@ -666,7 +666,7 @@ class Strumline extends FlxSpriteGroup
 
   public function getDifference():Vector3D
   {
-    return new Vector3D(x + NOTE_SPACING * 1.5, y + 2 * NOTE_SPACING); // post add playfield x
+    return new Vector3D(x + NOTE_SPACING * 1.5, y + 2 * NOTE_SPACING * (isDownscroll ? -1 : 1)); // post add playfield x
   }
 
   public function updateNotes():Void

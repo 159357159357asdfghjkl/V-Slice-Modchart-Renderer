@@ -241,7 +241,7 @@ class ModchartMath
           [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
           [-sY, cY * sX, cY * cX, 0],
           [0, 0, 0, 1],
-        ]; // zyx
+        ];
     }
     var m:Array<Array<Float>> = multiply(a, mat);
     return m;

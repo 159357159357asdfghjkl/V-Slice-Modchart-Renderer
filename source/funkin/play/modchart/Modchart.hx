@@ -404,7 +404,8 @@ class Modchart
       'blinkgreen',
       'blinkblue',
       'centeredpath',
-      'zbuffer'
+      'zbuffer',
+      'rotationorder'
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -421,8 +422,7 @@ class Modchart
       'scrollspeedmult',
       'stealthglowred',
       'stealthglowgreen',
-      'stealthglowblue',
-      'rotationorder'
+      'stealthglowblue'
     ];
 
     for (i in 0...Strumline.KEY_COUNT)

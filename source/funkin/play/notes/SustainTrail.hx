@@ -427,6 +427,9 @@ class SustainTrail extends FlxSprite
     var ct:Array<ColorTransform> = [];
     var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
     var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
+    var renderDist:Float = FlxG.height / Constants.PIXELS_PER_MS / (parentStrumline?.scrollSpeed ?? 1);
+    var frontPart:Float = Conductor.instance.getTimeWithDelta() + renderDist * drawsize;
+    var backPart:Float = strumTime + fullSustainLength + (Constants.HIT_WINDOW_MS + renderDist) * drawsizeback;
     for (i in 0...length + 1)
     {
       var a:Int = i * 2;
@@ -440,6 +443,13 @@ class SustainTrail extends FlxSprite
       vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
+      if (time > frontPart || Conductor.instance.getTimeWithDelta() > backPart)
+      {
+        pos1[1] = new Vector3D();
+        pos1[2] = new Vector3D();
+        pos2[1] = new Vector3D();
+        pos2[2] = new Vector3D();
+      }
       ct.push(getShader(pos1[1], pos1[2]));
       ct.push(getShader(pos2[1], pos2[2]));
       if (i == length - 1)
@@ -465,6 +475,13 @@ class SustainTrail extends FlxSprite
     vertices[bottom * 2 + 1] = pos1[0].y;
     vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
     vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
+    if (time > frontPart || Conductor.instance.getTimeWithDelta() > backPart)
+    {
+      pos1[1] = new Vector3D();
+      pos1[2] = new Vector3D();
+      pos2[1] = new Vector3D();
+      pos2[2] = new Vector3D();
+    }
     ct.push(getShader(pos1[1], pos1[2]));
     ct.push(getShader(pos2[1], pos2[2]));
 

@@ -689,7 +689,6 @@ class Strumline extends FlxSpriteGroup
     var songStart:Float = PlayState.instance?.startTimestamp ?? 0.0;
     var hitWindowStart:Float = conductorInUse.songPosition - Constants.HIT_WINDOW_MS;
     var renderWindowStart:Float = conductorInUse.songPosition + renderDistanceMs * (1 + mods.getValue('drawsize'));
-
     for (noteIndex in nextNoteIndex...noteData.length)
     {
       var note:Null<SongNoteData> = noteData[noteIndex];
@@ -702,11 +701,9 @@ class Strumline extends FlxSpriteGroup
         continue;
       }
       if (note.time > renderWindowStart) break; // Note is too far ahead to render
-
       // trace("Strumline: Rendering note at index " + noteIndex + " with strum time " + note.time);
 
       var noteSprite:NoteSprite = buildNoteSprite(note);
-
       if (note.length > 0)
       {
         noteSprite.holdNoteSprite = buildHoldNoteSprite(note);

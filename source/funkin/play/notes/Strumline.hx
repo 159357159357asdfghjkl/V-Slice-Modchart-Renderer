@@ -382,7 +382,15 @@ class Strumline extends FlxSpriteGroup
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
     fullPos = fullPos.add(difference);
     var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
-    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
+    var order:Int = Std.int(mods.getValue('rotationorder'));
+    var rotationOrder:String = 'zyx';
+    if (order == 0) rotationOrder = 'zyx';
+    else if (order == 1) rotationOrder = 'zxy';
+    else if (order == 2) rotationOrder = 'yzx';
+    else if (order == 3) rotationOrder = 'yxz';
+    else if (order == 4) rotationOrder = 'xyz';
+    else if (order == 5) rotationOrder = 'xzy';
+    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
@@ -766,6 +774,13 @@ class Strumline extends FlxSpriteGroup
       note.glow.z *= mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
       note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       note.rotation.copyFrom(rotation);
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) note.rotationOrder = 'zyx';
+      else if (order == 1) note.rotationOrder = 'zxy';
+      else if (order == 2) note.rotationOrder = 'yzx';
+      else if (order == 3) note.rotationOrder = 'yxz';
+      else if (order == 4) note.rotationOrder = 'xyz';
+      else if (order == 5) note.rotationOrder = 'xzy';
       // If the note is miss
       var isOffscreen:Bool = isDownscroll ? note.y > FlxG.height * (1 + mods.getValue('drawsizeback')) : note.y <
         -note.height * (1 + mods.getValue('drawsizeback'));
@@ -781,6 +796,13 @@ class Strumline extends FlxSpriteGroup
       if (holdNote == null || !holdNote.alive) continue;
       holdNote.offsetX = STRUMLINE_SIZE / 2 - holdNote.width / 2;
       holdNote.x = holdNote.y = 0;
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) holdNote.rotationOrder = 'zyx';
+      else if (order == 1) holdNote.rotationOrder = 'zxy';
+      else if (order == 2) holdNote.rotationOrder = 'yzx';
+      else if (order == 3) holdNote.rotationOrder = 'yxz';
+      else if (order == 4) holdNote.rotationOrder = 'xyz';
+      else if (order == 5) holdNote.rotationOrder = 'xzy';
       if (conductorInUse.songPosition > holdNote.strumTime && holdNote.hitNote && !holdNote.missedNote)
       {
         if (isPlayer && !isKeyHeld(holdNote.noteDirection))
@@ -882,6 +904,13 @@ class Strumline extends FlxSpriteGroup
       strumNote.x = strumNote.y = 0;
       strumNote.offsetX = INITIAL_OFFSET + noteStyle.getStrumlineOffsets()[0];
       strumNote.offsetY = noteStyle.getStrumlineOffsets()[1];
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) strumNote.rotationOrder = 'zyx';
+      else if (order == 1) strumNote.rotationOrder = 'zxy';
+      else if (order == 2) strumNote.rotationOrder = 'yzx';
+      else if (order == 3) strumNote.rotationOrder = 'yxz';
+      else if (order == 4) strumNote.rotationOrder = 'xyz';
+      else if (order == 5) strumNote.rotationOrder = 'xzy';
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
       var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
       var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
@@ -923,6 +952,13 @@ class Strumline extends FlxSpriteGroup
       splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
       splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
       splash.x = splash.y = 0;
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) splash.rotationOrder = 'zyx';
+      else if (order == 1) splash.rotationOrder = 'zxy';
+      else if (order == 2) splash.rotationOrder = 'yzx';
+      else if (order == 3) splash.rotationOrder = 'yxz';
+      else if (order == 4) splash.rotationOrder = 'xyz';
+      else if (order == 5) splash.rotationOrder = 'xzy';
       var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
       var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
@@ -960,12 +996,19 @@ class Strumline extends FlxSpriteGroup
     }
     for (cover in noteHoldCovers)
     {
-      if (cover == null || !cover.alive) continue;
+      if (cover == null || !cover.alive || cover.graphic == null) continue;
       var glow = cover.glow;
       var col:Int = cover.column;
       glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
       glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
       cover.x = cover.y = 0;
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) glow.rotationOrder = 'zyx';
+      else if (order == 1) glow.rotationOrder = 'zxy';
+      else if (order == 2) glow.rotationOrder = 'yzx';
+      else if (order == 3) glow.rotationOrder = 'yxz';
+      else if (order == 4) glow.rotationOrder = 'xyz';
+      else if (order == 5) glow.rotationOrder = 'xzy';
       var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
       var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
       cover.currentZValue = zpos;

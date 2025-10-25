@@ -184,7 +184,7 @@ class ModchartMath
     ];
   }
 
-  public static function rotateMatrix(a:Array<Array<Float>>, rX:Float, rY:Float, rZ:Float):Array<Array<Float>>
+  public static function rotateMatrix(a:Array<Array<Float>>, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Array<Array<Float>>
   {
     rX *= Math.PI / 180;
     rY *= Math.PI / 180;
@@ -197,12 +197,52 @@ class ModchartMath
     var cZ:Float = Trigonometric.fastCos(rZ);
     var sZ:Float = Trigonometric.fastSin(rZ);
 
-    var mat:Array<Array<Float>> = [
-      [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
-      [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
-      [-sY, cY * sX, cY * cX, 0],
-      [0, 0, 0, 1],
-    ];
+    var mat:Array<Array<Float>> = switch (order)
+    {
+      case 'zyx': [
+          [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
+          [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
+          [-sY, cY * sX, cY * cX, 0],
+          [0, 0, 0, 1],
+        ];
+      case 'xyz': [
+          [cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0],
+          [sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX - cZ * cX, 0],
+          [-sY, cY * cX, cY * sX, 0],
+          [0, 0, 0, 1]
+        ];
+      case 'zxy': [
+          [cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0],
+          [cX * sZ, cX * cZ, -sX, 0],
+          [-sY * cZ + cY * sX * sZ, sY * sZ + cY * sX * cZ, cY * cX, 0],
+          [0, 0, 0, 1]
+        ];
+      case 'xzy': [
+          [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0],
+          [cY * sZ, cZ, cY * sZ * sX - sY * cX, 0],
+          [-sY * cZ, 0, -sY * sZ * cX + cY * cX, 0],
+          [0, 0, 0, 1]
+        ];
+      case 'yxz': [
+          [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0],
+          [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0],
+          [cX * sY, cX * cY, -sX, 0],
+          [0, 0, 0, 1]
+        ];
+      case 'yzx': [
+          [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0],
+          [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0],
+          [cX * sY, cX * cY, -sX, 0],
+          [0, 0, 0, 1]
+        ];
+      default:
+        [
+          [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
+          [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
+          [-sY, cY * sX, cY * cX, 0],
+          [0, 0, 0, 1],
+        ]; // zyx
+    }
     var m:Array<Array<Float>> = multiply(a, mat);
     return m;
   }

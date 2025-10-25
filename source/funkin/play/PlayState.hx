@@ -902,7 +902,7 @@ class PlayState extends MusicBeatSubState
         {
           for (file in FileSystem.readDirectory(folder))
           {
-            if (file.endsWith('.lua') && file.startsWith(currentChart.songName.toLowerCase()))
+            if (file.endsWith('.lua') && (file.startsWith(currentChart.songName.toLowerCase()) || file.startsWith(currentChart.songName)))
             {
               luaArray.push(new ModchartLuaState(folder + file));
             }

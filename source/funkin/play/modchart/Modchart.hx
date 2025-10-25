@@ -421,7 +421,8 @@ class Modchart
       'scrollspeedmult',
       'stealthglowred',
       'stealthglowgreen',
-      'stealthglowblue'
+      'stealthglowblue',
+      'rotationorder'
     ];
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -2216,13 +2217,10 @@ class Modchart
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {
-      var originPos:Vector3D = new Vector3D(0, 0);
-      var s:Vector3D = pos.subtract(originPos);
-      var out:Vector3D = ModchartMath.rotateVec3(s, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
-      var newpos:Vector3D = out.add(originPos);
-      pos.x = newpos.x;
-      pos.y = newpos.y;
-      pos.z = newpos.z;
+      var out:Vector3D = ModchartMath.rotateVec3(pos, getValue('rotationx') * 100, getValue('rotationy') * 100, getValue('rotationz') * 100);
+      pos.x = out.x;
+      pos.y = out.y;
+      pos.z = out.z;
       rotation.x += getValue('rotationx') * 100;
       rotation.y += getValue('rotationy') * 100;
       rotation.z += getValue('rotationz') * 100;

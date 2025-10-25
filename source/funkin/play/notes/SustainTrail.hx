@@ -114,6 +114,7 @@ class SustainTrail extends FlxSprite
   public var offsetX:Float;
   public var offsetY:Float;
   public var currentZValue:Float = 0;
+  public var rotationOrder:String = 'zyx';
   public var useNew:Bool = false;
 
   /**
@@ -360,7 +361,7 @@ class SustainTrail extends FlxSprite
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
       if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
     }
-    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z);
+    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,

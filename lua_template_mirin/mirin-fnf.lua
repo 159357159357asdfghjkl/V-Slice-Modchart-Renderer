@@ -674,7 +674,7 @@ function func_perframe(self, deny_poptions)
 		if type(persist) == 'number' and self.mode then
 			persist = persist - self[1] - self[2]
 		end
-		func {
+		func_function {
 			self[1] + self[2],
 			function()
 				self[3](getBeat(), disallowed_poptions_perframe_persist)

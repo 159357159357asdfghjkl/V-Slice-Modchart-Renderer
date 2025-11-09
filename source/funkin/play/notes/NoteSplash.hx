@@ -15,14 +15,12 @@ class NoteSplash extends FunkinActor
 
   public var column:Int = 0;
   public var currentZValue:Float = 0;
-  public var defaultScale:Array<Float> = [1, 1];
 
   public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
 
     setupSplashGraphic(noteStyle);
-    defaultScale = [scale.x, scale.y];
     this.animation.onFinish.add(this.onAnimationFinished);
   }
 

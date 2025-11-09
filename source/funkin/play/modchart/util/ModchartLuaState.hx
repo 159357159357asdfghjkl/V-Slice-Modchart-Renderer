@@ -32,6 +32,9 @@ class ModchartLuaState
     Lua_helper.add_callback(lua, "ApplyModifiers", function(str:String, ?pn:Int) {
       PlayState.instance.ApplyModifiers(str, pn);
     });
+    Lua_helper.add_callback(lua, "GetNoteData", function(b:Float, eb:Float, ?pn:Int) {
+      PlayState.instance.GetNoteData(b, eb, pn);
+    });
     Lua_helper.add_callback(lua, 'getTime', function() {
       return Conductor.instance.getTimeWithDelta() / 1000;
     });

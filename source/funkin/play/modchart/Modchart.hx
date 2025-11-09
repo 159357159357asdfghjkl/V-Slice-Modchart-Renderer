@@ -2069,10 +2069,10 @@ class Modchart
     return ModchartMath.scale(fDistFromHalf, 0, 0.5, 1.3, 0);
   }
 
-  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, defaultScale:Array<Float>, isHoldBody:Bool = false, isNote:Bool = false):Array<Float>
+  public function GetScale(iCol:Int, fYOffset:Float, pn:Int, isHoldBody:Bool = false, isNote:Bool = false):Array<Float>
   {
-    var x:Float = defaultScale[0];
-    var y:Float = defaultScale[1];
+    var x:Float = 1;
+    var y:Float = 1;
     var z:Float = 1;
 
     x *= getValue('scale') * getValue('scale$iCol') * getValue('scalex$iCol') * getValue('scalex');

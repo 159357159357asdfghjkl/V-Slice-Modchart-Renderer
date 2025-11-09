@@ -110,7 +110,6 @@ class SustainTrail extends FlxSprite
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
 
-  public var defaultScale:Array<Float> = [1, 1];
   public var offsetX:Float;
   public var offsetY:Float;
   public var currentZValue:Float = 0;
@@ -133,7 +132,6 @@ class SustainTrail extends FlxSprite
     this.noteDirection = noteDirection;
 
     setupHoldNoteGraphic(noteStyle);
-    defaultScale = [scale.x, scale.y];
     this.useNew = useNew;
     noteStyleOffsets = noteStyle.getHoldNoteOffsets();
 
@@ -349,7 +347,7 @@ class SustainTrail extends FlxSprite
     var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
     var difference:Vector3D = (parentStrumline != null ? parentStrumline.getDifference() : new Vector3D());
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var scale:Array<Float> = parentStrumline?.mods?.GetScale(column, yOffset, pn, defaultScale) ?? [1, 1, 0, 0, 1];
+    var scale:Array<Float> = parentStrumline?.mods?.GetScale(column, yOffset, pn) ?? [1, 1, 0, 0, 1];
     var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, pn) ?? 1;
     var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
@@ -368,7 +366,7 @@ class SustainTrail extends FlxSprite
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
-    var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, parentStrumline?.defaultHeight ?? 0.0, false) ?? 0.0;
+    var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false) ?? 0.0;
     var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset, false, true) ?? 1.0;
     var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
     var diffuses:Vector3D = new Vector3D(parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red') ?? 1,

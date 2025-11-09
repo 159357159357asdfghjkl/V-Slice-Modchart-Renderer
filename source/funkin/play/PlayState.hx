@@ -2764,6 +2764,14 @@ class PlayState extends MusicBeatSubState
     }
   }
 
+  public function GetNoteData(beat:Float, endBeat:Float, pn:Int = 1)
+  {
+    for (strum in strumlines)
+    {
+      if (strum != null && (pn == strum.modNumber)) strum.getNoteData(beat, endBeat);
+    }
+  }
+
   /**
      * PreciseInputEvents are put into a queue between update() calls,
      * and then processed here.

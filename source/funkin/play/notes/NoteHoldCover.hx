@@ -20,7 +20,6 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
   public var column:Int = 0;
-  public var defaultScale:Array<Float> = [1, 1];
   public var currentZValue:Float = 0;
 
   public function new(noteStyle:NoteStyle)
@@ -28,7 +27,6 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
     super(0, 0);
 
     setupHoldNoteCover(noteStyle);
-    defaultScale = [scale.x, scale.y];
   }
 
   /**

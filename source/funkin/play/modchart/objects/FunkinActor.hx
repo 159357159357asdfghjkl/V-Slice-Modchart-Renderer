@@ -17,16 +17,22 @@ class FunkinActor extends FunkinSprite
 {
   public var skew(default, null):FlxPoint = FlxPoint.get();
   public var pos:Vector3D = new Vector3D();
-  public var offsetX:Float = 0;
-  public var offsetY:Float = 0;
   public var rotation:Vector3D = new Vector3D();
   public var SCALE:Vector3D = new Vector3D(1, 1);
-  public var z:Float = 0;
   public var originVec:Vector3D;
   public var diffuse:Vector3D = new Vector3D(1, 1, 1, 1);
   public var glow:Vector3D = new Vector3D(1, 1, 1, 0);
   public var _skew:Float = 0;
   public var rotationOrder:String = 'zyx';
+  public var basePos:Vector3D = new Vector3D(); // for scripting
+  public var baseRotation:Vector3D = new Vector3D(); // for scripting
+  public var baseSkew:Vector3D = new Vector3D(); // for scripting
+  public var baseScale:Vector3D = new Vector3D(1, 1, 1); // for scripting
+  public var baseZoom:Vector3D = new Vector3D(1, 1, 1); // for scripting
+  public var baseDiffuse:Vector3D = new Vector3D(1, 1, 1, 1); // for scripting
+  public var fov:Float = 45;
+  public var offsetX:Float = 0;
+  public var offsetY:Float = 0;
 
   var vertices:Vector<Float> = new Vector<Float>();
   var indices:Vector<Int> = new Vector<Int>();
@@ -50,11 +56,14 @@ class FunkinActor extends FunkinSprite
 
   function getPos(vec:Vector3D)
   {
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix(pos.x, pos.y, pos.z);
-    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scale:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, SCALE.x, SCALE.y, SCALE.z);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, skew.x, skew.y);
-    var persp:Vector3D = ModchartMath.initPerspective(vec, skew, 45, FlxG.width, FlxG.height,
+    var m:Array<Array<Float>> = ModchartMath.translateMatrix((pos.x + basePos.x) * baseZoom.x, (pos.y + basePos.y) * baseZoom.y,
+      (pos.z + basePos.z) * baseZoom.z);
+    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x + baseRotation.x, rotation.y + baseRotation.y, rotation.z + baseRotation.z,
+      rotationOrder);
+    var scale:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, SCALE.x * baseScale.x * baseZoom.x, SCALE.y * baseScale.y * baseZoom.y,
+      SCALE.z * baseScale.z * baseZoom.z);
+    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, skew.x + baseSkew.x, skew.y + baseSkew.y);
+    var persp:Vector3D = ModchartMath.initPerspective(vec, skew, fov, FlxG.width, FlxG.height,
       ModchartMath.scale(_skew, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     if (persp == null) return null;
     return persp;
@@ -110,10 +119,10 @@ class FunkinActor extends FunkinSprite
         indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
         var colorTransform = new ColorTransform();
-        colorTransform.redMultiplier = diffuse.x;
-        colorTransform.greenMultiplier = diffuse.y;
-        colorTransform.blueMultiplier = diffuse.z;
-        colorTransform.alphaMultiplier = diffuse.w;
+        colorTransform.redMultiplier = diffuse.x * baseDiffuse.x;
+        colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y;
+        colorTransform.blueMultiplier = diffuse.z * baseDiffuse.z;
+        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w;
         colorTransform.redOffset = glow.x * 255 * glow.w;
         colorTransform.greenOffset = glow.y * 255 * glow.w;
         colorTransform.blueOffset = glow.z * 255 * glow.w;

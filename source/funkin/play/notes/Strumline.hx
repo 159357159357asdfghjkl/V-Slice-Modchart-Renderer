@@ -279,6 +279,12 @@ class Strumline extends FlxSpriteGroup
 
     defaultHeight = height;
     mods = new Modchart();
+    xoffArray = [
+      -NOTE_SPACING * 1.5 * (noteSpacingScale * strumlineScale.x),
+      -NOTE_SPACING / 2 * (noteSpacingScale * strumlineScale.x),
+      NOTE_SPACING / 2 * (noteSpacingScale * strumlineScale.x),
+      NOTE_SPACING * 1.5 * (noteSpacingScale * strumlineScale.x)
+    ];
     // This MUST be true for children to update!
     this.active = true;
   }
@@ -942,55 +948,7 @@ class Strumline extends FlxSpriteGroup
       fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
       strumNote.diffuse.w = fBaseAlpha;
     }
-    for (splash in noteSplashes)
-    {
-      if (splash == null || !splash.alive) continue;
-      var col:Int = splash.column;
-      splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
-      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
-      splash.x = splash.y = 0;
-      var order:Int = Std.int(mods.getValue('rotationorder'));
-      if (order == 0) splash.rotationOrder = 'zyx';
-      else if (order == 1) splash.rotationOrder = 'zxy';
-      else if (order == 2) splash.rotationOrder = 'yzx';
-      else if (order == 3) splash.rotationOrder = 'yxz';
-      else if (order == 4) splash.rotationOrder = 'xyz';
-      else if (order == 5) splash.rotationOrder = 'xzy';
-      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
-      var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
-      var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
-      var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
-      var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
-      var zoom:Float = mods.GetZoom(col, c2, modNumber);
-      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-      var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
-      var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-        mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-      var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
-      var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
-        mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-      var diff = pos2.subtract(pos3);
-      var ang = Math.atan2(diff.y, diff.x);
-      var angOrientX = Math.atan2(diff.y, diff.z);
-      var angOrientY = Math.atan2(diff.z, diff.x);
-      var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
-      var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-      var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
-        mods.ReceptorGetRotationZ(col, ang));
-      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
-      splash._skew = skewPos.z;
-      splash.rotation.copyFrom(rotation);
-      splash.SCALE.x = splash.scale.x * scalePos.x;
-      splash.SCALE.y = splash.scale.y * scalePos.y;
-      splash.SCALE.z = scalePos.z;
-      splash.skew.x = skewPos.x;
-      splash.skew.y = skewPos.y;
-      splash.pos.copyFrom(pos.add(difference));
-      splash.originVec = zOrigin;
-      var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
-      fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-      splash.diffuse.w = fBaseAlpha;
-    }
+    updateSplash();
     for (cover in noteHoldCovers)
     {
       if (cover == null || !cover.alive || cover.graphic == null) continue;
@@ -1062,10 +1020,66 @@ class Strumline extends FlxSpriteGroup
 
       if (strumlineNotes.members.length > 1) strumlineNotes.members.insertionSort(compareStrumlineNotes.bind(FlxSort.ASCENDING));
 
-      if (noteSplashes.members.length > 1) noteSplashes.members.insertionSort(compareNoteSplashes.bind(FlxSort.ASCENDING));
-
       if (noteHoldCovers.members.length > 1) noteHoldCovers.members.insertionSort(compareNoteHoldCovers.bind(FlxSort.ASCENDING));
     }
+  }
+
+  function updateSplash()
+  {
+    var difference:Vector3D = getDifference();
+    var timeDiff:Float = mods.baseHoldSize;
+    var reversedOff:Float = (FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2);
+    var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
+    for (splash in noteSplashes)
+    {
+      if (splash == null || !splash.alive) continue;
+      var col:Int = splash.column;
+      splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
+      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
+      splash.x = splash.y = 0;
+      var order:Int = Std.int(mods.getValue('rotationorder'));
+      if (order == 0) splash.rotationOrder = 'zyx';
+      else if (order == 1) splash.rotationOrder = 'zxy';
+      else if (order == 2) splash.rotationOrder = 'yzx';
+      else if (order == 3) splash.rotationOrder = 'yxz';
+      else if (order == 4) splash.rotationOrder = 'xyz';
+      else if (order == 5) splash.rotationOrder = 'xzy';
+      var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
+      var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
+      var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
+      var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
+      var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
+      var zoom:Float = mods.GetZoom(col, c2, modNumber);
+      var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+      var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
+      var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
+        mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
+      var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
+      var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
+        mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
+      var diff = pos2.subtract(pos3);
+      var ang = Math.atan2(diff.y, diff.x);
+      var angOrientX = Math.atan2(diff.y, diff.z);
+      var angOrientY = Math.atan2(diff.z, diff.x);
+      var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4] * zoom);
+      var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+      var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
+        mods.ReceptorGetRotationZ(col, ang));
+      mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      splash._skew = skewPos.z;
+      splash.rotation.copyFrom(rotation);
+      splash.SCALE.x = splash.scale.x * scalePos.x;
+      splash.SCALE.y = splash.scale.y * scalePos.y;
+      splash.SCALE.z = scalePos.z;
+      splash.skew.x = skewPos.x;
+      splash.skew.y = skewPos.y;
+      splash.pos.copyFrom(pos.add(difference));
+      splash.originVec = zOrigin;
+      var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
+      fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
+      splash.diffuse.w = fBaseAlpha;
+    }
+    if (noteSplashes.members.length > 1) noteSplashes.members.insertionSort(compareNoteSplashes.bind(FlxSort.ASCENDING));
   }
 
   /**
@@ -1360,6 +1374,7 @@ class Strumline extends FlxSpriteGroup
       splash.y = this.y;
       splash.y -= INITIAL_OFFSET;
       splash.y += noteStyle.getSplashOffsets()[1] * splash.scale.y;
+      updateSplash();
     }
   }
 

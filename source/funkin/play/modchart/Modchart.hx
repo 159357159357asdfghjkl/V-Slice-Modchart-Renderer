@@ -860,7 +860,7 @@ class Modchart
     }
     if (getValue('boost') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT;
+      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost') * (fNewYOffset - fYOffset);
 
@@ -869,7 +869,7 @@ class Modchart
     }
     if (getValue('brake') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT;
+      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
       var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake') * (fNewYOffset - fYOffset);
@@ -878,7 +878,7 @@ class Modchart
     }
     if (getValue('boost$iCol') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT;
+      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost$iCol') * (fNewYOffset - fYOffset);
 
@@ -887,7 +887,7 @@ class Modchart
     }
     if (getValue('brake$iCol') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT;
+      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
       var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake$iCol') * (fNewYOffset - fYOffset);
@@ -2212,6 +2212,8 @@ class Modchart
   // control full playfield
   // it's like Player.cpp
 
+  public var tilt:Float = 0;
+
   @:nullSafety
   public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float, iCol:Int):Void
   {
@@ -2309,6 +2311,7 @@ class Modchart
     scale.y *= zoom;
     skew.z = fSkew;
     rotation.x += tilt_degrees;
+    tilt = fTilt;
   }
 
   public var opened:Bool = false;

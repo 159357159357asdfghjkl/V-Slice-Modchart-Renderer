@@ -6,6 +6,8 @@ some modchart codes are from stepmania / mirin template / Schmovin(arrowpath sup
 
 Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 
+WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / Sin/Cos/TanClip / SpiralHolds / Zoomx/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have))
+
 # Friday Night Funkin'
 
 Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for Ludum Dare 47.

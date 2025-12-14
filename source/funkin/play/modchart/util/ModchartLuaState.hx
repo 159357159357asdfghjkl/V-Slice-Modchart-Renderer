@@ -9,50 +9,72 @@ import flixel.util.FlxColor;
 
 using StringTools;
 
+typedef Property =
+{
+  var get:State->Int;
+  var set:State->Int;
+}
+
 // from psych engine
 class ModchartLuaState
 {
-  public var lua:State = null;
+  public var L:State = null;
+
+  static var _L:State;
 
   public function new(script:String)
   {
-    lua = LuaL.newstate();
-    LuaL.openlibs(lua);
-    Lua.init_callbacks(lua);
-    var result:Dynamic = LuaL.dofile(lua, script);
-    var resultStr:String = Lua.tostring(lua, result);
+    L = LuaL.newstate();
+    _L = L;
+    LuaL.openlibs(L);
+    Lua.init_callbacks(L);
+    var result:Dynamic = LuaL.dofile(L, script);
+    var resultStr:String = Lua.tostring(L, result);
     if (resultStr != null && result != 0)
     {
       #if windows
       lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
       #end
-      lua = null;
+      L = null;
       return;
     }
-    Lua_helper.add_callback(lua, "ApplyModifiers", function(str:String, ?pn:Int) {
+    Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int) {
       PlayState.instance.ApplyModifiers(str, pn);
     });
-    Lua_helper.add_callback(lua, "GetNoteData", function(b:Float, eb:Float, ?pn:Int) {
-      PlayState.instance.GetNoteData(b, eb, pn);
+    Lua_helper.add_callback(L, "GetNoteData", function(b:Float, eb:Float, ?pn:Int) {
+      return PlayState.instance.GetNoteData(b, eb, pn);
     });
-    Lua_helper.add_callback(lua, 'getTime', function() {
+    Lua_helper.add_callback(L, 'getTime', function() {
       return Conductor.instance.getTimeWithDelta() / 1000;
     });
-    Lua_helper.add_callback(lua, 'getBeat', function() {
+    Lua_helper.add_callback(L, 'getBeat', function() {
       return Conductor.instance.currentBeatTime;
     });
-    Lua_helper.add_callback(lua, 'getTimeFromBeat', function(a:Float) {
+    Lua_helper.add_callback(L, 'getTimeFromBeat', function(a:Float) {
       return Conductor.instance.getBeatTimeInMs(a) / 1000;
     });
-    Lua_helper.add_callback(lua, 'setHealth', function(a:Float) {
+    Lua_helper.add_callback(L, 'setHealth', function(a:Float) {
       PlayState.instance.health = a;
     });
-    Lua_helper.add_callback(lua, 'getHealth', function(a:Float) {
+    Lua_helper.add_callback(L, 'getHealth', function(a:Float) {
       return PlayState.instance.health;
     });
-    Lua_helper.add_callback(lua, 'setITGMode', function(a:Bool) {
+    Lua_helper.add_callback(L, 'setITGMode', function(a:Bool) {
       PlayState.instance.itgMode = a;
     });
+  }
+
+  public static function createClass(name:String, methods:Map<String, cpp.Callable<StatePointer->Int>>)
+  {
+    var L:State = get();
+    Lua.newtable(L);
+    Lua.pushstring(L, name);
+    Lua.settable(L, Lua.LUA_GLOBALSINDEX);
+    for (funcname => func in methods)
+    {
+      Lua.pushcfunction(L, func);
+      Lua.setfield(L, Lua.gettop(L), funcname);
+    }
   }
 
   public var closed:Bool = false;
@@ -62,9 +84,9 @@ class ModchartLuaState
     if (closed) return null;
     try
     {
-      if (lua == null) return null;
-      Lua.getglobal(lua, func);
-      var type:Int = Lua.type(lua, -1);
+      if (L == null) return null;
+      Lua.getglobal(L, func);
+      var type:Int = Lua.type(L, -1);
       if (type != Lua.LUA_TFUNCTION)
       {
         var a:String = 'unknown';
@@ -83,16 +105,16 @@ class ModchartLuaState
         }
         if (type <= Lua.LUA_TNIL) a = "nil";
         if (type > Lua.LUA_TNIL) luaTrace("ERROR (" + func + "): attempt to call a " + a + " value", FlxColor.RED);
-        Lua.pop(lua, 1);
+        Lua.pop(L, 1);
         return null;
       }
       for (arg in args)
-        Convert.toLua(lua, arg);
-      var status:Int = Lua.pcall(lua, args.length, 1, 0);
+        Convert.toLua(L, arg);
+      var status:Int = Lua.pcall(L, args.length, 1, 0);
       if (status != Lua.LUA_OK)
       {
-        var v:String = Lua.tostring(lua, -1);
-        Lua.pop(lua, 1);
+        var v:String = Lua.tostring(L, -1);
+        Lua.pop(L, 1);
         if (v != null) v = v.trim();
         if (v == null || v == "")
         {
@@ -111,9 +133,9 @@ class ModchartLuaState
         luaTrace("ERROR (" + func + "): " + v, FlxColor.RED);
         return null;
       }
-      var result:Dynamic = cast Convert.fromLua(lua, -1);
+      var result:Dynamic = cast Convert.fromLua(L, -1);
       if (result == null) result = null;
-      Lua.pop(lua, 1);
+      Lua.pop(L, 1);
       return result;
     }
     catch (e:Dynamic)
@@ -129,15 +151,35 @@ class ModchartLuaState
     PlayState.instance.addTextToDebug(text, color);
   }
 
-  public function stop()
+  public static function get()
+  {
+    var pRet:State = null;
+    if (_L != null)
+    {
+      pRet = Lua.newthread(_L);
+      var iLast:Int = Lua.objlen(_L, 1);
+      Lua.rawseti(_L, 1, iLast + 1);
+    }
+    return pRet;
+  }
+
+  public function stop(?classesToRemove:Array<String>)
   {
     closed = true;
-    if (lua == null)
+    if (L == null)
     {
       return;
     }
-    Lua.close(lua);
-    lua = null;
+    if (classesToRemove != null && classesToRemove.length > 0)
+    {
+      for (sName in classesToRemove)
+      {
+        Lua.pushnil(L);
+        Lua.setglobal(L, sName);
+      }
+    }
+    Lua.close(L);
+    L = null;
   }
 }
 

@@ -114,6 +114,7 @@ class SustainTrail extends FlxSprite
   public var offsetY:Float;
   public var currentZValue:Float = 0;
   public var rotationOrder:String = 'zyx';
+  public var fov:Float = 45;
   public var useNew:Bool = false;
 
   /**
@@ -362,7 +363,7 @@ class SustainTrail extends FlxSprite
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
+    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, fov, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
@@ -427,7 +428,7 @@ class SustainTrail extends FlxSprite
     var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
     var renderDist:Float = FlxG.height / Constants.PIXELS_PER_MS / (parentStrumline?.scrollSpeed ?? 1);
     var frontPart:Float = Conductor.instance.getTimeWithDelta() + renderDist * drawsize;
-    var backPart:Float = strumTime + fullSustainLength + (Constants.HIT_WINDOW_MS + renderDist) * drawsizeback;
+    var backPart:Float = Conductor.instance.getTimeWithDelta() - (Constants.HIT_WINDOW_MS + 250) * drawsizeback;
     for (i in 0...length + 1)
     {
       var a:Int = i * 2;
@@ -441,7 +442,7 @@ class SustainTrail extends FlxSprite
       vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
-      if (time > frontPart || Conductor.instance.getTimeWithDelta() > backPart)
+      if (time > frontPart || time < backPart)
       {
         pos1[1] = new Vector3D();
         pos1[2] = new Vector3D();

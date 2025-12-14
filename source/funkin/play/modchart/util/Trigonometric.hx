@@ -6,7 +6,7 @@ package funkin.play.modchart.util;
 class Trigonometric
 {
   // 1 : Fast Trigonometrics
-  static final PI:Float = Math.PI;
+  static final PI:Float = 3.141592653589793;
   static var sine_table_size:Int = 1024;
   static var sine_index_mod:Int = sine_table_size * 2;
   static var sine_table_index_mult:Float = sine_index_mod / (PI * 2);

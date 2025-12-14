@@ -600,6 +600,7 @@ class Project extends HXProject
     this.window.vsync = false;
     // force / allow high DPI
     this.window.allowHighDPI = true;
+    this.window.depthBuffer = true;
 
     if (isWeb())
     {

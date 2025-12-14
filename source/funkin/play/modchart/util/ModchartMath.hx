@@ -26,9 +26,11 @@ class ModchartMath
 
   public static final MAX_NOTE_ROW:Int = 1 << 30;
 
-  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float // same as FlxMath.remapToRange
+  // 将x在原区间的位置转移至新区间并进行拉伸保持在新区间中的位置一样
+  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float
     return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
 
+  // 将x限制在一个区间内
   inline public static function clamp(n:Float, l:Float, h:Float):Float
   {
     if (n > h) n = h;
@@ -50,9 +52,11 @@ class ModchartMath
       return Math.ceil(x);
   }
 
+  // scale(x, 0, 1, l, h) 可用于投射归一化坐标到世界，也可以作为缓动
   inline public static function lerp(x:Float, l:Float, h:Float):Float
     return x * (h - l) + l;
 
+  // 计算余数，即取模
   inline public static function mod(x:Float, y:Float):Float
     return x - Math.floor(x / y) * y;
 
@@ -318,7 +322,8 @@ class ModchartMath
           [0, -2 / (t - b), 0, 0],
           [0, 0, -2 / (zf - zn), 0],
           [-(r + l) / (r - l), -(t + b) / (t - b), -(zf + zn) / (zf - zn), 1]
-        ]
+        ],
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
       ];
     }
     else

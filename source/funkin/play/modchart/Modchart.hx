@@ -839,9 +839,10 @@ class Modchart
     return 4;
   }
 
+  public var scrollSpeed:Float = 1;
+
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
-    var scrollSpeed:Float = 1;
     var curTime:Float = getTime();
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
@@ -2211,7 +2212,6 @@ class Modchart
 
   // control full playfield
   // it's like Player.cpp
-
   public var tilt:Float = 0;
 
   @:nullSafety

@@ -685,7 +685,8 @@ class PlayState extends MusicBeatSubState
   }
 
   var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
-  var strumlines:Array<Strumline> = [];
+
+  public var strumlines:Array<Strumline> = [];
 
   /**
    * Called when the PlayState is switched to.
@@ -2764,12 +2765,17 @@ class PlayState extends MusicBeatSubState
     }
   }
 
-  public function GetNoteData(beat:Float, endBeat:Float, pn:Int = 1)
+  public function GetNoteData(beat:Float, endBeat:Float, pn:Int = 1):Null<Array<Array<Float>>>
   {
-    for (strum in strumlines)
+    if (strumlines != null) for (strum in strumlines)
     {
-      if (strum != null && (pn == strum.modNumber)) strum.getNoteData(beat, endBeat);
+      if (strum != null && (pn == strum.modNumber))
+      {
+        trace('Get a notedata.');
+        return strum.getNoteData(beat, endBeat);
+      }
     }
+    return null;
   }
 
   /**

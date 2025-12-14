@@ -1,3 +1,5 @@
+### OPENFL'S DRAW PATH IS TOO LAG! HOW TO CHANGE
+
 # NotITG FNF ver
 
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port

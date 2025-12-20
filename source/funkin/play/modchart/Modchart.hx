@@ -817,7 +817,11 @@ class Modchart
     {
       var speed:Float = speedList.get(name);
       var current:Float = getValue(name);
-      if (current == level) continue;
+      if (current == level)
+      {
+        preModList.remove(name);
+        continue;
+      }
       if (speed < 0)
       {
         modList.set(name, level);
@@ -1781,7 +1785,7 @@ class Modchart
     {
       fRotation += getValue('roll$iCol') * fYOffset / 2;
     }
-    if (getValue('orientx') != 0 && !isHoldHead)
+    if (getValue('orientx') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
@@ -2312,6 +2316,32 @@ class Modchart
     skew.z = fSkew;
     rotation.x += tilt_degrees;
     tilt = fTilt;
+  }
+
+  // for field scripting
+  // in NotITG, it's like "P[1]:zoomx(0.8)"
+
+  @:nullSafety
+  public function modifyPosByValue(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, iCol:Int, inputRotation:Vector3D, inputSkew:Vector3D,
+      inputZoom:Vector3D):Void
+  {
+    // playfield rotation
+    var out:Vector3D = ModchartMath.rotateVec3(pos, inputRotation.x, inputRotation.y, inputRotation.z);
+    pos.copyFrom(out);
+    rotation.incrementBy(inputRotation);
+
+    // playfield skew
+    skew.incrementBy(inputSkew);
+    pos.x += pos.y * getValue('skewx');
+    pos.y += pos.x * getValue('skewy');
+
+    // playfield zoom
+    scale.x *= inputZoom.x;
+    scale.y *= inputZoom.y;
+    scale.z *= inputZoom.z;
+    pos.x *= inputZoom.x;
+    pos.y *= inputZoom.y;
+    // pos.z *= inputZoom.z;
   }
 
   public var opened:Bool = false;

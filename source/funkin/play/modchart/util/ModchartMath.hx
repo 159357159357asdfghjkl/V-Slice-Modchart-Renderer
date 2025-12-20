@@ -108,9 +108,7 @@ class ModchartMath
     var a:Vector3D = transform(transform(vec, modelView), projection);
     if (a.w != 0.0)
     {
-      a.x /= a.w;
-      a.y /= a.w;
-      a.z /= a.w;
+      a.project();
       var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight);
       return b;
     }

@@ -350,9 +350,18 @@ class SustainTrail extends FlxSprite
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
     var scale:Array<Float> = parentStrumline?.mods?.GetScale(column, yOffset, pn) ?? [1, 1, 0, 0, 1];
     var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, pn) ?? 1;
-    var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
+    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    if (parentStrumline != null) parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+    if (parentStrumline != null)
+    {
+      parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+      var newZoom:Vector3D = parentStrumline.zoom.clone();
+      newZoom.x *= parentStrumline.zoom2.x;
+      newZoom.y *= parentStrumline.zoom2.y;
+      newZoom.z *= parentStrumline.zoom2.z;
+      parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
+        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
+    }
     fullPos = fullPos.add(difference);
     var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     if (parentStrumline != null)
@@ -428,7 +437,7 @@ class SustainTrail extends FlxSprite
     var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
     var renderDist:Float = FlxG.height / Constants.PIXELS_PER_MS / (parentStrumline?.scrollSpeed ?? 1);
     var frontPart:Float = Conductor.instance.getTimeWithDelta() + renderDist * drawsize;
-    var backPart:Float = Conductor.instance.getTimeWithDelta() - (Constants.HIT_WINDOW_MS + 250) * drawsizeback;
+    var backPart:Float = Conductor.instance.getTimeWithDelta() - (Constants.HIT_WINDOW_MS) * drawsizeback;
     for (i in 0...length + 1)
     {
       var a:Int = i * 2;

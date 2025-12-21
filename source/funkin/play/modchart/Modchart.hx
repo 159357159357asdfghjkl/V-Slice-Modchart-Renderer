@@ -21,8 +21,6 @@ class Modchart
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
 
-  public static final iColsPerPlayer:Int = 4;
-
   function selectTanType(angle:Float, is_cosec:Float)
   {
     if (is_cosec != 0) return ModchartMath.fastCsc(angle, getValue('tanclip'));
@@ -1077,7 +1075,7 @@ class Modchart
     if (getValue('flip') != 0)
     {
       var iFirstCol:Int = 0;
-      var iLastCol:Int = iColsPerPlayer - 1;
+      var iLastCol:Int = Strumline.KEY_COUNT - 1;
       var iNewCol:Int = Std.int(ModchartMath.scale(iCol, iFirstCol, iLastCol, iLastCol, iFirstCol));
       var fOldPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fNewPixelOffset:Float = xOffset[iNewCol] * notefieldZoom;
@@ -1089,7 +1087,7 @@ class Modchart
 
     if (getValue('invert') != 0)
     {
-      final iNumCols:Int = iColsPerPlayer;
+      final iNumCols:Int = Strumline.KEY_COUNT;
       final iNumSides:Int = 1;
       final iNumColsPerSide:Int = Std.int(iNumCols / iNumSides);
       final iSideIndex:Int = Std.int(iCol / iNumColsPerSide);
@@ -1184,7 +1182,7 @@ class Modchart
 
     if (getValue('xmode') != 0)
     {
-      var middle:Int = Math.floor(iColsPerPlayer / 2);
+      var middle:Int = Math.floor(Strumline.KEY_COUNT / 2);
       if (iCol > middle - 1) f += getValue('xmode') * -(fYOffset);
       else
         f += getValue('xmode') * fYOffset;

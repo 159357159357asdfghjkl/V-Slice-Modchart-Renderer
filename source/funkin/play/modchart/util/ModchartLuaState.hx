@@ -62,6 +62,9 @@ class ModchartLuaState
     Lua_helper.add_callback(L, 'setITGMode', function(a:Bool) {
       PlayState.instance.itgMode = a;
     });
+    Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
+      luaTrace(a, color);
+    });
   }
 
   public static function createClass(name:String, methods:Map<String, cpp.Callable<StatePointer->Int>>)

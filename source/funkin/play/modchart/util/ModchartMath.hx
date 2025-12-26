@@ -108,8 +108,8 @@ class ModchartMath
     var a:Vector3D = transform(transform(vec, modelView), projection);
     if (a.w != 0.0)
     {
-      a.project();
-      var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight);
+      a.project(); // perspective projection !
+      var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight); // from ndc to screen
       return b;
     }
     return null;
@@ -304,9 +304,10 @@ class ModchartMath
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
 
+  // field of view, screen width, screen height, origin x, origin y
   private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Array<Array<Float>>>
   {
-    if (fovDegrees == 0)
+    if (fovDegrees == 0) // ortho mode
     {
       var l:Float = 0;
       var r:Float = fWidth;
@@ -324,7 +325,7 @@ class ModchartMath
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
       ];
     }
-    else
+    else // frustum mode
     {
       clamp(fovDegrees, 0.1, 179.9);
       var fovRadians:Float = fovDegrees / 180 * Math.PI;

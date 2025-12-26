@@ -745,7 +745,7 @@ class Strumline extends FlxSpriteGroup
       // If the note is miss
       var isOffscreen:Bool = isDownscroll ? this.y + note.pos.y > FlxG.height * (1 + mods.getValue('drawsizeback')) : this.y
         + note.pos.y < -note.height * (1 + mods.getValue('drawsizeback'));
-      if (note.handledMiss && isOffscreen) // i found that note will never handle miss, fuck
+      if ((note.isBad || note.handledMiss) && isOffscreen) // i found that note will never handle miss, fuck
       {
         killNote(note);
       }
@@ -1318,6 +1318,7 @@ class Strumline extends FlxSpriteGroup
     {
       note.alpha = 0.5;
       note.desaturate();
+      note.isBad = true;
     }
     if (note.holdNoteSprite != null)
     {

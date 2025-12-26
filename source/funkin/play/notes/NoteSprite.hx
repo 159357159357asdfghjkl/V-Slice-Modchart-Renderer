@@ -147,6 +147,8 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
    */
   public var handledMiss:Bool;
 
+  public var isBad:Bool = false;
+
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {
     super(0, -9999);

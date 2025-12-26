@@ -54,9 +54,24 @@ class Modchart
     return Math.PI * (y_offset + (1.0 * offset)) / ((ARROW_SIZE + ((period + nITGPeriod) * ARROW_SIZE)));
   }
 
+  var totalElapsed:Float = 0;
+
   function getTime():Float
   {
-    return Conductor.instance.getTimeWithDelta() / 1000;
+    var modtimer:Int = Std.int(getValue('modtimer'));
+    var offset:Float = getValue('modtimeroffset');
+    var mult:Float = 1 + getValue('modtimermult');
+    switch (modtimer)
+    {
+      case 0:
+        return (totalElapsed + offset) * mult;
+      case 2:
+        return (getBeat() + offset) * mult;
+      case 1:
+        return (Conductor.instance.getTimeWithDelta() / 1000 + offset) * mult;
+      default:
+        return totalElapsed + offset;
+    }
   }
 
   function getBeat():Float
@@ -403,6 +418,8 @@ class Modchart
       'blinkblue',
       'centeredpath',
       'zbuffer',
+      'modtimermult',
+      'modtimeroffset',
       'rotationorder'
     ];
     var ONE:Array<String> = [
@@ -420,7 +437,8 @@ class Modchart
       'scrollspeedmult',
       'stealthglowred',
       'stealthglowgreen',
-      'stealthglowblue'
+      'stealthglowblue',
+      'modtimer'
     ];
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -811,6 +829,7 @@ class Modchart
 
   public function update():Void
   {
+    totalElapsed += FlxG.elapsed;
     for (name => level in preModList)
     {
       var speed:Float = speedList.get(name);

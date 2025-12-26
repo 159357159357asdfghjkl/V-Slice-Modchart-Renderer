@@ -2,13 +2,15 @@
 
 # NotITG FNF ver
 
+An avant-garde FNF Modchart System
+
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
-some modchart codes are from stepmania / mirin template / Schmovin(arrowpath support) / Troll Engine(actor uv) / Psych Engine(lua system), credit them first (except some notitg mods)
+some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Schmovin(arrowpath support) / Troll Engine(actor uv) / Psych Engine(lua system)
 
 Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 
-WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / Sin/Cos/TanClip / SpiralHolds / Zoomx/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have))
+WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / Sin/Cos/TanClip / SpiralHolds / Zoomx/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have)) FROM MY CODE (because i want to become well-known lol)
 
 # Friday Night Funkin'
 

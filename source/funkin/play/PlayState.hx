@@ -992,7 +992,10 @@ class PlayState extends MusicBeatSubState
 
     super.update(elapsed);
     for (lua in luaArray)
+    {
+      lua.setOrUpdateVariables();
       lua.call('onUpdate', []);
+    }
     updateHealthBar();
     updateScoreText();
 

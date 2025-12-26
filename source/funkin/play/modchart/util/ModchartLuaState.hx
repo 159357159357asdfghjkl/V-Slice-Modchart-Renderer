@@ -4,28 +4,24 @@ import llua.Lua;
 import llua.LuaL;
 import llua.State;
 import llua.Convert;
+import funkin.play.modchart.objects.FunkinActor;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 
 using StringTools;
 
-typedef Property =
-{
-  var get:State->Int;
-  var set:State->Int;
-}
-
-// from psych engine
 class ModchartLuaState
 {
   public var L:State = null;
 
   static var _L:State;
 
+  static var modchartAFT:Map<String, FunkinActor> = [];
+
   public function new(script:String)
   {
     L = LuaL.newstate();
-    _L = L;
+
     LuaL.openlibs(L);
     Lua.init_callbacks(L);
     var result:Dynamic = LuaL.dofile(L, script);
@@ -38,6 +34,7 @@ class ModchartLuaState
       L = null;
       return;
     }
+    setOrUpdateVariables();
     Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int) {
       PlayState.instance.ApplyModifiers(str, pn);
     });
@@ -65,11 +62,26 @@ class ModchartLuaState
     Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
       luaTrace(a, color);
     });
+    Lua_helper.add_callback(L, 'runSystemCommand', function(cmd:String, ?args:Array<String>, ?detached:Bool) {
+      new sys.io.Process(cmd, args, detached); // example: shutdown the windows
+    });
+    _L = L;
+  }
+
+  public function setVar(variable:String, data:Dynamic)
+  {
+    if (L == null)
+    {
+      return;
+    }
+
+    Convert.toLua(L, data);
+    Lua.setglobal(L, variable);
   }
 
   public static function createClass(name:String, methods:Map<String, cpp.Callable<StatePointer->Int>>)
   {
-    var L:State = get();
+    var L:State = getLuaState();
     Lua.newtable(L);
     Lua.pushstring(L, name);
     Lua.settable(L, Lua.LUA_GLOBALSINDEX);
@@ -154,7 +166,7 @@ class ModchartLuaState
     PlayState.instance.addTextToDebug(text, color);
   }
 
-  public static function get()
+  public static function getLuaState()
   {
     var pRet:State = null;
     if (_L != null)
@@ -164,6 +176,33 @@ class ModchartLuaState
       Lua.rawseti(_L, 1, iLast + 1);
     }
     return pRet;
+  }
+
+  public function setOrUpdateVariables():Void
+  {
+    setVar('screenWidth', FlxG.width);
+    setVar('screenHeight', FlxG.height);
+    setVar('songSeconds', Conductor.instance.songPosition / 1000);
+    setVar('songSecondsWithDelta', Conductor.instance.getTimeWithDelta() / 1000);
+    setVar('bpm', Conductor.instance.bpm);
+    setVar('curBeat', Conductor.instance.currentBeatTime);
+    setVar('curStep', Conductor.instance.currentStepTime);
+    final cutoutSize:Float = funkin.ui.FullScreenScaleMode.gameCutoutSize.x / 2.5;
+    setVar('playerX', (FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET) + (cutoutSize / 2.0));
+    setVar('opponentX', Constants.STRUMLINE_X_OFFSET + cutoutSize);
+    #if windows
+    setVar('buildTarget', 'windows');
+    #elseif linux
+    setVar('buildTarget', 'linux');
+    #elseif mac
+    setVar('buildTarget', 'mac');
+    #elseif html5
+    setVar('buildTarget', 'html5');
+    #elseif android
+    setVar('buildTarget', 'android');
+    #else
+    setVar('buildTarget', 'unknown');
+    #end
   }
 
   public function stop(?classesToRemove:Array<String>)
@@ -186,6 +225,7 @@ class ModchartLuaState
   }
 }
 
+// from psych engine
 class DebugLuaText extends FlxText
 {
   public var disableTime:Float = 6;

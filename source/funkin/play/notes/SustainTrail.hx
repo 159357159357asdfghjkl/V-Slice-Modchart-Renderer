@@ -396,6 +396,8 @@ class SustainTrail extends FlxSprite
       updateClippingOld(songTime);
   }
 
+  var transforms:Array<ColorTransform> = [];
+
   public function updateClippingNew(songTime:Float = 0):Void
   {
     if (graphic == null)
@@ -534,12 +536,8 @@ class SustainTrail extends FlxSprite
     indices.push(next + 2);
     indices.push(next + 3);
     this.indices = new DrawData<Int>(indices.length, true, indices);
-    addShaderArray(ct);
+    transforms = ct;
   }
-
-  var alphas:Array<Float> = [];
-  var colorMultipliers:Array<Float> = [];
-  var colorOffsets:Array<Float> = [];
 
   function getShader(diffPos:Vector3D, glowPos:Vector3D)
   {
@@ -552,44 +550,6 @@ class SustainTrail extends FlxSprite
     c.greenOffset = glowPos.y * 255 * glowPos.w;
     c.blueOffset = glowPos.z * 255 * glowPos.w;
     return c;
-  }
-
-  function addShaderArray(t:Array<ColorTransform>)
-  {
-    colorMultipliers = [];
-    colorOffsets = [];
-    alphas = [];
-    for (_ in 0...Std.int(indices.length / 3))
-    {
-      var colorTransform = t[_];
-      for (i in 0...3)
-      {
-        if (colorTransform != null)
-        {
-          colorMultipliers.push(colorTransform.redMultiplier);
-          colorMultipliers.push(colorTransform.greenMultiplier);
-          colorMultipliers.push(colorTransform.blueMultiplier);
-          colorMultipliers.push(1);
-          colorOffsets.push(colorTransform.redOffset);
-          colorOffsets.push(colorTransform.greenOffset);
-          colorOffsets.push(colorTransform.blueOffset);
-          colorOffsets.push(colorTransform.alphaOffset);
-          alphas.push(colorTransform.alphaMultiplier);
-        }
-        else
-        {
-          colorMultipliers.push(1);
-          colorMultipliers.push(1);
-          colorMultipliers.push(1);
-          colorMultipliers.push(1);
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-          alphas.push(1);
-        }
-      }
-    }
   }
 
   public function updateClippingOld(songTime:Float = 0):Void
@@ -715,21 +675,11 @@ class SustainTrail extends FlxSprite
       if (useNew)
       {
         #if !flash
-        var shader:FlxGraphicsShader = new FlxGraphicsShader();
-        shader.bitmap.input = graphic.bitmap;
-        shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
-        shader.bitmap.wrap = REPEAT;
-        shader.hasColorTransform.value = [true];
-        shader.colorMultiplier.value = colorMultipliers;
-        shader.colorOffset.value = colorOffsets;
-        shader.alpha.value = alphas;
-        camera.canvas.graphics.overrideBlendMode(blend);
-        camera.canvas.graphics.beginShaderFill(shader);
+        var drawItem = camera.startTrianglesBatch(graphic, antialiasing, true, blend, true, shader);
+        drawItem.addTriangles2(vertices, indices, uvtData, new DrawData<Int>(4, true, [0, 0, 0, 0]), _point, camera._bounds, transforms);
         #else
-        camera.canvas.graphics.beginBitmapFill(graphic.bitmap, null, true, (camera.antialiasing || antialiasing));
+        useNew = false;
         #end
-        camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
-        camera.canvas.graphics.endFill();
       }
       else
       {

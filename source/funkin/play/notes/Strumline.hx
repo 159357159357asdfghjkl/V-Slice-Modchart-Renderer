@@ -206,7 +206,7 @@ class Strumline extends FlxSpriteGroup
   public var zoom2:Vector3D = new Vector3D(1, 1, 1);
 
   public var mods:Modchart;
-  public var modNumber:Int = 0;
+  public var modNumber:Int = 0; // the player's id
   public var defaultHeight:Float = 0.0;
   public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
   public var strumLineNotes:Array<StrumlineNote> = [];

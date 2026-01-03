@@ -66,7 +66,7 @@ class Modchart
       case 0:
         return (totalElapsed + offset) * mult;
       case 2:
-        return (getBeat() + offset) * mult;
+        return (Conductor.instance.currentBeatTime + offset) * mult;
       case 1:
         return (Conductor.instance.getTimeWithDelta() / 1000 + offset) * mult;
       default:
@@ -910,7 +910,7 @@ class Modchart
     if (getValue('brake$iCol') != 0)
     {
       var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
-      var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
+      var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.); // i know, it's normalized y offset
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake$iCol') * (fNewYOffset - fYOffset);
       fBrakeYAdjust = ModchartMath.clamp(fBrakeYAdjust, -400, 400);
@@ -1278,11 +1278,11 @@ class Modchart
     }
 
     if (getValue('spiralx') != 0) f += fYOffset * getValue('spiralx') * ModchartMath.fastCos((fYOffset + getValue('spiralxoffset')) * (1
-      + getValue('spiralxperiod')), getValue('cosclip'));
+      + getValue('spiralxperiod')), getValue('cosclip')); // y = x * cos(x)
 
     if (getValue('cubicx') != 0)
     {
-      f += Math.pow((fYOffset + 2 * getValue('cubicxoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicx');
+      f += Math.pow((fYOffset + 2 * getValue('cubicxoffset')) / ARROW_SIZE, 3) * 2 * getValue('cubicx'); // y = x ^ 3, cubic function
     }
 
     if (getValue('asymptote') != 0)
@@ -1764,7 +1764,7 @@ class Modchart
       fDizzyRotation *= 180 / Math.PI;
       fRotation += fDizzyRotation;
     }
-    if (getValue('orient') != 0 && !isHoldBody)
+    if (getValue('orient') != 0 && !isHoldBody) // orient: use two points to get theta
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
@@ -2311,19 +2311,20 @@ class Modchart
       fTilt = 0;
       fSkew = 0;
     }
+    tilt = fTilt;
     var reverse_mult:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-    var tilt_degrees:Float = ModchartMath.scale(fTilt, -1., 1., 30, -30) * reverse_mult;
+    var tilt_degrees:Float = ModchartMath.scale(tilt, -1., 1., 30, -30) * reverse_mult;
     var zoom:Float = ModchartMath.scale(getValue('mini'), 0., 1., 1., .5);
     var y_offset:Float = 0;
-    if (fTilt > 0)
+    if (tilt > 0)
     {
-      zoom *= ModchartMath.scale(fTilt, 0., 1., 1., 0.9);
-      y_offset = ModchartMath.scale(fTilt, 0., 1., 0., -45.) * reverse_mult;
+      zoom *= ModchartMath.scale(tilt, 0., 1., 1., 0.9);
+      y_offset = ModchartMath.scale(tilt, 0., 1., 0., -45.) * reverse_mult;
     }
     else
     {
-      zoom *= ModchartMath.scale(fTilt, 0., -1., 1., 0.9);
-      y_offset = ModchartMath.scale(fTilt, 0., -1., 0., -20.) * reverse_mult;
+      zoom *= ModchartMath.scale(tilt, 0., -1., 1., 0.9);
+      y_offset = ModchartMath.scale(tilt, 0., -1., 0., -20.) * reverse_mult;
     }
     pos.y += y_offset;
     pos.x *= zoom;
@@ -2332,7 +2333,6 @@ class Modchart
     scale.y *= zoom;
     skew.z = fSkew;
     rotation.x += tilt_degrees;
-    tilt = fTilt;
   }
 
   // for field scripting

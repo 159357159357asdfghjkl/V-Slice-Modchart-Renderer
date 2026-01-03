@@ -59,11 +59,32 @@ class ModchartLuaState
     Lua_helper.add_callback(L, 'setITGMode', function(a:Bool) {
       PlayState.instance.itgMode = a;
     });
+    Lua_helper.add_callback(L, 'initPlayers', function(a:Int) {
+      PlayState.instance.totalPlayerGroups = a;
+    });
     Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
       luaTrace(a, color);
     });
     Lua_helper.add_callback(L, 'runSystemCommand', function(cmd:String, ?args:Array<String>, ?detached:Bool) {
       new sys.io.Process(cmd, args, detached); // example: shutdown the windows
+    });
+    Lua_helper.add_callback(L, 'getRendererName', function() {
+      if (flixel.FlxG.stage.window.context.webgl != null
+        && flixel.FlxG.stage != null
+        && flixel.FlxG.stage.window != null
+        && flixel.FlxG.stage.window.context != null) return
+          Std.string(flixel.FlxG.stage.window.context.webgl.getParameter(flixel.FlxG.stage.window.context.webgl.RENDERER))
+          .split("/")[0].trim();
+      return '';
+    });
+    Lua_helper.add_callback(L, 'getVendorName', function() {
+      if (flixel.FlxG.stage.window.context.webgl != null
+        && flixel.FlxG.stage != null
+        && flixel.FlxG.stage.window != null
+        && flixel.FlxG.stage.window.context != null) return
+          Std.string(flixel.FlxG.stage.window.context.webgl.getParameter(flixel.FlxG.stage.window.context.webgl.VENDOR))
+          .split("/")[0].trim();
+      return '';
     });
     _L = L;
   }
@@ -191,17 +212,17 @@ class ModchartLuaState
     setVar('playerX', (FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET) + (cutoutSize / 2.0));
     setVar('opponentX', Constants.STRUMLINE_X_OFFSET + cutoutSize);
     #if windows
-    setVar('buildTarget', 'windows');
+    setVar('system', 'windows');
     #elseif linux
-    setVar('buildTarget', 'linux');
+    setVar('system', 'linux');
     #elseif mac
-    setVar('buildTarget', 'mac');
+    setVar('system', 'mac');
     #elseif html5
-    setVar('buildTarget', 'html5');
+    setVar('system', 'html5');
     #elseif android
-    setVar('buildTarget', 'android');
+    setVar('system', 'android');
     #else
-    setVar('buildTarget', 'unknown');
+    setVar('system', '');
     #end
   }
 

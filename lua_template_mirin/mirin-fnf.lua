@@ -617,7 +617,7 @@ function reset(self)
 	ease(self)
 	return reset
 end
-function func_function(self)
+function func(self)
 	if type(self[2]) == 'string' then
 		local args, syms = {}, {}
 		for i = 1, #self - 2 do
@@ -656,7 +656,7 @@ end
 local disallowed_poptions_perframe_persist = setmetatable({}, {__index = function(_)
 	error('you cannot use poptions and persist at the same time. </3')
 end})
-function func_perframe(self, deny_poptions)
+function perframe(self, deny_poptions)
 	if self.mode then
 		self[2] = self[2] - self[1]
 	end
@@ -714,16 +714,6 @@ function func_ease(self)
 	end
 	self.persist = false
 	func_perframe(self, true)
-end
-function func(self)
-	if type(self[2]) == 'string' or #self == 2 then
-		func_function(self)
-	elseif #self == 3 then
-		func_perframe(self, true)
-	else
-		func_ease(self)
-	end
-	return func
 end
 function alias(self)
 	local a, b = self[1], self[2]

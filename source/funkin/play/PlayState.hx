@@ -1053,12 +1053,12 @@ class PlayState extends MusicBeatSubState
 
       if (!fromDeathState)
       {
-        playerStrumline.vwooshNotes();
-        opponentStrumline.vwooshNotes();
+        for (i in strumlines)
+          i.vwooshNotes();
       }
 
-      playerStrumline.clean();
-      opponentStrumline.clean();
+      for (i in strumlines)
+        i.clean();
 
       // Delete all notes and reset the arrays.
       regenNoteData();
@@ -1078,10 +1078,11 @@ class PlayState extends MusicBeatSubState
 
       // timer for vwoosh
       vwooshTimer.start(vwooshDelay, function(_) {
-        if (playerStrumline.notes.length == 0) playerStrumline.updateNotes();
-        if (opponentStrumline.notes.length == 0) opponentStrumline.updateNotes();
-        playerStrumline.vwooshInNotes();
-        opponentStrumline.vwooshInNotes();
+        for (i in strumlines)
+        {
+          if (i.notes.length == 0) i.updateNotes();
+          i.vwooshInNotes();
+        }
         Countdown.performCountdown();
       });
 
@@ -1384,8 +1385,8 @@ class PlayState extends MusicBeatSubState
   function moveToGameOver():Void
   {
     // Reset and update a bunch of values in advance for the transition back from the game over substate.
-    playerStrumline.clean();
-    opponentStrumline.clean();
+    for (i in strumlines)
+      i.clean();
 
     vwooshTimer.cancel();
 
@@ -1820,8 +1821,10 @@ class PlayState extends MusicBeatSubState
     }
     // trace('Not bopping camera: ${FlxG.camera.zoom} < ${(1.35 * defaultCameraZoom)} && ${cameraZoomRate} > 0 && ${Conductor.instance.currentBeat} % ${cameraZoomRate} == ${Conductor.instance.currentBeat % cameraZoomRate}}');
 
-    if (playerStrumline != null) playerStrumline.onBeatHit();
-    if (opponentStrumline != null) opponentStrumline.onBeatHit();
+    for (i in strumlines)
+    {
+      if (i != null) i.onBeatHit();
+    }
 
     return true;
   }
@@ -2093,6 +2096,7 @@ class PlayState extends MusicBeatSubState
   }
 
   public var itgMode:Bool = false;
+  public var totalPlayerGroups:Int = 1;
 
   /**
      * Constructs the strumlines for each player.
@@ -2109,8 +2113,25 @@ class PlayState extends MusicBeatSubState
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     add(playerStrumline);
     add(opponentStrumline);
-    strumlines.push(playerStrumline);
     strumlines.push(opponentStrumline);
+    strumlines.push(playerStrumline);
+    for (i in 0...totalPlayerGroups - 1)
+    {
+      var playerStrumAlt = new Strumline(noteStyle, itgMode ? true : !isBotPlayMode, 2 + i * 2 + 1);
+      playerStrumAlt.onNoteIncoming.add(onStrumlineNoteIncoming);
+      var opponentStrumAlt = new Strumline(noteStyle, itgMode ? true : false, 2 + i * 2 + 2);
+      opponentStrumAlt.onNoteIncoming.add(onStrumlineNoteIncoming);
+      add(playerStrumAlt);
+      add(opponentStrumAlt);
+      playerStrumAlt.x = opponentStrumAlt.x = FlxG.width / 2;
+      playerStrumAlt.zIndex = 1003 + i * 2;
+      opponentStrumAlt.zIndex = 1002 + i * 2;
+      playerStrumAlt.cameras = opponentStrumAlt.cameras = [camHUD];
+      playerStrumAlt.fadeInArrows();
+      opponentStrumAlt.fadeInArrows();
+      strumlines.push(opponentStrumAlt);
+      strumlines.push(playerStrumAlt);
+    }
 
     final cutoutSize = FullScreenScaleMode.gameCutoutSize.x / 2.5;
     // Position the player strumline on the right half of the screen
@@ -2333,9 +2354,11 @@ class PlayState extends MusicBeatSubState
           opponentNoteData.push(songNote);
       }
     }
-
-    playerStrumline.applyNoteData(playerNoteData);
-    opponentStrumline.applyNoteData(itgMode ? playerNoteData : opponentNoteData);
+    for (i in 0...Std.int(strumlines.length / 2))
+    {
+      strumlines[i * 2].applyNoteData(itgMode ? playerNoteData : opponentNoteData);
+      strumlines[i * 2 + 1].applyNoteData(playerNoteData);
+    }
   }
 
   function onStrumlineNoteIncoming(noteSprite:NoteSprite):Void
@@ -2567,8 +2590,7 @@ class PlayState extends MusicBeatSubState
      */
   function processNotes(elapsed:Float):Void
   {
-    if (playerStrumline?.notes?.members == null || opponentStrumline?.notes?.members == null) return;
-
+    if (opponentStrumline?.notes?.members == null || playerStrumline?.notes?.members == null) return;
     // Process notes on the opponent's side.
     for (note in opponentStrumline.notes.members)
     {
@@ -2584,6 +2606,7 @@ class PlayState extends MusicBeatSubState
 
         // Command the opponent to hit the note on time.
         // NOTE: This is what handles the strumline and cleaning up the note itself!
+
         opponentStrumline.hitNote(note);
 
         if (note.holdNoteSprite != null)
@@ -2738,26 +2761,72 @@ class PlayState extends MusicBeatSubState
         }
       }
     }
+    processOtherNotes(elapsed);
+  }
+
+  function processOtherNotes(elapsed:Float):Void
+  {
+    for (i in 1...Std.int(strumlines.length / 2))
+    {
+      var opponentStrumline = strumlines[2 * i];
+      var playerStrumline = strumlines[2 * i + 1];
+      if (opponentStrumline?.notes?.members == null || playerStrumline?.notes?.members == null) return;
+      for (note in opponentStrumline.notes.members)
+      {
+        if (note == null) continue;
+        var r = GRhythmUtil.processWindow(note, false);
+        if (r.botplayHit)
+        {
+          opponentStrumline.hitNote(note);
+          if (note.holdNoteSprite != null)
+          {
+            opponentStrumline.playNoteHoldCover(note.holdNoteSprite);
+          }
+        }
+      }
+      for (holdNote in opponentStrumline.holdNotes.members)
+      {
+        if (holdNote == null || !holdNote.alive) continue;
+        if (holdNote.missedNote && !holdNote.handledMiss) holdNote.handledMiss = true;
+      }
+      for (note in playerStrumline.notes.members)
+      {
+        if (note == null) continue;
+        var r = GRhythmUtil.processWindow(note, !isBotPlayMode);
+        if (r.botplayHit) playerStrumline.hitNote(note);
+        if (!r.cont) continue;
+        if (note.hasMissed && !note.handledMiss) note.handledMiss = true;
+      }
+      for (holdNote in playerStrumline.holdNotes.members)
+      {
+        if (holdNote == null || !holdNote.alive) continue;
+        if (holdNote.missedNote && !holdNote.handledMiss) holdNote.handledMiss = true;
+      }
+    }
   }
 
   function handleSkippedNotes():Void
   {
-    for (note in playerStrumline.notes.members)
+    for (i in 0...Std.int(strumlines.length / 2))
     {
-      if (note == null || note.hasBeenHit) continue;
-      var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
-
-      if (Conductor.instance.songPosition > hitWindowEnd)
+      var playerStrumline = strumlines[2 * i + 1];
+      for (note in playerStrumline.notes.members)
       {
-        // We have passed this note.
-        // Flag the note for deletion without actually penalizing the player.
-        note.handledMiss = true;
+        if (note == null || note.hasBeenHit) continue;
+        var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
+
+        if (Conductor.instance.songPosition > hitWindowEnd)
+        {
+          // We have passed this note.
+          // Flag the note for deletion without actually penalizing the player.
+          note.handledMiss = true;
+        }
       }
     }
 
     // Respawns notes that were between the previous time and the current time when skipping backward, or destroy notes between the previous time and the current time when skipping forward.
-    playerStrumline.handleSkippedNotes();
-    opponentStrumline.handleSkippedNotes();
+    for (i in strumlines)
+      i.handleSkippedNotes();
   }
 
   public function ApplyModifiers(str:String, ?pn:Int)
@@ -2774,7 +2843,6 @@ class PlayState extends MusicBeatSubState
     {
       if (strum != null && (pn == strum.modNumber))
       {
-        trace('Get a notedata.');
         return strum.getNoteData(beat, endBeat);
       }
     }
@@ -2796,77 +2864,79 @@ class PlayState extends MusicBeatSubState
       inputReleaseQueue = [];
       return;
     }
-
-    // Generate a list of notes within range.
-    var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
-
-    var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
-
-    for (note in notesInRange)
-      notesByDirection[note.direction].push(note);
-
-    while (inputPressQueue.length > 0)
+    for (i in 0...Std.int(strumlines.length / 2))
     {
-      var input:PreciseInputEvent = inputPressQueue.shift();
+      var playerStrumline = strumlines[2 * i + 1];
+      // Generate a list of notes within range.
+      var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
 
-      playerStrumline.pressKey(input.noteDirection);
+      var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
 
-      // Don't credit or penalize inputs in Bot Play.
-      if (isBotPlayMode) continue;
+      for (note in notesInRange)
+        notesByDirection[note.direction].push(note);
 
-      var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
-
-      #if FEATURE_GHOST_TAPPING
-      if ((!playerStrumline.mayGhostTap()) && notesInDirection.length == 0)
-      #else
-      if (notesInDirection.length == 0)
-      #end
+      while (inputPressQueue.length > 0)
       {
-        // Pressed a wrong key with no notes nearby.
-        // Perform a ghost miss (anti-spam).
-        ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
+        var input:PreciseInputEvent = inputPressQueue.shift();
+
+        playerStrumline.pressKey(input.noteDirection);
+
+        // Don't credit or penalize inputs in Bot Play.
+        if (isBotPlayMode) continue;
+
+        var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
+
+        #if FEATURE_GHOST_TAPPING
+        if ((!playerStrumline.mayGhostTap()) && notesInDirection.length == 0)
+        #else
+        if (notesInDirection.length == 0)
+        #end
+        {
+          // Pressed a wrong key with no notes nearby.
+          // Perform a ghost miss (anti-spam).
+          ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
+
+          // Play the strumline animation.
+          playerStrumline.playPress(input.noteDirection);
+          trace('PENALTY Score: ${songScore}');
+        }
+      else if (notesInDirection.length == 0)
+      {
+        // Press a key with no penalty.
 
         // Play the strumline animation.
         playerStrumline.playPress(input.noteDirection);
-        trace('PENALTY Score: ${songScore}');
+        trace('NO PENALTY Score: ${songScore}');
       }
-    else if (notesInDirection.length == 0)
-    {
-      // Press a key with no penalty.
+      else
+      {
+        // Choose the first note, deprioritizing low priority notes.
+        var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
+        if (targetNote == null) targetNote = notesInDirection[0];
+        if (targetNote == null) continue;
 
-      // Play the strumline animation.
-      playerStrumline.playPress(input.noteDirection);
-      trace('NO PENALTY Score: ${songScore}');
+        // Judge and hit the note.
+        // trace('Hit note! ${targetNote.noteData}');
+        goodNoteHit(targetNote, input);
+        // trace('Score: ${songScore}');
+
+        notesInDirection.remove(targetNote);
+
+        // Play the strumline animation.
+        playerStrumline.playConfirm(input.noteDirection);
+      }
+      }
+
+      while (inputReleaseQueue.length > 0)
+      {
+        var input:PreciseInputEvent = inputReleaseQueue.shift();
+
+        // Play the strumline animation.
+        playerStrumline.playStatic(input.noteDirection);
+
+        playerStrumline.releaseKey(input.noteDirection);
+      }
     }
-    else
-    {
-      // Choose the first note, deprioritizing low priority notes.
-      var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
-      if (targetNote == null) targetNote = notesInDirection[0];
-      if (targetNote == null) continue;
-
-      // Judge and hit the note.
-      // trace('Hit note! ${targetNote.noteData}');
-      goodNoteHit(targetNote, input);
-      // trace('Score: ${songScore}');
-
-      notesInDirection.remove(targetNote);
-
-      // Play the strumline animation.
-      playerStrumline.playConfirm(input.noteDirection);
-    }
-    }
-
-    while (inputReleaseQueue.length > 0)
-    {
-      var input:PreciseInputEvent = inputReleaseQueue.shift();
-
-      // Play the strumline animation.
-      playerStrumline.playStatic(input.noteDirection);
-
-      playerStrumline.releaseKey(input.noteDirection);
-    }
-
     playerStrumline.noteVibrations.tryNoteVibration();
   }
 
@@ -2920,9 +2990,13 @@ class PlayState extends MusicBeatSubState
 
     Highscore.tallies.totalNotesHit++;
     // Display the hit on the strums
-    playerStrumline.hitNote(note, !event.isComboBreak);
-    if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
-    if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
+    for (i in 0...Std.int(strumlines.length / 2))
+    {
+      var playerStrumline = strumlines[2 * i + 1];
+      playerStrumline.hitNote(note, !event.isComboBreak);
+      if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
+      if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
+    }
     vocals.playerVolume = 1;
 
     // Display the combo meter and add the calculation to the score.

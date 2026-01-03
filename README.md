@@ -10,7 +10,7 @@ some modchart codes are from stepmania(90% maths) / mirin template(the default t
 
 Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 
-WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / Sin/Cos/TanClip / SpiralHolds / Zoomx/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have)) FROM MY CODE (because i want to become well-known lol)
+WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / SpiralHolds / ZoomX/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have)) FROM MY CODE (because i want to become well-known lol)
 
 # Friday Night Funkin'
 

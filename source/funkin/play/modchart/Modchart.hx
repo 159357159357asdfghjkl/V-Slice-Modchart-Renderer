@@ -870,8 +870,7 @@ class Modchart
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
-      var bps:Float = getValue('cmod') / 200;
-      fYOffset *= bps;
+      fYOffset = getValue('cmod') / 60 * (time - conductor.getTimeWithDelta()) / 1000 * ARROW_SIZE;
     }
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     scrollSpeed *= speed;

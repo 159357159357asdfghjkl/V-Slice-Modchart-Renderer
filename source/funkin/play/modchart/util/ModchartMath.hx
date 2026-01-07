@@ -124,30 +124,30 @@ class ModchartMath
   // add clip thing
   inline public static function fastSin(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue < 0) return Trigonometric.fastSin(x);
+    if (clipValue < 0) return FlxMath.fastSin(x);
     if (clipValue > 1) return -clipValue;
-    return clamp(Trigonometric.fastSin(x), -(1 - clipValue), 1 - clipValue);
+    return clamp(FlxMath.fastSin(x), -(1 - clipValue), 1 - clipValue);
   }
 
   inline public static function fastCos(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue < 0) return Trigonometric.fastCos(x);
+    if (clipValue < 0) return FlxMath.fastCos(x);
     if (clipValue > 1) return -clipValue;
-    return clamp(Trigonometric.fastCos(x), -(1 - clipValue), 1 - clipValue);
+    return clamp(FlxMath.fastCos(x), -(1 - clipValue), 1 - clipValue);
   }
 
   inline public static function fastCsc(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return Trigonometric.fastCsc(x);
+    if (clipValue <= 0) return 1 / FlxMath.fastSin(x);
     if (clipValue >= 1) return 0;
-    return clamp(Trigonometric.fastCsc(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
+    return clamp(1 / FlxMath.fastSin(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
   inline public static function fastTan(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return Trigonometric.fastTan(x);
+    if (clipValue <= 0) return FlxMath.fastSin(x) / FlxMath.fastCos(x);
     if (clipValue >= 1) return 0;
-    return clamp(Trigonometric.fastTan(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
+    return clamp(FlxMath.fastSin(x) / FlxMath.fastCos(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
   inline public static function transform(v:Vector3D, a:Array<Array<Float>>):Vector3D
@@ -192,12 +192,12 @@ class ModchartMath
     rY *= Math.PI / 180;
     rZ *= Math.PI / 180;
 
-    var cX:Float = Trigonometric.fastCos(rX);
-    var sX:Float = Trigonometric.fastSin(rX);
-    var cY:Float = Trigonometric.fastCos(rY);
-    var sY:Float = Trigonometric.fastSin(rY);
-    var cZ:Float = Trigonometric.fastCos(rZ);
-    var sZ:Float = Trigonometric.fastSin(rZ);
+    var cX:Float = FlxMath.fastCos(rX);
+    var sX:Float = FlxMath.fastSin(rX);
+    var cY:Float = FlxMath.fastCos(rY);
+    var sY:Float = FlxMath.fastSin(rY);
+    var cZ:Float = FlxMath.fastCos(rZ);
+    var sZ:Float = FlxMath.fastSin(rZ);
 
     var mat:Array<Array<Float>> = switch (order)
     {
@@ -255,12 +255,12 @@ class ModchartMath
     rY *= Math.PI / 180;
     rZ *= Math.PI / 180;
 
-    var cX:Float = Trigonometric.fastCos(rX);
-    var sX:Float = Trigonometric.fastSin(rX);
-    var cY:Float = Trigonometric.fastCos(rY);
-    var sY:Float = Trigonometric.fastSin(rY);
-    var cZ:Float = Trigonometric.fastCos(rZ);
-    var sZ:Float = Trigonometric.fastSin(rZ);
+    var cX:Float = FlxMath.fastCos(rX);
+    var sX:Float = FlxMath.fastSin(rX);
+    var cY:Float = FlxMath.fastCos(rY);
+    var sY:Float = FlxMath.fastSin(rY);
+    var cZ:Float = FlxMath.fastCos(rZ);
+    var sZ:Float = FlxMath.fastSin(rZ);
 
     var mat:Array<Array<Float>> = [
       [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],

@@ -420,7 +420,8 @@ class Modchart
       'zbuffer',
       'modtimermult',
       'modtimeroffset',
-      'rotationorder'
+      'rotationorder',
+      'clearall'
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -786,6 +787,10 @@ class Modchart
       {
         level *= -1;
         name = 'holdtinyx';
+      }
+      else if (name == 'clearall')
+      {
+        initDefaultMods();
       }
       else
       {
@@ -1276,8 +1281,8 @@ class Modchart
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornado');
     }
 
-    if (getValue('spiralx') != 0) f += fYOffset * getValue('spiralx') * ModchartMath.fastCos((fYOffset + getValue('spiralxoffset')) * (1
-      + getValue('spiralxperiod')), getValue('cosclip')); // y = x * cos(x)
+    if (getValue('spiralx') != 0) f += fYOffset * getValue('spiralx') * ModchartMath.fastCos((fYOffset + getValue('spiralxoffset')) * (0.5
+      + 0.5 * getValue('spiralxperiod')), getValue('cosclip'));
 
     if (getValue('cubicx') != 0)
     {
@@ -1487,8 +1492,8 @@ class Modchart
       1) * selectTanType(CalculateDigitalAngle(fYOffset, getValue('tandigitalyoffset'), getValue('tandigitalyperiod'), getValue('tandigitalyperiod2')),
       getValue('cosecant'))) / (getValue('tandigitalysteps') + 1);
 
-    if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastSin((fYOffset + getValue('spiralyoffset')) * (1
-      + getValue('spiralyperiod')), getValue('sinclip'));
+    if (getValue('spiraly') != 0) f += fYOffset * getValue('spiraly') * ModchartMath.fastSin((fYOffset + getValue('spiralyoffset')) * (0.5
+      + 0.5 * getValue('spiralyperiod')), getValue('sinclip'));
 
     if (getValue('cubicy') != 0)
     {
@@ -1716,8 +1721,8 @@ class Modchart
     if (getValue('tantipsyz') != 0) f += getValue('tantipsyz') * CalculateTipsyOffset(time, getValue('tantipsyzspacing'), getValue('tantipsyzspeed'), iCol,
       getValue('tantipsyzoffset'), 1);
 
-    if (getValue('spiralz') != 0) f += fYOffset * getValue('spiralz') * ModchartMath.fastCos((fYOffset + getValue('spiralzoffset')) * (1
-      + getValue('spiralzperiod')));
+    if (getValue('spiralz') != 0) f += fYOffset * getValue('spiralz') * ModchartMath.fastCos((fYOffset + getValue('spiralzoffset')) * (0.5
+      + 0.5 * getValue('spiralzperiod')), getValue('cosclip'));
 
     if (getValue('cubicz') != 0)
     {

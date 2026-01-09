@@ -385,8 +385,7 @@ class SustainTrail extends FlxSprite
     var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), glow);
-    var reversed:Vector3D = new Vector3D(parentStrumline?.mods?.GetReversePercentForColumn(column) ?? 0);
-    return [zPos, diffuses, glowColor, reversed];
+    return [zPos, diffuses, glowColor];
   }
 
   public function updateClipping(songTime:Float = 0)

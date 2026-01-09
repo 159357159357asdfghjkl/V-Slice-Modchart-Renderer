@@ -56,11 +56,19 @@ class ModchartLuaState
     Lua_helper.add_callback(L, 'getHealth', function(a:Float) {
       return PlayState.instance.health;
     });
-    Lua_helper.add_callback(L, 'setITGMode', function(a:Bool) {
-      PlayState.instance.itgMode = a;
+    Lua_helper.add_callback(L, 'initITGMode', function() {
+      PlayState.instance.itgMode = true;
     });
     Lua_helper.add_callback(L, 'initPlayers', function(a:Int) {
       PlayState.instance.totalPlayerGroups = a;
+    });
+    Lua_helper.add_callback(L, 'createAFT', function(name:String, path:String, x:Float, y:Float, ?width:Float, ?height:Float) {
+      var a:FunkinActor = new FunkinActor(x, y);
+      a.loadGraphic(Paths.image(path));
+      if (width != null) a.width = width;
+      if (height != null) a.height = height;
+      modchartAFT.set(name, a);
+      // ModchartLuaState.createClass(name,);
     });
     Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
       luaTrace(a, color);

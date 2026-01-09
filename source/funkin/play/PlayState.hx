@@ -2123,7 +2123,9 @@ class PlayState extends MusicBeatSubState
       opponentStrumAlt.onNoteIncoming.add(onStrumlineNoteIncoming);
       add(playerStrumAlt);
       add(opponentStrumAlt);
-      playerStrumAlt.x = opponentStrumAlt.x = FlxG.width / 2;
+      playerStrumAlt.x = opponentStrumAlt.x = (FlxG.width / 4 + Constants.STRUMLINE_X_OFFSET);
+      playerStrumAlt.y = Preferences.downscroll ? FlxG.height - playerStrumAlt.height - Constants.STRUMLINE_Y_OFFSET - noteStyle.getStrumlineOffsets()[1] : Constants.STRUMLINE_Y_OFFSET;
+      opponentStrumAlt.y = Preferences.downscroll ? FlxG.height - opponentStrumAlt.height - Constants.STRUMLINE_Y_OFFSET - noteStyle.getStrumlineOffsets()[1] : Constants.STRUMLINE_Y_OFFSET;
       playerStrumAlt.zIndex = 1003 + i * 2;
       opponentStrumAlt.zIndex = 1002 + i * 2;
       playerStrumAlt.cameras = opponentStrumAlt.cameras = [camHUD];

@@ -12,11 +12,7 @@ using StringTools;
 
 class ModchartLuaState
 {
-  public var L:State = null;
-
-  static var _L:State;
-
-  static var modchartAFT:Map<String, FunkinActor> = [];
+  public static var L:State = null;
 
   public function new(script:String)
   {
@@ -62,14 +58,6 @@ class ModchartLuaState
     Lua_helper.add_callback(L, 'initPlayers', function(a:Int) {
       PlayState.instance.totalPlayerGroups = a;
     });
-    Lua_helper.add_callback(L, 'createAFT', function(name:String, path:String, x:Float, y:Float, ?width:Float, ?height:Float) {
-      var a:FunkinActor = new FunkinActor(x, y);
-      a.loadGraphic(Paths.image(path));
-      if (width != null) a.width = width;
-      if (height != null) a.height = height;
-      modchartAFT.set(name, a);
-      // ModchartLuaState.createClass(name,);
-    });
     Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
       luaTrace(a, color);
     });
@@ -94,10 +82,9 @@ class ModchartLuaState
           .split("/")[0].trim();
       return '';
     });
-    _L = L;
   }
 
-  public function setVar(variable:String, data:Dynamic)
+  public static function setVar(variable:String, data:Dynamic)
   {
     if (L == null)
     {
@@ -107,6 +94,8 @@ class ModchartLuaState
     Convert.toLua(L, data);
     Lua.setglobal(L, variable);
   }
+
+  static var classes:Array<String> = [];
 
   public static function createClass(name:String, methods:Map<String, cpp.Callable<StatePointer->Int>>)
   {
@@ -119,13 +108,13 @@ class ModchartLuaState
       Lua.pushcfunction(L, func);
       Lua.setfield(L, Lua.gettop(L), funcname);
     }
+    classes.push(name);
   }
 
   public var closed:Bool = false;
 
-  public function call(func:String, args:Array<Dynamic>):Dynamic
+  public static function call(func:String, args:Array<Dynamic>):Dynamic
   {
-    if (closed) return null;
     try
     {
       if (L == null) return null;
@@ -186,7 +175,6 @@ class ModchartLuaState
     {
       trace(e);
     }
-    if (closed) return null;
     return null;
   }
 
@@ -198,11 +186,11 @@ class ModchartLuaState
   public static function getLuaState()
   {
     var pRet:State = null;
-    if (_L != null)
+    if (L != null)
     {
-      pRet = Lua.newthread(_L);
-      var iLast:Int = Lua.objlen(_L, 1);
-      Lua.rawseti(_L, 1, iLast + 1);
+      pRet = Lua.newthread(L);
+      var iLast:Int = Lua.objlen(L, 1);
+      Lua.rawseti(L, 1, iLast + 1);
     }
     return pRet;
   }
@@ -234,20 +222,21 @@ class ModchartLuaState
     #end
   }
 
-  public function stop(?classesToRemove:Array<String>)
+  public function stop()
   {
     closed = true;
     if (L == null)
     {
       return;
     }
-    if (classesToRemove != null && classesToRemove.length > 0)
+    if (classes.length > 0)
     {
-      for (sName in classesToRemove)
+      for (sName in classes)
       {
         Lua.pushnil(L);
         Lua.setglobal(L, sName);
       }
+      classes = [];
     }
     Lua.close(L);
     L = null;

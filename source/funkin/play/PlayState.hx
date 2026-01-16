@@ -879,8 +879,7 @@ class PlayState extends MusicBeatSubState
 
     initialized = true;
 
-    for (lua in luaArray)
-      lua.call('onReady', []);
+    ModchartLuaState.call('onReady', []);
     // This step ensures z-indexes are applied properly,
     // and it's important to call it last so all elements get affected.
     refresh();
@@ -911,8 +910,7 @@ class PlayState extends MusicBeatSubState
         }
       }
     }
-    for (lua in luaArray)
-      lua.call('onInit', []);
+    ModchartLuaState.call('onInit', []);
   }
 
   public function addTextToDebug(text:String, color:FlxColor)
@@ -994,8 +992,8 @@ class PlayState extends MusicBeatSubState
     for (lua in luaArray)
     {
       lua.setOrUpdateVariables();
-      lua.call('onUpdate', []);
     }
+    ModchartLuaState.call('onUpdate', []);
     updateHealthBar();
     updateScoreText();
 

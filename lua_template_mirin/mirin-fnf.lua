@@ -523,7 +523,7 @@ local aliases = {}
 local nodes = {}
 local default_plr = {1, 2}
 function get_plr()
-	return default_plr
+	return rawget(_G, 'plr') or default_plr
 end
 
 local banned_chars = {}

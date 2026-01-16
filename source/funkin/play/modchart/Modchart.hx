@@ -1291,7 +1291,7 @@ class Modchart
 
     if (getValue('asymptote') != 0)
     {
-      var fAsymptoteEffect:Float = (xOffset[iCol] * (1 + getValue('asymptote') * 1000) - xOffset[iCol]) * Math.exp(-Math.abs(fYOffset
+      var fAsymptoteEffect:Float = (xOffset[iCol] * (1 + getValue('asymptote') * 500) - xOffset[iCol]) * Math.exp(-Math.abs(fYOffset
         + getValue('asymptoteoffset') * 100) * (1 + getValue('asymptotescale')));
       f += fAsymptoteEffect;
     }
@@ -2083,7 +2083,7 @@ class Modchart
       var f = ModchartMath.scale(fYPosWithoutReverse, fFullAlphaY, fDrawDistanceBeforeTargetsPixels, 1.0, 0.0);
       return f;
     }
-    return ModchartMath.clamp(ModchartMath.scale(fPercentVisible, 0.5, 0, 1, 0), 0, 1);
+    return (fPercentVisible > 0.5) ? 1.0 : 0.0;
   }
 
   public function GetGlow(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float

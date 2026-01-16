@@ -544,7 +544,7 @@ class SustainTrail extends FlxSprite
     c.redMultiplier = diffPos.x;
     c.greenMultiplier = diffPos.y;
     c.blueMultiplier = diffPos.z;
-    c.alphaMultiplier = diffPos.w;
+    c.alphaMultiplier = diffPos.w + glowPos.w;
     c.redOffset = glowPos.x * 255 * glowPos.w;
     c.greenOffset = glowPos.y * 255 * glowPos.w;
     c.blueOffset = glowPos.z * 255 * glowPos.w;

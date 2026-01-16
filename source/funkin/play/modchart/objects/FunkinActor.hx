@@ -122,7 +122,7 @@ class FunkinActor extends FunkinSprite
         colorTransform.redMultiplier = diffuse.x * baseDiffuse.x;
         colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y;
         colorTransform.blueMultiplier = diffuse.z * baseDiffuse.z;
-        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w;
+        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w + glow.w;
         colorTransform.redOffset = glow.x * 255 * glow.w;
         colorTransform.greenOffset = glow.y * 255 * glow.w;
         colorTransform.blueOffset = glow.z * 255 * glow.w;

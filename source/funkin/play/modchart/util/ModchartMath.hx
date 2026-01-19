@@ -106,13 +106,9 @@ class ModchartMath
     var projection:Array<Array<Float>> = matrix[0];
     var modelView:Array<Array<Float>> = multiply(matrix[1], m);
     var a:Vector3D = transform(transform(vec, modelView), projection);
-    if (a.w != 0.0)
-    {
-      a.project(); // perspective projection !
-      var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight); // from ndc to screen
-      return b;
-    }
-    return null;
+    a.project(); // perspective projection !
+    var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight); // from ndc to screen
+    return b;
   }
 
   inline public static function Quantize(f:Float, fRoundInterval:Float):Float

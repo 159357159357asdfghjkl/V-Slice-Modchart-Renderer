@@ -132,12 +132,6 @@ class Modchart
       'tantornadoz',
       'tantornadozoffset',
       'tantornadozperiod',
-      'tornadoy',
-      'tornadoyoffset',
-      'tornadoyperiod',
-      'tantornadoy',
-      'tantornadoyoffset',
-      'tantornadoyperiod',
       'movex',
       'movey',
       'movez',
@@ -875,7 +869,7 @@ class Modchart
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
-      fYOffset = getValue('cmod') / 60 * (time - conductor.getTimeWithDelta()) / 1000 * ARROW_SIZE;
+      fYOffset = getValue('cmod') / 60 * (time - conductor.getTimeWithDelta()) / 1000 * ARROW_SIZE; // alternative yOffset calculate method
     }
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     scrollSpeed *= speed;
@@ -1430,60 +1424,6 @@ class Modchart
     if (getValue('tanbumpyy$iCol') != 0) f += getValue('tanbumpyy$iCol') * 40 * selectTanType(CalculateBumpyAngle(fYOffset, getValue('tanbumpyyoffset$iCol'),
       getValue('tanbumpyyperiod$iCol')), getValue('cosecant'));
 
-    if (getValue('tornadoy') != 0)
-    {
-      var iTornadoWidth:Int = 2;
-      var iStartCol:Int = iCol - iTornadoWidth;
-      var iEndCol:Int = iCol + iTornadoWidth;
-      iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
-      iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
-
-      for (i in iStartCol...iEndCol + 1)
-      {
-        fMinX = Math.min(fMinX, xOffset[i]);
-        fMaxX = Math.max(fMaxX, xOffset[i]);
-      }
-
-      var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
-      var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
-      var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadoyoffset') * 100) * ((6 * getValue('tornadoyperiod')) + 6) / SCREEN_HEIGHT;
-
-      var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
-        fMaxX * notefieldZoom);
-
-      f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tornadoy');
-    }
-
-    if (getValue('tantornadoy') != 0)
-    {
-      var iTornadoWidth:Int = 2;
-      var iStartCol:Int = iCol - iTornadoWidth;
-      var iEndCol:Int = iCol + iTornadoWidth;
-      iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
-      iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
-
-      for (i in iStartCol...iEndCol + 1)
-      {
-        fMinX = Math.min(fMinX, xOffset[i]);
-        fMaxX = Math.max(fMaxX, xOffset[i]);
-      }
-
-      var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
-      var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
-      var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tantornadoyoffset') * 100) * ((6 * getValue('tantornadoyperiod')) + 6) / SCREEN_HEIGHT;
-
-      var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
-
-      f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornadoy');
-    }
     if (getValue('digitaly') != 0) f += (getValue('digitaly') * ARROW_SIZE * 0.5) * Math.round((getValue('digitalysteps') +
       1) * ModchartMath.fastSin(CalculateDigitalAngle(fYOffset, getValue('digitalyoffset'), getValue('digitalyperiod'), getValue('digitalyperiod2')),
       getValue('sinclip'))) / (getValue('digitalysteps') + 1);

@@ -362,7 +362,7 @@ class Strumline extends FlxSpriteGroup
     var difference:Vector3D = getDifference();
     var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false),
       mods.GetYPos(column, yOffset, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, yOffset, pn, xoffArray));
-    var effect:Float = 1 + (mods.getValue('gayholds'));
+    var effect:Float = 1 - (mods.getValue('straightholds'));
     var noteYOffset:Float = mods.GetYOffset(conductorInUse, conductorInUse.getTimeWithDelta(), speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
       mods.GetYPos(column, noteYOffset, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, noteYOffset, pn, xoffArray));
@@ -1089,8 +1089,8 @@ class Strumline extends FlxSpriteGroup
 
     for (cover in noteHoldCovers)
     {
-      if (cover == null || !cover.alive || cover.graphic == null) continue;
       var glow = cover.glow;
+      if (glow == null || !glow.alive || glow.graphic == null) continue;
       glow.fov = fov;
       var col:Int = cover.column;
       glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;

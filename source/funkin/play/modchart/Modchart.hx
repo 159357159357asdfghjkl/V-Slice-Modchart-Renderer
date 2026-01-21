@@ -572,7 +572,7 @@ class Modchart
       speedList.set(mod, 0);
     }
 
-    modList.set('cmod', 200);
+    modList.set('cmod', 3750 / 7); // give a normal speed at fnf
     speedList.set('cmod', 0);
 
     altname.set('land', 'brake');
@@ -869,7 +869,7 @@ class Modchart
     var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
-      fYOffset = getValue('cmod') / 60 * (time - conductor.getTimeWithDelta()) / 1000 * ARROW_SIZE; // alternative yOffset calculate method
+      fYOffset *= getValue('cmod') / 60 / 1000 * ARROW_SIZE; // alternative yOffset calculate method
     }
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     scrollSpeed *= speed;

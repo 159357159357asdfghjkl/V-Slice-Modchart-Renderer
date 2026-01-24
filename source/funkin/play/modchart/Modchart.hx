@@ -79,6 +79,8 @@ class Modchart
     return Conductor.instance.getTimeInSteps(getTime() * 1000) / Constants.STEPS_PER_BEAT;
   }
 
+  static private final CMOD_DEFAULT:Float = 3750 / 7;
+
   function initDefaultMods()
   {
     var ZERO:Array<String> = [
@@ -572,7 +574,7 @@ class Modchart
       speedList.set(mod, 0);
     }
 
-    modList.set('cmod', 3750 / 7); // give a normal speed at fnf
+    modList.set('cmod', CMOD_DEFAULT); // give a normal speed at fnf
     speedList.set('cmod', 0);
 
     altname.set('land', 'brake');
@@ -759,7 +761,7 @@ class Modchart
         name = 'cmod';
         if (!Math.isFinite(level) || level <= 0.0)
         {
-          level = 200;
+          level = CMOD_DEFAULT;
         }
       }
       else if (mReg.match(name))
@@ -952,7 +954,7 @@ class Modchart
     }
     if (getValue('randomspeed') > 0)
     {
-      var noteBeat:Float = Conductor.instance.getTimeInSteps(parentTime) / Constants.STEPS_PER_BEAT;
+      var noteBeat:Float = PlayState.stageSeed + Conductor.instance.getTimeInSteps(parentTime) / Constants.STEPS_PER_BEAT;
       var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
 
       for (i in 0...3)

@@ -20,15 +20,10 @@ import funkin.util.GRhythmUtil;
 import funkin.play.notes.notekind.NoteKindManager;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
+import funkin.play.modchart.objects.PolyLine;
 import openfl.geom.Vector3D;
 import openfl.Vector;
-import openfl.display.BitmapData;
-import openfl.display.GraphicsPathCommand;
-import openfl.geom.Matrix;
 import flixel.math.FlxPoint;
-import openfl.display.Sprite;
-import openfl.display.BitmapData;
-import flixel.FlxSprite;
 #if mobile
 import funkin.mobile.input.ControlsHandler;
 import funkin.mobile.ui.FunkinHitbox.FunkinHitboxControlSchemes;
@@ -211,6 +206,8 @@ class Strumline extends FlxSpriteGroup
   public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
   public var strumLineNotes:Array<StrumlineNote> = [];
 
+  public var arrowpaths:FlxTypedSpriteGroup<PolyLine>;
+
   public function new(noteStyle:NoteStyle, isPlayer:Bool, modNumber:Int = 0)
   {
     super();
@@ -218,6 +215,10 @@ class Strumline extends FlxSpriteGroup
     this.isPlayer = isPlayer;
     this.noteStyle = noteStyle;
     this.modNumber = modNumber;
+
+    this.arrowpaths = new FlxTypedSpriteGroup<PolyLine>();
+    this.arrowpaths.zIndex = 0;
+    this.add(this.arrowpaths);
 
     this.strumlineNotes = new FlxTypedSpriteGroup<StrumlineNote>();
     this.strumlineNotes.zIndex = 10;
@@ -283,6 +284,9 @@ class Strumline extends FlxSpriteGroup
       this.strumlineNotes.add(child);
       child.column = i;
       strumLineNotes.push(child);
+
+      var child:PolyLine = new PolyLine();
+      this.arrowpaths.add(child);
     }
 
     for (i in 0...KEY_COUNT)
@@ -422,52 +426,9 @@ class Strumline extends FlxSpriteGroup
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
-    zPos.x += 50; // offset but less accurate, i have no idea
-    zPos.y += 90;
+    zPos.x += NOTE_SPACING / 2;
+    zPos.y += NOTE_SPACING / 2 * 1.5;
     return zPos;
-  }
-
-  override public function draw():Void
-  {
-    super.draw();
-    for (camera in cameras)
-    {
-      // stolen from schmovin but modified a little
-      var currentBeat:Float = conductorInUse.currentBeatTime;
-      var grain = mods.getValue('arrowpathgranulate');
-      if (grain == 0) grain = 4;
-      var roughness:Float = mods.baseHoldSize;
-      var backLength:Float = 200;
-      backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
-      var frontLength:Float = 1000;
-      frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
-      var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
-      if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
-      if (subdivisions <= 1) subdivisions = 1;
-      var graphics = camera.canvas.graphics;
-      for (column in 0...KEY_COUNT)
-      {
-        var commands = new Vector<Int>();
-        var data = new Vector<Float>();
-        var player = modNumber;
-        var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
-        if (alpha <= 0) continue;
-        var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
-        for (i in 0...subdivisions)
-        {
-          var path = getPosWithOffset(-size / 2, size / 2, (backLength + frontLength) / subdivisions * i - backLength, column);
-          if (i == 0)
-          {
-            graphics.lineStyle(size, 0xFFFFFF, alpha);
-            graphics.moveTo(path.x, path.y);
-          }
-          else
-          {
-            graphics.lineTo(path.x, path.y);
-          }
-        }
-      }
-    }
   }
 
   #if FEATURE_GHOST_TAPPING
@@ -710,6 +671,8 @@ class Strumline extends FlxSpriteGroup
     // NOTE: I had to remove this line because it was causing notes visible during the countdown to be placed multiple times.
     // I don't remember what bug I was trying to fix by adding this.
     // if (conductorInUse.currentStep == 0) nextNoteIndex = 0;
+
+    updateArrowpath();
 
     var songStart:Float = PlayState.instance?.startTimestamp ?? 0.0;
     var hitWindowStart:Float = conductorInUse.songPosition - Constants.HIT_WINDOW_MS;
@@ -1142,6 +1105,42 @@ class Strumline extends FlxSpriteGroup
       var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
       fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
       glow.diffuse.w = fBaseAlpha;
+    }
+  }
+
+  // MY WAAAAAAAAY!
+  function updateArrowpath():Void
+  {
+    var grain = mods.getValue('arrowpathgranulate');
+    if (grain == 0) grain = 4;
+    var roughness:Float = mods.baseHoldSize;
+    var backLength:Float = 200;
+    backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
+    var frontLength:Float = 1000;
+    frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
+    var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
+    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
+    if (subdivisions <= 1) subdivisions = 1;
+    for (column in 0...KEY_COUNT)
+    {
+      var player = modNumber;
+      var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+      if (alpha <= 0) continue;
+      var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
+      var vertices:Vector<Float> = new Vector<Float>();
+      for (a in 0...subdivisions + 1)
+      {
+        var i:Int = a * 2;
+        var left = getPosWithOffset(-size / 2, 0, (backLength + frontLength) / subdivisions * i - backLength, column);
+        var right = getPosWithOffset(size / 2, 0, (backLength + frontLength) / subdivisions * i - backLength, column);
+        vertices[i * 2] = left.x;
+        vertices[i * 2 + 1] = left.y;
+        vertices[(i + 1) * 2] = right.x;
+        vertices[(i + 1) * 2 + 1] = right.y;
+      }
+      var line:PolyLine = this.arrowpaths.members[column];
+      line.x = line.y = 0;
+      line.vertices = vertices;
     }
   }
 

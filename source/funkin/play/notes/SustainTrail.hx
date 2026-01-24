@@ -446,8 +446,6 @@ class SustainTrail extends FlxSprite
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
-      var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
       vertices[a * 2] = pos1[0].x + halfWidth;
       vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;

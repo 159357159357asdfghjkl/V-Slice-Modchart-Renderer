@@ -643,6 +643,8 @@ class PlayState extends MusicBeatSubState
 
   static final BACKGROUND_COLOR:FlxColor = FlxColor.BLACK;
 
+  public static var stageSeed:Int = 1;
+
   /**
    * Instantiate a new PlayState.
    * @param params The parameters used to initialize the PlayState.
@@ -680,7 +682,7 @@ class PlayState extends MusicBeatSubState
     playbackRate = params.playbackRate ?? 1.0;
     overrideMusic = params.overrideMusic ?? false;
     previousCameraFollowPoint = params.cameraFollowPoint;
-
+    stageSeed = ModchartMath.rand();
     // Don't do anything else here! Wait until create() when we attach to the camera.
   }
 
@@ -699,6 +701,7 @@ class PlayState extends MusicBeatSubState
       trace('WARNING: PlayState instance already exists. This should not happen.');
     }
     instance = this;
+
     #if !mobile
     // TODO: Figure out how to do the flair for charting mode!! I can't figure it out for the love of god. -Zack
     if (!isChartingMode) FlxG.autoPause = false;
@@ -1096,7 +1099,6 @@ class PlayState extends MusicBeatSubState
         if (lua != null) lua.stop();
       }
       initLuaSystem();
-
       needsReset = false;
     }
 

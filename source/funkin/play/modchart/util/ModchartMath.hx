@@ -26,6 +26,18 @@ class ModchartMath
 
   public static final MAX_NOTE_ROW:Int = 1 << 30;
 
+  private static var next:Int = 1;
+  public static inline var randMax:Int = 32767;
+
+  public static inline function srand(seed:Int):Void
+    next = seed & 0xFFFFFFFF;
+
+  public static inline function rand():Int
+  {
+    next = (next * 1103515245 + 12345) & 0xFFFFFFFF;
+    return (next >> 16) & randMax;
+  }
+
   // 将x在原区间的位置转移至新区间并进行拉伸保持在新区间中的位置一样
   inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float
     return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);

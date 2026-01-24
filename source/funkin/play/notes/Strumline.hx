@@ -672,8 +672,6 @@ class Strumline extends FlxSpriteGroup
     // I don't remember what bug I was trying to fix by adding this.
     // if (conductorInUse.currentStep == 0) nextNoteIndex = 0;
 
-    updateArrowpath();
-
     var songStart:Float = PlayState.instance?.startTimestamp ?? 0.0;
     var hitWindowStart:Float = conductorInUse.songPosition - Constants.HIT_WINDOW_MS;
     var renderWindowStart:Float = conductorInUse.songPosition + renderDistanceMs * (1 + mods.getValue('drawsize'));
@@ -806,7 +804,7 @@ class Strumline extends FlxSpriteGroup
       }
     }
     updatePositions();
-
+    updateArrowpath();
     // Update rendering of pressed keys.
 
     for (dir in DIRECTIONS)
@@ -1125,6 +1123,7 @@ class Strumline extends FlxSpriteGroup
     {
       var player = modNumber;
       var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+      line.alpha = alpha;
       if (alpha <= 0) continue;
       var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
       var vertices:Vector<Float> = new Vector<Float>();
@@ -1140,7 +1139,6 @@ class Strumline extends FlxSpriteGroup
       }
       var line:PolyLine = this.arrowpaths.members[column];
       line.x = line.y = 0;
-      line.alpha = alpha;
       line.vertices = vertices;
     }
   }

@@ -1140,6 +1140,7 @@ class Strumline extends FlxSpriteGroup
       }
       var line:PolyLine = this.arrowpaths.members[column];
       line.x = line.y = 0;
+      line.alpha = alpha;
       line.vertices = vertices;
     }
   }

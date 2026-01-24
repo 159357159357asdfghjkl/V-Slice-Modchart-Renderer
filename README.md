@@ -2,11 +2,13 @@
 
 # NotITG FNF ver
 
+You can also call it NotITF
+
 An avant-garde FNF Modchart System
 
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
-some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Schmovin(arrowpath support) / Troll Engine(actor uv) / Psych Engine(lua system)
+some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Troll Engine(actor uv) / Psych Engine(lua system)
 
 Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 

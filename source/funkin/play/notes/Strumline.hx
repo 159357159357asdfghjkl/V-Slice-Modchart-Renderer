@@ -1119,12 +1119,12 @@ class Strumline extends FlxSpriteGroup
     var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
     if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
     if (subdivisions <= 1) subdivisions = 1;
-    var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
     var line:PolyLine = this.arrowpaths.members[column];
     line.x = line.y = 0;
-    line.alpha = alpha;
     for (column in 0...KEY_COUNT)
     {
+      var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+      line.alpha = alpha;
       if (alpha <= 0) continue;
       var player = modNumber;
       var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');

@@ -35,7 +35,6 @@ class PolyLine extends FunkinSprite
     super.destroy();
   }
 
-  var indices:Vector<Int> = new Vector<Int>();
   var uvtData:Vector<Float> = new Vector<Float>();
 
   override public function draw():Void
@@ -57,6 +56,7 @@ class PolyLine extends FunkinSprite
           uvtData[(i + 1) * 2] = 1;
           uvtData[(i + 1) * 2 + 1] = 0;
         }
+        var indices:Vector<Int> = new Vector<Int>();
         for (i in 0...subdivisions * 2)
         {
           indices.push(i);

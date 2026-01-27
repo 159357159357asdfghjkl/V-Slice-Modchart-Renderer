@@ -1051,11 +1051,15 @@ class Strumline extends FlxSpriteGroup
     for (cover in noteHoldCovers)
     {
       var glow = cover.glow;
-      if (glow == null || !glow.alive || glow.graphic == null) continue;
-      glow.fov = fov;
+      if (glow == null || !glow.alive) continue;
       var col:Int = cover.column;
-      glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 - 12 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
-      glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
+      var holdCoverAssetPath:Null<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column);
+      var parts:Array<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column, true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+      var source = Paths.image(holdCoverAssetPath, parts[0]);
+      glow.graphic = FlxG.bitmap.add(source);
+      glow.fov = fov;
+      glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 /* - 12 */ + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
+      glow.offsetY = INITIAL_OFFSET - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
       cover.x = cover.y = 0;
       var order:Int = Std.int(mods.getValue('rotationorder'));
       if (order == 0) glow.rotationOrder = 'zyx';

@@ -56,7 +56,7 @@ class Modchart
 
   var totalElapsed:Float = 0;
 
-  function getTime():Float
+  public function getTime():Float
   {
     var modtimer:Int = Std.int(getValue('modtimer'));
     var offset:Float = getValue('modtimeroffset');
@@ -74,7 +74,7 @@ class Modchart
     }
   }
 
-  function getBeat():Float
+  public function getBeat():Float
   {
     return Conductor.instance.getTimeInSteps(getTime() * 1000) / Constants.STEPS_PER_BEAT;
   }
@@ -416,8 +416,7 @@ class Modchart
       'zbuffer',
       'modtimermult',
       'modtimeroffset',
-      'rotationorder',
-      'clearall'
+      'rotationorder'
     ];
     var ONE:Array<String> = [
       'xmod',
@@ -746,7 +745,7 @@ class Modchart
       var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/;
       var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
       var mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
-      var centeredReg:EReg = ~/centered(\d+)/;
+      var centeredReg:EReg = ~/^centered(\d+)$/;
       var name:String = sBit;
       if (mult.match(name))
       {
@@ -798,6 +797,28 @@ class Modchart
             name = 'holdtinyx$i';
           }
         }
+        var axisReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)(\d+)$/; // splinex0
+        var offsetReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)offset(\d+)$/; // splinex0
+        var typeReg:EReg = ~/^spline(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)type$/; // splinextype
+        var resetReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)reset$/; // splinexreset
+        if (axisReg.match(name))
+        {
+          var column:Null<Int> = Std.parseInt(axisReg.matched(1));
+          var axis:String = axisReg.matched(2);
+          var point:Int = Std.parseInt(axisReg.matched(3));
+          var columnArray:Array<Int> = [];
+          if (column == null)
+          {
+            columnArray = [for (i in 0...Strumline.KEY_COUNT) i];
+          }
+          else
+          {
+            columnArray = [column];
+          }
+        }
+        else if (offsetReg.match(name)) {}
+        else if (typeReg.match(name)) {}
+        else if (resetReg.match(name)) {}
       }
       if (altname.exists(name))
       {
@@ -858,7 +879,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 4;
+    return 4 * (NeedZBuffer() ? 0.25 : 1) / Constants.PIXELS_PER_MS;
   }
 
   public var scrollSpeed:Float = 1;

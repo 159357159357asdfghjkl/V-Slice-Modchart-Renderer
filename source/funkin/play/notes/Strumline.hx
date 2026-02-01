@@ -21,6 +21,9 @@ import funkin.play.notes.notekind.NoteKindManager;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.objects.PolyLine;
+import funkin.play.modchart.util.splines.CubicSplineHandler;
+import funkin.play.modchart.util.splines.CosineSplineHandler;
+import funkin.play.modchart.util.splines.LinearSplineHandler;
 import openfl.geom.Vector3D;
 import openfl.Vector;
 import flixel.math.FlxPoint;
@@ -201,6 +204,9 @@ class Strumline extends FlxSpriteGroup
   public var zoom2:Vector3D = new Vector3D(1, 1, 1);
 
   public var mods:Modchart;
+  public var cubicHandlers:Map<String, CubicSplineHandler> = [];
+  public var linearHandlers:Map<String, LinearSplineHandler> = [];
+  public var cosineHandlers:Map<String, CosineSplineHandler> = [];
   public var modNumber:Int = 0; // the player's id
   public var defaultHeight:Float = 0.0;
   public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
@@ -298,6 +304,19 @@ class Strumline extends FlxSpriteGroup
 
     defaultHeight = height;
     mods = new Modchart();
+    var splineAxis:Array<String> = ['pos', 'rotation', 'skew', 'zoom', 'stealth'];
+    for (axis in splineAxis)
+    {
+      for (i in 0...KEY_COUNT)
+      {
+        var cubic:CubicSplineHandler = new CubicSplineHandler();
+        var cosine:CosineSplineHandler = new CosineSplineHandler();
+        var linear:LinearSplineHandler = new LinearSplineHandler();
+        cubicHandlers.set('$axis$i', cubic);
+        cosineHandlers.set('$axis$i', cosine);
+        linearHandlers.set('$axis$i', linear);
+      }
+    }
     xoffArray = [
       -NOTE_SPACING * 1.5 * (noteSpacingScale * strumlineScale.x),
       -NOTE_SPACING / 2 * (noteSpacingScale * strumlineScale.x),
@@ -306,6 +325,49 @@ class Strumline extends FlxSpriteGroup
     ];
     // This MUST be true for children to update!
     this.active = true;
+  }
+
+  public function getSplineAxisPos(axis:String, column:Int, type:String, beat:Float, target:Int, result:Vector3D)
+  {
+    var group:String = 'pos';
+    var handler:Dynamic;
+    switch (axis)
+    {
+      case 'x', 'y', 'z':
+        group = 'pos';
+      case 'rotationx', 'rotationy', 'rotationz':
+        group = 'rotation';
+      case 'skew':
+        group = 'skew';
+      case 'zoom', 'size', 'tiny':
+        group = 'zoom';
+      case 'stealth':
+        group = 'stealth';
+      default:
+        group = 'pos';
+    }
+    switch (type.toLowerCase())
+    {
+      case 'cubic':
+        handler = cubicHandlers['$group$column'];
+      case 'cosine':
+        handler = cosineHandlers['$group$column'];
+      case 'linear':
+        handler = linearHandlers['$group$column'];
+      default:
+        handler = linearHandlers['$group$column'];
+    }
+    if (handler is CubicSplineHandler || handler is CosineSplineHandler || handler is LinearSplineHandler)
+    {
+      if (target == 0 || target == 1)
+      { // note | hold note
+        handler.EvalForBeat(mods.getBeat(), beat, result);
+      }
+      else if (target == 2)
+      {
+        handler.EvalForReceptor(mods.getBeat(), beat, result);
+      }
+    }
   }
 
   override function set_y(value:Float):Float
@@ -816,15 +878,6 @@ class Strumline extends FlxSpriteGroup
 
       // Added this to prevent sustained vibrations not ending issue.
       if (!isKeyHeld(dir) && isPlayer) noteVibrations.noteStatuses[dir] = NoteStatus.idle;
-    }
-
-    if (mods.NeedZBuffer())
-    {
-      if (notes.members.length > 1) notes.members.insertionSort(compareNoteSprites.bind(FlxSort.ASCENDING));
-      if (holdNotes.members.length > 1) holdNotes.members.insertionSort(compareHoldNoteSprites.bind(FlxSort.ASCENDING));
-      if (strumlineNotes.members.length > 1) strumlineNotes.members.insertionSort(compareStrumlineNotes.bind(FlxSort.ASCENDING));
-      if (noteSplashes.members.length > 1) noteSplashes.members.insertionSort(compareNoteSplashes.bind(FlxSort.ASCENDING));
-      if (noteHoldCovers.members.length > 1) noteHoldCovers.members.insertionSort(compareNoteHoldCovers.bind(FlxSort.ASCENDING));
     }
   }
 

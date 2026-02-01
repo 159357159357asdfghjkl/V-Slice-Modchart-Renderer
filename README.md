@@ -8,11 +8,13 @@ An avant-garde FNF Modchart System
 
 Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
 
-some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Troll Engine(actor uv) / Psych Engine(lua system)
+some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Psych Engine(lua system)
 
 Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
 
 WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / SpiralHolds / ZoomX/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have)) FROM MY CODE (because i want to become well-known lol)
+
+ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
 
 # Friday Night Funkin'
 

@@ -433,12 +433,21 @@ class SustainTrail extends FlxSprite
     }
     if (length < 2) length = 2;
     var halfWidth:Float = graphicWidth / 2;
-    var ct:Array<ColorTransform> = [];
     var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
     var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
     var renderDist:Float = FlxG.height / Constants.PIXELS_PER_MS / (parentStrumline?.scrollSpeed ?? 1);
-    var frontPart:Float = Conductor.instance.getTimeWithDelta() + renderDist * drawsize;
-    var backPart:Float = Conductor.instance.getTimeWithDelta() - (Constants.HIT_WINDOW_MS) * drawsizeback;
+    var draw_pixels_after_targets:Float = -Strumline.NOTE_SPACING * (1 + drawsize);
+    var centered_times_boomerang:Float = (parentStrumline?.mods?.getValue('centered') ?? 0.0) * (parentStrumline?.mods?.getValue('boomerang') ?? 0.0);
+    draw_pixels_after_targets += Std.int(ModchartMath.scale(centered_times_boomerang, 0.0, 1.0, 0.0, -FlxG.height / 2));
+    var draw_pixels_before_targets:Float = FlxG.height * (1 + drawsizeback);
+    var draw_scale:Float = 1 + 0.5 * Math.abs(parentStrumline?.mods?.tilt ?? 0.0);
+    draw_scale *= 1 + Math.abs(parentStrumline?.mods?.getValue('mini') ?? 0.0);
+    draw_pixels_after_targets *= draw_scale;
+    draw_pixels_before_targets *= draw_scale;
+    var uvArray:Array<Int> = [for (i in 0...length) i];
+    uvArray.reverse();
+    var indicesArray:Array<Int> = [];
+    var drawTail:Bool = true;
     for (i in 0...length + 1)
     {
       var a:Int = i * 2;
@@ -446,94 +455,87 @@ class SustainTrail extends FlxSprite
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
+      if (!((draw_pixels_after_targets <= pos1[0].y && pos1[0].y <= draw_pixels_before_targets)
+        && (draw_pixels_after_targets <= pos2[0].y && pos2[0].y <= draw_pixels_before_targets)))
+      {
+        if (i == length) drawTail = false;
+        continue;
+      }
+
       vertices[a * 2] = pos1[0].x + halfWidth;
       vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
-      if (time > frontPart || time < backPart)
-      {
-        pos1[1] = new Vector3D();
-        pos1[2] = new Vector3D();
-        pos2[1] = new Vector3D();
-        pos2[2] = new Vector3D();
-      }
-      ct.push(getShader(pos1[1], pos1[2]));
-      ct.push(getShader(pos2[1], pos2[2]));
-      if (i == length - 1)
-      {
-        ct.push(getShader(pos1[1], pos1[2]));
-        ct.push(getShader(pos2[1], pos2[2]));
-      }
+
+      transforms[i * 2] = getShader(pos1[1], pos1[2]);
+      transforms[i * 2 + 1] = getShader(pos2[1], pos2[2]);
+
+      var fullVLength:Float = (-partHeight) / graphic.height / zoom;
+      uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
+      uvtData[a * 2 + 1] = (fullVLength / length * uvArray[i]);
+      uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
+      uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
+
+      indicesArray.push(a + 0);
+      indicesArray.push(a + 1);
+      indicesArray.push(a + 2);
+      indicesArray.push(a + 1);
+      indicesArray.push(a + 3);
+      indicesArray.push(a + 2);
     }
+
     var end:Int = length * 2;
     var next:Int = (length + 1) * 2;
     var bottom:Int = (length + 2) * 2;
-    vertices[next * 2] = vertices[end * 2];
-    vertices[next * 2 + 1] = vertices[end * 2 + 1];
-    vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
-    vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
+    if (drawTail)
+    {
+      vertices[next * 2] = vertices[end * 2];
+      vertices[next * 2 + 1] = vertices[end * 2 + 1];
+      vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
+      vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
+      uvtData[next * 2] = 1 / 4 * (noteDirection % 4) + 1 / 8;
+      uvtData[next * 2 + 1] = if (partHeight > 0)
+      {
+        0;
+      }
+      else
+      {
+        (bottomHeight - clipHeight) / zoom / graphic.height;
+      };
+      uvtData[(next + 1) * 2] = uvtData[next * 2] + 1 / 8;
+      uvtData[(next + 1) * 2 + 1] = uvtData[next * 2 + 1];
+      transforms[next] = transforms[end];
+      transforms[next + 1] = transforms[end + 1];
+      indicesArray.push(next + 0);
+      indicesArray.push(next + 1);
+      indicesArray.push(next + 2);
+      indicesArray.push(next + 1);
+      indicesArray.push(next + 3);
+      indicesArray.push(next + 2);
 
-    var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
-    var time:Float = strumTime + fullSustainLength + capHeight / Constants.PIXELS_PER_MS;
-    if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
-    var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
-    var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-    vertices[bottom * 2] = pos1[0].x + halfWidth;
-    vertices[bottom * 2 + 1] = pos1[0].y;
-    vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-    vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
-    if (time > frontPart || Conductor.instance.getTimeWithDelta() > backPart)
-    {
-      pos1[1] = new Vector3D();
-      pos1[2] = new Vector3D();
-      pos2[1] = new Vector3D();
-      pos2[2] = new Vector3D();
-    }
-    ct.push(getShader(pos1[1], pos1[2]));
-    ct.push(getShader(pos2[1], pos2[2]));
-
-    for (i in 0...length + 1)
-    {
-      var fullVLength:Float = (-partHeight) / graphic.height / zoom;
-      var a:Int = i * 2;
-      var array:Array<Int> = [for (i in 0...length) i];
-      array.reverse();
-      uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
-      uvtData[a * 2 + 1] = (fullVLength / length * array[i]);
-      uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
-      uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
+      var bottom:Int = (length + 2) * 2;
+      var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
+      var time:Float = strumTime + fullSustainLength + capHeight;
+      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
+      var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
+      var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
+      if ((draw_pixels_after_targets <= pos1[0].y && pos1[0].y <= draw_pixels_before_targets)
+        && (draw_pixels_after_targets <= pos2[0].y && pos2[0].y <= draw_pixels_before_targets))
+      {
+        vertices[bottom * 2] = pos1[0].x + halfWidth;
+        vertices[bottom * 2 + 1] = pos1[0].y;
+        vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
+        vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
+        transforms[bottom] = getShader(pos1[1], pos1[2]);
+        transforms[bottom + 1] = getShader(pos2[1], pos2[2]);
+        uvtData[bottom * 2] = uvtData[next * 2];
+        uvtData[bottom * 2 + 1] = bottomClip;
+        uvtData[(bottom + 1) * 2] = uvtData[(next + 1) * 2];
+        uvtData[(bottom + 1) * 2 + 1] = uvtData[bottom * 2 + 1];
+      }
     }
 
-    uvtData[next * 2] = 1 / 4 * (noteDirection % 4) + 1 / 8;
-    uvtData[next * 2 + 1] = if (partHeight > 0)
-    {
-      0;
-    }
-    else
-    {
-      (bottomHeight - clipHeight) / zoom / graphic.height;
-    };
-    uvtData[(next + 1) * 2] = uvtData[next * 2] + 1 / 8;
-    uvtData[(next + 1) * 2 + 1] = uvtData[next * 2 + 1];
-    uvtData[bottom * 2] = uvtData[next * 2];
-    uvtData[bottom * 2 + 1] = bottomClip;
-    uvtData[(bottom + 1) * 2] = uvtData[(next + 1) * 2];
-    uvtData[(bottom + 1) * 2 + 1] = uvtData[bottom * 2 + 1];
-    var indices:Array<Int> = [];
-    for (i in 0...end)
-    {
-      indices.push(i);
-      indices.push(i + 1);
-      indices.push(i + 2);
-    }
-    indices.push(next);
-    indices.push(next + 1);
-    indices.push(next + 2);
-    indices.push(next + 1);
-    indices.push(next + 2);
-    indices.push(next + 3);
-    this.indices = new DrawData<Int>(indices.length, true, indices);
-    transforms = ct;
+    this.indices = new DrawData<Int>(indicesArray.length, true, indicesArray);
   }
 
   function getShader(diffPos:Vector3D, glowPos:Vector3D)

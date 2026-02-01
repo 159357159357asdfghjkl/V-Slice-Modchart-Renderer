@@ -1,4 +1,4 @@
-package funkin.play.modchart.util;
+package funkin.play.modchart;
 
 import llua.Lua;
 import llua.LuaL;

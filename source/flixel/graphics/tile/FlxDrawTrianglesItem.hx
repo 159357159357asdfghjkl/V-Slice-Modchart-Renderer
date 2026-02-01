@@ -222,30 +222,14 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 
       for (_ in 0...indicesLength)
       {
-        if (transform != null)
-        {
-          colorMultipliers.push(transform.redMultiplier);
-          colorMultipliers.push(transform.greenMultiplier);
-          colorMultipliers.push(transform.blueMultiplier);
-
-          colorOffsets.push(transform.redOffset);
-          colorOffsets.push(transform.greenOffset);
-          colorOffsets.push(transform.blueOffset);
-          colorOffsets.push(transform.alphaOffset);
-        }
-        else
-        {
-          colorMultipliers.push(1);
-          colorMultipliers.push(1);
-          colorMultipliers.push(1);
-
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-          colorOffsets.push(0);
-        }
-
+        colorMultipliers.push(transform?.redMultiplier ?? 1);
+        colorMultipliers.push(transform?.greenMultiplier ?? 1);
+        colorMultipliers.push(transform?.blueMultiplier ?? 1);
         colorMultipliers.push(1);
+        colorOffsets.push(transform?.redOffset ?? 0);
+        colorOffsets.push(transform?.greenOffset ?? 0);
+        colorOffsets.push(transform?.blueOffset ?? 0);
+        colorOffsets.push(transform?.alphaOffset ?? 0);
       }
     }
     #end
@@ -331,36 +315,21 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
       if (colorMultipliers == null) colorMultipliers = [];
 
       if (colorOffsets == null) colorOffsets = [];
-
-      for (_ in 0...Std.int(indices.length / 3))
+      if (transform != null)
       {
-        var colorTransform = transform[_];
-        for (i in 0...3)
+        for (i in 0...indicesLength)
         {
-          if (colorTransform != null)
-          {
-            colorMultipliers.push(colorTransform.redMultiplier);
-            colorMultipliers.push(colorTransform.greenMultiplier);
-            colorMultipliers.push(colorTransform.blueMultiplier);
-            colorMultipliers.push(1);
-            colorOffsets.push(colorTransform.redOffset);
-            colorOffsets.push(colorTransform.greenOffset);
-            colorOffsets.push(colorTransform.blueOffset);
-            colorOffsets.push(colorTransform.alphaOffset);
-            alphas.push(colorTransform.alphaMultiplier);
-          }
-          else
-          {
-            colorMultipliers.push(1);
-            colorMultipliers.push(1);
-            colorMultipliers.push(1);
-            colorMultipliers.push(1);
-            colorOffsets.push(0);
-            colorOffsets.push(0);
-            colorOffsets.push(0);
-            colorOffsets.push(0);
-            alphas.push(1);
-          }
+          var curIndice:Int = indices[i];
+          var transform = transform[curIndice];
+          colorMultipliers.push(transform?.redMultiplier ?? 1);
+          colorMultipliers.push(transform?.greenMultiplier ?? 1);
+          colorMultipliers.push(transform?.blueMultiplier ?? 1);
+          colorMultipliers.push(1);
+          colorOffsets.push(transform?.redOffset ?? 0);
+          colorOffsets.push(transform?.greenOffset ?? 0);
+          colorOffsets.push(transform?.blueOffset ?? 0);
+          colorOffsets.push(transform?.alphaOffset ?? 0);
+          alphas.push(transform?.alphaMultiplier ?? 1);
         }
       }
     }

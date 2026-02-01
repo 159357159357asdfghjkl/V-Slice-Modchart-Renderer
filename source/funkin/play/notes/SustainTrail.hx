@@ -448,9 +448,10 @@ class SustainTrail extends FlxSprite
     uvArray.reverse();
     var indicesArray:Array<Int> = [];
     var drawTail:Bool = true;
+    var trueIndex:Int = 0;
     for (i in 0...length + 1)
     {
-      var a:Int = i * 2;
+      var a:Int = trueIndex * 2;
       var time:Float = strumTime + (fullSustainLength / length * i);
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
@@ -458,7 +459,7 @@ class SustainTrail extends FlxSprite
       if (!((draw_pixels_after_targets <= pos1[0].y && pos1[0].y <= draw_pixels_before_targets)
         && (draw_pixels_after_targets <= pos2[0].y && pos2[0].y <= draw_pixels_before_targets)))
       {
-        if (i == length) drawTail = false;
+        if (i == length && draw_pixels_after_targets <= pos1[0].y) drawTail = false;
         continue;
       }
 
@@ -467,8 +468,8 @@ class SustainTrail extends FlxSprite
       vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
       vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
 
-      transforms[i * 2] = getShader(pos1[1], pos1[2]);
-      transforms[i * 2 + 1] = getShader(pos2[1], pos2[2]);
+      transforms[trueIndex * 2] = getShader(pos1[1], pos1[2]);
+      transforms[trueIndex * 2 + 1] = getShader(pos2[1], pos2[2]);
 
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
       uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
@@ -482,11 +483,13 @@ class SustainTrail extends FlxSprite
       indicesArray.push(a + 1);
       indicesArray.push(a + 3);
       indicesArray.push(a + 2);
+
+      trueIndex++;
     }
 
-    var end:Int = length * 2;
-    var next:Int = (length + 1) * 2;
-    var bottom:Int = (length + 2) * 2;
+    var end:Int = (trueIndex - 1) * 2;
+    var next:Int = trueIndex * 2;
+    var bottom:Int = (trueIndex + 1) * 2;
     if (drawTail)
     {
       vertices[next * 2] = vertices[end * 2];
@@ -513,26 +516,25 @@ class SustainTrail extends FlxSprite
       indicesArray.push(next + 3);
       indicesArray.push(next + 2);
 
-      var bottom:Int = (length + 2) * 2;
       var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
       var time:Float = strumTime + fullSustainLength + capHeight;
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      if ((draw_pixels_after_targets <= pos1[0].y && pos1[0].y <= draw_pixels_before_targets)
-        && (draw_pixels_after_targets <= pos2[0].y && pos2[0].y <= draw_pixels_before_targets))
-      {
-        vertices[bottom * 2] = pos1[0].x + halfWidth;
-        vertices[bottom * 2 + 1] = pos1[0].y;
-        vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-        vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
-        transforms[bottom] = getShader(pos1[1], pos1[2]);
-        transforms[bottom + 1] = getShader(pos2[1], pos2[2]);
-        uvtData[bottom * 2] = uvtData[next * 2];
-        uvtData[bottom * 2 + 1] = bottomClip;
-        uvtData[(bottom + 1) * 2] = uvtData[(next + 1) * 2];
-        uvtData[(bottom + 1) * 2 + 1] = uvtData[bottom * 2 + 1];
-      }
+      vertices[bottom * 2] = pos1[0].x + halfWidth;
+      vertices[bottom * 2 + 1] = pos1[0].y;
+      vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
+      vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
+      transforms[bottom] = getShader(pos1[1], pos1[2]);
+      transforms[bottom + 1] = getShader(pos2[1], pos2[2]);
+      uvtData[bottom * 2] = uvtData[next * 2];
+      uvtData[bottom * 2 + 1] = bottomClip;
+      uvtData[(bottom + 1) * 2] = uvtData[(next + 1) * 2];
+      uvtData[(bottom + 1) * 2 + 1] = uvtData[bottom * 2 + 1];
+    }
+    else
+    {
+      indicesArray.splice(-6, 6);
     }
 
     this.indices = new DrawData<Int>(indicesArray.length, true, indicesArray);

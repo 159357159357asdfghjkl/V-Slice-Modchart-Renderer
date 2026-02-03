@@ -1,10 +1,13 @@
-package funkin.play.modchart.util.splines;
+package funkin.play.modchart.util;
 
 import funkin.play.modchart.util.ModchartMath;
+import flixel.math.FlxMath;
 import openfl.geom.Vector3D;
+import funkin.play.notes.Strumline;
 
 // from stepmania
 // it's hard to port this
+// expansion: linear/cosine interpolation
 class CubicSpline
 {
   public var points:Array<Array<Float>> = [];
@@ -29,6 +32,14 @@ class CubicSpline
     if (abs_plus_diff < abs_minus_diff) return plus_diff;
     return minus_diff;
   }
+
+  /** (-inf, 0] Linear
+   *  (0, 1] Cosine
+   *  (1, +inf) Cubic
+  **/
+  public var splineMode:Float = 0;
+
+  public var splineOffset:Float = 0;
 
   public var spatial_extent:Float = 0.0;
 
@@ -164,6 +175,7 @@ class CubicSpline
   {
     var p:Int = 0;
     var tfrac:Float = 0;
+    t += splineOffset;
     if (loop)
     {
       var max_t:Float = points.length;
@@ -200,9 +212,23 @@ class CubicSpline
     var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
     var p:Int = Std.int(p_tfrac[0]);
     var tfrac:Float = p_tfrac[1];
-    var tsq:Float = tfrac * tfrac;
-    var tcub:Float = tsq * tfrac; // i realized why it's called cubic spline
-    return points[p][0] + (points[p][1] * tfrac) + (points[p][2] * tsq) + (points[p][3] * tcub);
+    var next:Float = points[(p + 1) % points.length][0];
+    var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
+    if (splineMode > 1)
+    {
+      var tsq:Float = tfrac * tfrac;
+      var tcub:Float = tsq * tfrac;
+      return points[p][0] + (points[p][1] * tfrac) + (points[p][2] * tsq) + (points[p][3] * tcub);
+    }
+    else if (splineMode > 0 && splineMode <= 1)
+    {
+      var cosFactor:Float = (1.0 - Math.cos(tfrac * Math.PI)) / 2.0;
+      return points[p][0] + diff * cosFactor;
+    }
+    else
+    {
+      return points[p][0] + diff * tfrac;
+    }
   }
 
   public function evaluate_derivative(t:Float, loop:Bool):Float
@@ -211,8 +237,23 @@ class CubicSpline
     var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
     var p:Int = Std.int(p_tfrac[0]);
     var tfrac:Float = p_tfrac[1];
-    var tsq:Float = tfrac * tfrac;
-    return points[p][1] + (2.0 * points[p][2] * tfrac) + (3.0 * points[p][3] * tsq);
+    var next:Float = points[(p + 1) % points.length][0];
+    var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
+    if (splineMode > 1)
+    {
+      var tsq:Float = tfrac * tfrac;
+      return points[p][1] + (2.0 * points[p][2] * tfrac) + (3.0 * points[p][3] * tsq);
+    }
+    else if (splineMode > 0 && splineMode <= 1)
+    {
+      var current:Float = points[p][0];
+      var sinFactor:Float = (Math.PI * FlxMath.fastSin(tfrac * Math.PI)) / 2.0;
+      return diff * sinFactor;
+    }
+    else
+    {
+      return points[p][1];
+    }
   }
 
   public function evaluate_second_derivative(t:Float, loop:Bool):Float
@@ -221,7 +262,21 @@ class CubicSpline
     var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
     var p:Int = Std.int(p_tfrac[0]);
     var tfrac:Float = p_tfrac[1];
-    return (2.0 * points[p][2]) + (6.0 * points[p][3] * tfrac);
+    var next:Float = points[(p + 1) % points.length][0];
+    var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
+    if (splineMode > 1)
+    {
+      return (2.0 * points[p][2]) + (6.0 * points[p][3] * tfrac);
+    }
+    else if (splineMode > 0 && splineMode <= 1)
+    {
+      var cosFactor:Float = (Math.PI * Math.PI * FlxMath.fastCos(tfrac * Math.PI)) / 2.0;
+      return diff * cosFactor;
+    }
+    else
+    {
+      return 0.0;
+    }
   }
 
   public function evaluate_third_derivative(t:Float, loop:Bool):Float
@@ -230,7 +285,21 @@ class CubicSpline
     var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
     var p:Int = Std.int(p_tfrac[0]);
     var tfrac:Float = p_tfrac[1];
-    return 6.0 * points[p][3];
+    var next:Float = points[(p + 1) % points.length][0];
+    var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
+    if (splineMode > 1)
+    {
+      return 6.0 * points[p][3];
+    }
+    else if (splineMode > 0 && splineMode <= 1)
+    {
+      var sinFactor:Float = (Math.PI * Math.PI * Math.PI * FlxMath.fastSin(tfrac * Math.PI)) / 2.0;
+      return -diff * sinFactor;
+    }
+    else
+    {
+      return 0.0;
+    }
   }
 
   public function set_point(i:Int, v:Float):Void
@@ -245,6 +314,20 @@ class CubicSpline
     points[i][1] = b;
     points[i][2] = c;
     points[i][3] = d;
+  }
+
+  public function add_point(i:Int, v:Float):Void
+  {
+    if (i < points.length == false) throw "CubicSpline::add_point requires the index to be less than the number of points.";
+    points[i][0] += v;
+  }
+
+  public function add_coefficients(i:Int, b:Float, c:Float, d:Float):Void
+  {
+    if (i < points.length == false) throw "CubicSpline: point index must be less than the number of points.";
+    points[i][1] += b;
+    points[i][2] += c;
+    points[i][3] += d;
   }
 
   public function get_coefficients(i:Int):Array<Float>
@@ -268,7 +351,12 @@ class CubicSpline
 
   public function resize(s:Int):Void
   {
+    var oldSize:Int = points.length;
     points.resize(s);
+    for (i in oldSize...s)
+    {
+      points[i] = [0.0, 0.0];
+    }
   }
 
   public function size():Int
@@ -430,12 +518,45 @@ class CubicSplineN
     dirty = true;
   }
 
+  public function set_type(i:Int, v:Array<Float>):Void
+  {
+    if (v.length != splines.length) throw "CubicSplineN::set_type requires the passed point to be the same dimension as the spline.";
+    for (n in 0...splines.length)
+      splines[n].splineMode = v[n];
+    dirty = true;
+  }
+
+  public function set_offset(i:Int, v:Array<Float>):Void
+  {
+    if (v.length != splines.length) throw "CubicSplineN::set_offset requires the passed point to be the same dimension as the spline.";
+    for (n in 0...splines.length)
+      splines[n].splineOffset = v[n];
+    dirty = true;
+  }
+
   public function set_coefficients(i:Int, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
   {
     if ((b.length == c.length && c.length == d.length && d.length == splines.length) == false)
       throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
     for (n in 0...splines.length)
       splines[n].set_coefficients(i, b[n], c[n], d[n]);
+    dirty = true;
+  }
+
+  public function add_point(i:Int, v:Array<Float>):Void
+  {
+    if (v.length != splines.length) throw "CubicSplineN::add_point requires the passed point to be the same dimension as the spline.";
+    for (n in 0...splines.length)
+      splines[n].add_point(i, v[n]);
+    dirty = true;
+  }
+
+  public function add_coefficients(i:Int, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
+  {
+    if ((b.length == c.length && c.length == d.length && d.length == splines.length) == false)
+      throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
+    for (n in 0...splines.length)
+      splines[n].add_coefficients(i, b[n], c[n], d[n]);
     dirty = true;
   }
 
@@ -484,6 +605,10 @@ class CubicSplineN
   public function redimension(d:Int):Void
   {
     splines.resize(d);
+    for (i in 0...splines.length)
+    {
+      if (splines[i] == null) splines[i] = new CubicSpline();
+    }
     dirty = true;
   }
 

@@ -362,16 +362,30 @@ class SustainTrail extends FlxSprite
       parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
         parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     }
-    fullPos = fullPos.add(difference);
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
+    var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
+    var spPos:Vector3D = new Vector3D();
+    var spZoom:Vector3D = new Vector3D();
+    var spSkew:Vector3D = new Vector3D();
+    var spStealth:Vector3D = new Vector3D();
+    var realSpZoom:Float = 1;
+    var realSpStealth:Float = 0;
     if (parentStrumline != null)
     {
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
       if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
+      parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 0, spPos);
+      parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 0, spZoom);
+      realSpZoom = 1 - 0.5 * spZoom.x;
+      parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 0, spStealth);
+      realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
+      parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 0, spSkew);
     }
+    fullPos.incrementBy(spPos);
+    fullPos.incrementBy(difference);
+    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
+    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
+    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, fov, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
@@ -381,10 +395,13 @@ class SustainTrail extends FlxSprite
     var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
     var diffuses:Vector3D = new Vector3D(parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red') ?? 1,
       parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green') ?? 1,
-      parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue') ?? 1, alpha);
+      parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue') ?? 1,
+      ModchartMath.clamp(alpha + ((realSpStealth > 0.5) ? 1.0 : 0.0), 0, 1));
     var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
-      (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), glow);
+      (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1),
+      glow
+      + ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0));
     return [zPos, diffuses, glowColor];
   }
 

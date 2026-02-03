@@ -21,9 +21,7 @@ import funkin.play.notes.notekind.NoteKindManager;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.objects.PolyLine;
-import funkin.play.modchart.util.splines.CubicSplineHandler;
-import funkin.play.modchart.util.splines.CosineSplineHandler;
-import funkin.play.modchart.util.splines.LinearSplineHandler;
+import funkin.play.modchart.util.CubicSplineHandler;
 import openfl.geom.Vector3D;
 import openfl.Vector;
 import flixel.math.FlxPoint;
@@ -204,9 +202,7 @@ class Strumline extends FlxSpriteGroup
   public var zoom2:Vector3D = new Vector3D(1, 1, 1);
 
   public var mods:Modchart;
-  public var cubicHandlers:Map<String, CubicSplineHandler> = [];
-  public var linearHandlers:Map<String, LinearSplineHandler> = [];
-  public var cosineHandlers:Map<String, CosineSplineHandler> = [];
+  public var cubicHandler:Map<String, CubicSplineHandler> = [];
   public var modNumber:Int = 0; // the player's id
   public var defaultHeight:Float = 0.0;
   public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
@@ -310,11 +306,9 @@ class Strumline extends FlxSpriteGroup
       for (i in 0...KEY_COUNT)
       {
         var cubic:CubicSplineHandler = new CubicSplineHandler();
-        var cosine:CosineSplineHandler = new CosineSplineHandler();
-        var linear:LinearSplineHandler = new LinearSplineHandler();
-        cubicHandlers.set('$axis$i', cubic);
-        cosineHandlers.set('$axis$i', cosine);
-        linearHandlers.set('$axis$i', linear);
+        cubic.spline.redimension(3);
+        cubic.spline.resize(Modchart.MAX_SPLINE_POINT_COUNT);
+        cubicHandler.set('$axis$i', cubic);
       }
     }
     xoffArray = [
@@ -327,46 +321,46 @@ class Strumline extends FlxSpriteGroup
     this.active = true;
   }
 
-  public function getSplineAxisPos(axis:String, column:Int, type:String, beat:Float, target:Int, result:Vector3D)
+  public var enableSpline:Bool = false; // this spline system is too lag, i should create a method to close it
+
+  // credit me
+  public function getSplineAxisPos(group:String, column:Int, beat:Float, target:Int, result:Vector3D)
   {
-    var group:String = 'pos';
-    var handler:Dynamic;
-    switch (axis)
+    if (enableSpline)
     {
-      case 'x', 'y', 'z':
-        group = 'pos';
-      case 'rotationx', 'rotationy', 'rotationz':
-        group = 'rotation';
-      case 'skew':
-        group = 'skew';
-      case 'zoom', 'size', 'tiny':
-        group = 'zoom';
-      case 'stealth':
-        group = 'stealth';
-      default:
-        group = 'pos';
-    }
-    switch (type.toLowerCase())
-    {
-      case 'cubic':
-        handler = cubicHandlers['$group$column'];
-      case 'cosine':
-        handler = cosineHandlers['$group$column'];
-      case 'linear':
-        handler = linearHandlers['$group$column'];
-      default:
-        handler = linearHandlers['$group$column'];
-    }
-    if (handler is CubicSplineHandler || handler is CosineSplineHandler || handler is LinearSplineHandler)
-    {
-      if (target == 0 || target == 1)
-      { // note | hold note
-        handler.EvalForBeat(mods.getBeat(), beat, result);
-      }
-      else if (target == 2)
+      var axis:Array<String> = ['x', 'y', 'z'];
+      switch (group)
       {
-        handler.EvalForReceptor(mods.getBeat(), beat, result);
+        case 'rotation':
+          axis = ['rotx', 'roty', 'rotz'];
+        case 'skew':
+          axis = ['skew', 'skew', 'skew'];
+        case 'zoom':
+          axis = ['zoom', 'zoom', 'zoom'];
+        case 'stealth':
+          axis = ['stealth', 'stealth', 'stealth'];
       }
+      var handler = this.cubicHandler.get('$group$column');
+      for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
+      {
+        var pointArray:Array<Float> = [];
+        var offsetArray:Array<Float> = [];
+        var typeArray:Array<Float> = [];
+        for (index => axis in axis)
+        {
+          var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
+          var position:Float = mods.getValue('spline$column${axis}offset$point') + mods.getValue('spline${axis}offset$point');
+          pointArray[index] = magnitude * NOTE_SPACING;
+          typeArray[index] = mods.getValue('spline${axis}type');
+          offsetArray[index] = position * NOTE_SPACING;
+        }
+        handler.spline.set_point(point, pointArray);
+        handler.spline.set_type(point, typeArray);
+        handler.spline.set_offset(point, offsetArray);
+      }
+      handler.spline.solve();
+      if (target == 0 || target == 1) handler.EvalForBeat(mods.getBeat(), beat, result);
+      else if (target == 2 && group != 'rotation') handler.EvalForReceptor(mods.getBeat(), result);
     }
   }
 
@@ -921,10 +915,22 @@ class Strumline extends FlxSpriteGroup
       var rotation:Vector3D = new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null, angOrientX),
         mods.GetRotationY(col, realofs, note.holdNoteSprite != null, angOrientY), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
-      note.SCALE.x = scalePos.x;
-      note.SCALE.y = scalePos.y;
-      note.SCALE.z = scalePos.z;
-      note.skew.x = skewPos.x;
+      var spPos:Vector3D = new Vector3D();
+      getSplineAxisPos('pos', col, noteBeat, 0, spPos);
+      var spRot:Vector3D = new Vector3D();
+      getSplineAxisPos('rotation', col, noteBeat, 0, spRot);
+      var spZoom:Vector3D = new Vector3D();
+      getSplineAxisPos('zoom', col, noteBeat, 0, spZoom);
+      var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+      var spStealth:Vector3D = new Vector3D();
+      getSplineAxisPos('stealth', col, noteBeat, 0, spStealth);
+      var realSpStealth:Float = ModchartMath.clamp(1 - spStealth.x, 0, 1);
+      var spSkew:Vector3D = new Vector3D();
+      getSplineAxisPos('skew', col, noteBeat, 0, spSkew);
+      note.SCALE.x = scalePos.x * realSpZoom;
+      note.SCALE.y = scalePos.y * realSpZoom;
+      note.SCALE.z = scalePos.z * realSpZoom;
+      note.skew.x = skewPos.x + spSkew.x;
       note.skew.y = skewPos.y;
       note.x = note.y = 0;
       var newZoom:Vector3D = this.zoom.clone();
@@ -932,6 +938,7 @@ class Strumline extends FlxSpriteGroup
       newZoom.y *= zoom2.y;
       newZoom.z *= zoom2.z;
       mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
+      pos.incrementBy(spPos);
       note.pos.copyFrom(pos.add(difference));
       note._skew = skewPos.z;
       note.originVec = zOrigin;
@@ -939,11 +946,14 @@ class Strumline extends FlxSpriteGroup
       note.diffuse.x = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'red');
       note.diffuse.y = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'green');
       note.diffuse.z = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'blue');
-      note.diffuse.w = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.diffuse.w = ModchartMath.clamp(mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false)
+        + ((realSpStealth > 0.5) ? 1.0 : 0.0), 0, 1);
       note.glow.x = mods.getValue('stealthglowred') * mods.getValue('stealthglowred$col');
       note.glow.y = mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$col');
       note.glow.z = mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
-      note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+      note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false)
+        + ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
+      if (note.holdNoteSprite == null) rotation.incrementBy(spRot);
       note.rotation.copyFrom(rotation);
       note.fov = fov;
       var order:Int = Std.int(mods.getValue('rotationorder'));
@@ -1026,18 +1036,26 @@ class Strumline extends FlxSpriteGroup
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
         mods.ReceptorGetRotationZ(col, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      var spPos:Vector3D = new Vector3D();
+      getSplineAxisPos('pos', col, 0, 2, spPos);
+      var spZoom:Vector3D = new Vector3D();
+      getSplineAxisPos('zoom', col, 0, 2, spZoom);
+      var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+      var spSkew:Vector3D = new Vector3D();
+      getSplineAxisPos('skew', col, 0, 2, spSkew);
       strumNote._skew = skewPos.z;
       strumNote.rotation.copyFrom(rotation);
-      strumNote.SCALE.x = scalePos.x;
-      strumNote.SCALE.y = scalePos.y;
-      strumNote.SCALE.z = scalePos.z;
-      strumNote.skew.x = skewPos.x;
+      strumNote.SCALE.x = scalePos.x * realSpZoom;
+      strumNote.SCALE.y = scalePos.y * realSpZoom;
+      strumNote.SCALE.z = scalePos.z * realSpZoom;
+      strumNote.skew.x = skewPos.x + spSkew.x;
       strumNote.skew.y = skewPos.y;
       var newZoom:Vector3D = this.zoom.clone();
       newZoom.x *= zoom2.x;
       newZoom.y *= zoom2.y;
       newZoom.z *= zoom2.z;
       mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
+      pos.incrementBy(spPos);
       strumNote.pos.copyFrom(pos.add(difference));
       strumNote.originVec = zOrigin;
       var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
@@ -1082,18 +1100,26 @@ class Strumline extends FlxSpriteGroup
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
         mods.ReceptorGetRotationZ(col, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      var spPos:Vector3D = new Vector3D();
+      getSplineAxisPos('pos', col, 0, 2, spPos);
+      var spZoom:Vector3D = new Vector3D();
+      getSplineAxisPos('zoom', col, 0, 2, spZoom);
+      var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+      var spSkew:Vector3D = new Vector3D();
+      getSplineAxisPos('skew', col, 0, 2, spSkew);
       splash._skew = skewPos.z;
       splash.rotation.copyFrom(rotation);
-      splash.SCALE.x = scalePos.x;
-      splash.SCALE.y = scalePos.y;
-      splash.SCALE.z = scalePos.z;
-      splash.skew.x = skewPos.x;
+      splash.SCALE.x = scalePos.x * realSpZoom;
+      splash.SCALE.y = scalePos.y * realSpZoom;
+      splash.SCALE.z = scalePos.z * realSpZoom;
+      splash.skew.x = skewPos.x + spSkew.x;
       splash.skew.y = skewPos.y;
       var newZoom:Vector3D = this.zoom.clone();
       newZoom.x *= zoom2.x;
       newZoom.y *= zoom2.y;
       newZoom.z *= zoom2.z;
       mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
+      pos.incrementBy(spPos);
       splash.pos.copyFrom(pos.add(difference));
       splash.originVec = zOrigin;
       var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
@@ -1144,17 +1170,25 @@ class Strumline extends FlxSpriteGroup
       var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
         mods.ReceptorGetRotationZ(col, ang));
       mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
+      var spPos:Vector3D = new Vector3D();
+      getSplineAxisPos('pos', col, 0, 2, spPos);
+      var spZoom:Vector3D = new Vector3D();
+      getSplineAxisPos('zoom', col, 0, 2, spZoom);
+      var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+      var spSkew:Vector3D = new Vector3D();
+      getSplineAxisPos('skew', col, 0, 2, spSkew);
       glow.rotation.copyFrom(rotation);
-      glow.SCALE.x = scalePos.x;
-      glow.SCALE.y = scalePos.y;
-      glow.SCALE.z = scalePos.z;
-      glow.skew.x = skewPos.x;
+      glow.SCALE.x = scalePos.x * realSpZoom;
+      glow.SCALE.y = scalePos.y * realSpZoom;
+      glow.SCALE.z = scalePos.z * realSpZoom;
+      glow.skew.x = skewPos.x + spSkew.x;
       glow.skew.y = skewPos.y;
       var newZoom:Vector3D = this.zoom.clone();
       newZoom.x *= zoom2.x;
       newZoom.y *= zoom2.y;
       newZoom.z *= zoom2.z;
       mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
+      pos.incrementBy(spPos);
       glow.pos.copyFrom(pos.add(difference));
       glow.originVec = zOrigin;
       var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');

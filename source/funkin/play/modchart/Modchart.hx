@@ -81,6 +81,8 @@ class Modchart
 
   static private final CMOD_DEFAULT:Float = 3750 / 7;
 
+  public static final MAX_SPLINE_POINT_COUNT:Int = 42;
+
   function initDefaultMods()
   {
     var ZERO:Array<String> = [
@@ -437,6 +439,29 @@ class Modchart
       'modtimer'
     ];
 
+    var axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth'];
+    for (axis in axis)
+    {
+      for (i in 0...MAX_SPLINE_POINT_COUNT)
+      {
+        ZERO.push('spline$axis$i');
+        ZERO.push('spline${axis}offset$i');
+      }
+      ZERO.push('spline${axis}type');
+      ZERO.push('spline${axis}reset');
+    }
+
+    for (i in 0...MAX_SPLINE_POINT_COUNT)
+    {
+      altname.set('splinesize$i', 'splinezoom$i');
+      altname.set('splinesizeoffset$i', 'splinezoomoffset$i');
+      altname.set('splinetiny$i', 'splinezoom$i');
+      altname.set('splinetinyoffset$i', 'splinezoomoffset$i');
+    }
+    altname.set('splinesizetype', 'splinezoomtype');
+    altname.set('splinesizereset', 'splinezoomreset');
+    altname.set('splinetinytype', 'splinezoomtype');
+    altname.set('splinetinyreset', 'splinezoomreset');
     for (i in 0...Strumline.KEY_COUNT)
     {
       ZERO.push('reverse$i');
@@ -559,6 +584,24 @@ class Modchart
       ONE.push('stealthglowred$i');
       ONE.push('stealthglowgreen$i');
       ONE.push('stealthglowblue$i');
+      for (axis in axis)
+      {
+        for (p in 0...MAX_SPLINE_POINT_COUNT)
+        {
+          ZERO.push('spline$i$axis$p');
+          ZERO.push('spline$i${axis}offset$p');
+        }
+        ZERO.push('spline$i${axis}reset');
+      }
+      for (p in 0...MAX_SPLINE_POINT_COUNT)
+      {
+        altname.set('spline${i}size$p', 'spline${i}zoom$p');
+        altname.set('spline${i}sizeoffset$p', 'spline${i}zoomoffset$p');
+        altname.set('spline${i}tiny$p', 'spline${i}zoom$p');
+        altname.set('spline${i}tinyoffset$p', 'spline${i}zoomoffset$p');
+      }
+      altname.set('spline${i}sizereset', 'spline${i}zoomreset');
+      altname.set('spline${i}tinyreset', 'spline${i}zoomreset');
     }
 
     for (mod in ZERO)
@@ -746,7 +789,12 @@ class Modchart
       var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
       var mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/;
       var centeredReg:EReg = ~/^centered(\d+)$/;
+      var axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth'];
       var name:String = sBit;
+      if (altname.exists(name))
+      {
+        name = altname.get(name);
+      }
       if (mult.match(name))
       {
         var a:String = mult.matched(1);
@@ -789,40 +837,35 @@ class Modchart
       }
       else
       {
+        var judged:Bool = false;
+        for (a in axis)
+        {
+          if (name == 'spline${a}reset')
+          {
+            for (pt in 0...MAX_SPLINE_POINT_COUNT)
+              fromString('*100000 0 spline$a$pt');
+            judged = true;
+          }
+        }
         for (i in 0...Strumline.KEY_COUNT)
         {
+          if (judged) break;
           if (name == 'holdgirth$i')
           {
             level *= -1;
             name = 'holdtinyx$i';
+            break;
+          }
+          for (a in axis)
+          {
+            if (name == 'spline$i${a}reset')
+            {
+              for (pt in 0...MAX_SPLINE_POINT_COUNT)
+                fromString('*100000 0 spline$i$a$pt');
+              break;
+            }
           }
         }
-        var axisReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)(\d+)$/; // splinex0
-        var offsetReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)offset(\d+)$/; // splinex0
-        var typeReg:EReg = ~/^spline(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)type$/; // splinextype
-        var resetReg:EReg = ~/^spline([0-3]?)(x|y|z|rotationx|rotationy|rotationz|zoom|size|tiny|skew|stealth)reset$/; // splinexreset
-        if (axisReg.match(name))
-        {
-          var column:Null<Int> = Std.parseInt(axisReg.matched(1));
-          var axis:String = axisReg.matched(2);
-          var point:Int = Std.parseInt(axisReg.matched(3));
-          var columnArray:Array<Int> = [];
-          if (column == null)
-          {
-            columnArray = [for (i in 0...Strumline.KEY_COUNT) i];
-          }
-          else
-          {
-            columnArray = [column];
-          }
-        }
-        else if (offsetReg.match(name)) {}
-        else if (typeReg.match(name)) {}
-        else if (resetReg.match(name)) {}
-      }
-      if (altname.exists(name))
-      {
-        name = altname.get(name);
       }
       if (modList.exists(name))
       {
@@ -830,6 +873,14 @@ class Modchart
         speedList.set(name, speed);
       }
     }
+  }
+
+  public function splineTypeToString(t:Float):String
+  {
+    if (t > 1) return 'cubic';
+    else if (t > 0 && t <= 1) return 'cosine';
+    else
+      return 'linear';
   }
 
   public function getValue(name:String):Float
@@ -879,7 +930,7 @@ class Modchart
 
   function get_baseHoldSize():Float
   {
-    return 4 * (NeedZBuffer() ? 0.25 : 1) / Constants.PIXELS_PER_MS;
+    return 4 * (NeedZBuffer() ? 0.25 : 1);
   }
 
   public var scrollSpeed:Float = 1;

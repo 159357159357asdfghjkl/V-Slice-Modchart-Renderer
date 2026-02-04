@@ -320,7 +320,7 @@ class Strumline extends FlxSpriteGroup
     this.active = true;
   }
 
-  public var enableSpline:Bool = true; // this spline system is too lag, i should create a method to close it
+  public var enableSpline:Bool = false; // this spline system is too lag, i should create a method to close it
 
   // credit me
   public function getSplineAxisPos(group:String, column:Int, beat:Float, target:Int, result:Vector3D)

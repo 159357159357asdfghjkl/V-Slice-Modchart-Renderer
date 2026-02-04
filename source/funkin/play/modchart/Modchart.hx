@@ -81,7 +81,7 @@ class Modchart
 
   static private final CMOD_DEFAULT:Float = 3750 / 7;
 
-  public static final MAX_SPLINE_POINT_COUNT:Int = 42;
+  public static final MAX_SPLINE_POINT_COUNT:Int = 40; // index 40 and 41 is special, i'll do it someday
 
   function initDefaultMods()
   {

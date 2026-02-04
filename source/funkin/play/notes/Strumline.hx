@@ -306,7 +306,6 @@ class Strumline extends FlxSpriteGroup
       for (i in 0...KEY_COUNT)
       {
         var cubic:CubicSplineHandler = new CubicSplineHandler();
-        cubic.spline.redimension(3);
         cubic.spline.resize(Modchart.MAX_SPLINE_POINT_COUNT);
         cubicHandler.set('$axis$i', cubic);
       }
@@ -321,7 +320,7 @@ class Strumline extends FlxSpriteGroup
     this.active = true;
   }
 
-  public var enableSpline:Bool = false; // this spline system is too lag, i should create a method to close it
+  public var enableSpline:Bool = true; // this spline system is too lag, i should create a method to close it
 
   // credit me
   public function getSplineAxisPos(group:String, column:Int, beat:Float, target:Int, result:Vector3D)
@@ -334,11 +333,11 @@ class Strumline extends FlxSpriteGroup
         case 'rotation':
           axis = ['rotx', 'roty', 'rotz'];
         case 'skew':
-          axis = ['skew', 'skew', 'skew'];
+          axis = ['skew'];
         case 'zoom':
-          axis = ['zoom', 'zoom', 'zoom'];
+          axis = ['zoom'];
         case 'stealth':
-          axis = ['stealth', 'stealth', 'stealth'];
+          axis = ['stealth'];
       }
       var handler = this.cubicHandler.get('$group$column');
       for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
@@ -350,17 +349,28 @@ class Strumline extends FlxSpriteGroup
         {
           var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
           var position:Float = mods.getValue('spline$column${axis}offset$point') + mods.getValue('spline${axis}offset$point');
-          pointArray[index] = magnitude * NOTE_SPACING;
+          if (position != 0.0) pointArray[index] = magnitude * NOTE_SPACING;
+          else
+            pointArray[index] = 0;
           typeArray[index] = mods.getValue('spline${axis}type');
           offsetArray[index] = position * NOTE_SPACING;
+        }
+        if (pointArray.length < 3)
+        {
+          for (i in pointArray.length...3)
+          {
+            pointArray.push(0);
+            typeArray.push(0);
+            offsetArray.push(0);
+          }
         }
         handler.spline.set_point(point, pointArray);
         handler.spline.set_type(point, typeArray);
         handler.spline.set_offset(point, offsetArray);
       }
       handler.spline.solve();
-      if (target == 0 || target == 1) handler.EvalForBeat(mods.getBeat(), beat, result);
-      else if (target == 2 && group != 'rotation') handler.EvalForReceptor(mods.getBeat(), result);
+      if (target == 0 || target == 1) handler.EvalForBeat(conductorInUse.currentBeatTime, beat, result);
+      else if (target == 2 && group != 'rotation') handler.EvalForReceptor(conductorInUse.currentBeatTime, result);
     }
   }
 
@@ -466,8 +476,15 @@ class Strumline extends FlxSpriteGroup
     newZoom.y *= zoom2.y;
     newZoom.z *= zoom2.z;
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
-    fullPos = fullPos.add(difference);
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
+    var spPos:Vector3D = new Vector3D();
+    getSplineAxisPos('pos', column, noteBeat, 0, spPos);
+    var spZoom:Vector3D = new Vector3D();
+    getSplineAxisPos('zoom', column, noteBeat, 0, spZoom);
+    var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+    var spSkew:Vector3D = new Vector3D();
+    getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
+    fullPos.incrementBy(difference);
+    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
     var order:Int = Std.int(mods.getValue('rotationorder'));
     var rotationOrder:String = 'zyx';
     if (order == 0) rotationOrder = 'zyx';
@@ -477,8 +494,8 @@ class Strumline extends FlxSpriteGroup
     else if (order == 4) rotationOrder = 'xyz';
     else if (order == 5) rotationOrder = 'xzy';
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x, scalePos.y, scalePos.z);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x, skewPos.y);
+    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * spZoom.x, scalePos.y, scalePos.z);
+    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
@@ -946,13 +963,12 @@ class Strumline extends FlxSpriteGroup
       note.diffuse.x = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'red');
       note.diffuse.y = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'green');
       note.diffuse.z = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'blue');
-      note.diffuse.w = ModchartMath.clamp(mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false)
-        + ((realSpStealth > 0.5) ? 1.0 : 0.0), 0, 1);
+      note.diffuse.w = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false) * ((realSpStealth > 0.5) ? 1.0 : 0.0);
       note.glow.x = mods.getValue('stealthglowred') * mods.getValue('stealthglowred$col');
       note.glow.y = mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$col');
       note.glow.z = mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
-      note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false)
-        + ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
+      note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null,
+        false) * ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
       if (note.holdNoteSprite == null) rotation.incrementBy(spRot);
       note.rotation.copyFrom(rotation);
       note.fov = fov;
@@ -1767,10 +1783,10 @@ class Strumline extends FlxSpriteGroup
    */
   function fadeInArrow(index:Int, arrow:StrumlineNote):Void
   {
-    arrow.pos.y -= 10;
-    arrow.diffuse.w = 0.0;
-    FlxTween.tween(arrow.pos, {y: arrow.pos.y + 10}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
-    FlxTween.tween(arrow.diffuse, {w: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    arrow.pos2.y -= 10;
+    arrow.alpha = 0.0;
+    FlxTween.tween(arrow.pos2, {y: arrow.pos2.y + 10}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
+    FlxTween.tween(arrow, {alpha: 1}, 1, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * index)});
   }
 
   /**
@@ -1782,8 +1798,8 @@ class Strumline extends FlxSpriteGroup
    */
   public function fadeOutArrow(index:Int, arrow:StrumlineNote):Void
   {
-    FlxTween.tween(arrow.pos, {y: arrow.pos.y - 10}, 0.5, {ease: FlxEase.circIn});
-    FlxTween.tween(arrow.diffuse, {w: 0}, 0.5, {ease: FlxEase.circIn});
+    FlxTween.tween(arrow.pos2, {y: arrow.pos2.y - 10}, 0.5, {ease: FlxEase.circIn});
+    FlxTween.tween(arrow, {alpha: 0}, 0.5, {ease: FlxEase.circIn});
   }
 
   /**

@@ -13,8 +13,8 @@ class ModchartMath
   public static var ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   public static var SCREEN_HEIGHT:Float = FlxG.height;
 
-  public static final rad:Float = Math.PI / 180.0; // degree to radian
-  public static final deg:Float = 180.0 / Math.PI; // radian to degree
+  public static final rad:Float = Math.PI / 180.0;
+  public static final deg:Float = 180.0 / Math.PI;
 
   public static final FLT_MAX_x32:Float = 3.4028234663852886e+38;
   public static final FLT_MIN_x32:Float = 1.1754943508222875e-38;
@@ -38,11 +38,9 @@ class ModchartMath
     return (next >> 16) & randMax;
   }
 
-  // 将x在原区间的位置转移至新区间并进行拉伸保持在新区间中的位置一样
   inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float
     return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
 
-  // 将x限制在一个区间内
   inline public static function clamp(n:Float, l:Float, h:Float):Float
   {
     if (n > h) n = h;
@@ -64,11 +62,9 @@ class ModchartMath
       return Math.ceil(x);
   }
 
-  // scale(x, 0, 1, l, h) 可用于投射归一化坐标到世界，也可以作为缓动
   inline public static function lerp(x:Float, l:Float, h:Float):Float
     return x * (h - l) + l;
 
-  // 计算余数，即取模
   inline public static function mod(x:Float, y:Float):Float
     return x - Math.floor(x / y) * y;
 
@@ -81,7 +77,6 @@ class ModchartMath
   inline public static function square(angle:Float)
   {
     var fAngle:Float = mod(angle, Math.PI * 2);
-    // Hack: This ensures the hold notes don't flicker right before they're hit.
     if (fAngle < 0.01)
     {
       fAngle += Math.PI * 2;
@@ -118,8 +113,8 @@ class ModchartMath
     var projection:Array<Array<Float>> = matrix[0];
     var modelView:Array<Array<Float>> = multiply(matrix[1], m);
     var a:Vector3D = transform(transform(vec, modelView), projection);
-    a.project(); // perspective projection !
-    var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight); // from ndc to screen
+    a.project();
+    var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight);
     return b;
   }
 
@@ -128,8 +123,6 @@ class ModchartMath
     return Std.int((f + fRoundInterval / 2) / fRoundInterval) * fRoundInterval;
   }
 
-  // we only use these functions, others temporarily don't use
-  // add clip thing
   inline public static function fastSin(x:Float, clipValue:Float = 1):Float
   {
     if (clipValue < 0) return FlxMath.fastSin(x);
@@ -304,7 +297,6 @@ class ModchartMath
     return m;
   }
 
-  // funny stuff
   public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float
   {
     if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
@@ -312,10 +304,9 @@ class ModchartMath
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
 
-  // field of view, screen width, screen height, origin x, origin y
   private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Array<Array<Float>>>
   {
-    if (fovDegrees == 0) // ortho mode
+    if (fovDegrees == 0)
     {
       var l:Float = 0;
       var r:Float = fWidth;
@@ -333,7 +324,7 @@ class ModchartMath
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
       ];
     }
-    else // frustum mode
+    else
     {
       clamp(fovDegrees, 0.1, 179.9);
       var fovRadians:Float = fovDegrees / 180 * Math.PI;

@@ -175,7 +175,7 @@ class CubicSpline
   {
     var p:Int = 0;
     var tfrac:Float = 0;
-    t += splineOffset;
+    var t:Float = t + splineOffset;
     if (loop)
     {
       var max_t:Float = points.length;
@@ -466,36 +466,32 @@ class CubicSplineN
     dirty = false;
   }
 
-  public function evaluate(t:Float, v:Dynamic):Void
+  public function evaluatePoint(t:Float, v:Vector3D):Void
   {
-    if (v is Array && v[0] is Float)
-    {
-      for (spline in splines)
-        v.push(spline.evaluate(t, loop));
-    }
-    if (v is Vector3D)
-    {
-      if (splines.length != 3) throw 'Assertion failed';
-      v.x = splines[0].evaluate(t, loop);
-      v.y = splines[1].evaluate(t, loop);
-      v.z = splines[2].evaluate(t, loop);
-    }
+    if (splines.length != 3) throw 'Assertion failed';
+    v.x = splines[0].evaluate(t, loop);
+    v.y = splines[1].evaluate(t, loop);
+    v.z = splines[2].evaluate(t, loop);
   }
 
-  public function evaluate_derivative(t:Float, v:Dynamic):Void
+  public function evaluatePoint_derivative(t:Float, v:Vector3D):Void
   {
-    if (v is Array && v[0] is Float)
-    {
-      for (spline in splines)
-        v.push(spline.evaluate_derivative(t, loop));
-    }
-    if (v is Vector3D)
-    {
-      if (splines.length != 3) throw 'Assertion failed';
-      v.x = splines[0].evaluate_derivative(t, loop);
-      v.y = splines[1].evaluate_derivative(t, loop);
-      v.z = splines[2].evaluate_derivative(t, loop);
-    }
+    if (splines.length != 3) throw 'Assertion failed';
+    v.x = splines[0].evaluate_derivative(t, loop);
+    v.y = splines[1].evaluate_derivative(t, loop);
+    v.z = splines[2].evaluate_derivative(t, loop);
+  }
+
+  public function evaluate(t:Float, v:Array<Float>):Void
+  {
+    for (spline in splines)
+      v.push(spline.evaluate(t, loop));
+  }
+
+  public function evaluate_derivative(t:Float, v:Array<Float>):Void
+  {
+    for (spline in splines)
+      v.push(spline.evaluate_derivative(t, loop));
   }
 
   public function evaluate_second_derivative(t:Float, v:Array<Float>):Void
@@ -648,6 +644,7 @@ class CubicSplineHandler
   public function new()
   {
     spline = new CubicSplineN();
+    spline.redimension(3);
   }
 
   public function BeatToTValue(song_beat:Float, note_beat:Float)
@@ -664,13 +661,13 @@ class CubicSplineHandler
   public function EvalForBeat(song_beat:Float, note_beat:Float, ret:Vector3D)
   {
     var t_value:Float = BeatToTValue(song_beat, note_beat);
-    spline.evaluate(t_value, ret);
+    spline.evaluatePoint(t_value, ret);
   }
 
   public function EvalDerivForBeat(song_beat:Float, note_beat:Float, ret:Vector3D)
   {
     var t_value:Float = BeatToTValue(song_beat, note_beat);
-    spline.evaluate_derivative(t_value, ret);
+    spline.evaluatePoint_derivative(t_value, ret);
   }
 
   public function EvalForReceptor(song_beat:Float, ret:Vector3D)
@@ -680,7 +677,7 @@ class CubicSplineHandler
     {
       t_value = song_beat;
     }
-    spline.evaluate(t_value, ret);
+    spline.evaluatePoint(t_value, ret);
   }
 
   public function MakeWeightedAverage(out:CubicSplineHandler, from:CubicSplineHandler, to:CubicSplineHandler, between:Float)

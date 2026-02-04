@@ -30,6 +30,7 @@ class FunkinActor extends FunkinSprite
   public var baseScale:Vector3D = new Vector3D(1, 1, 1); // for scripting
   public var baseZoom:Vector3D = new Vector3D(1, 1, 1); // for scripting
   public var baseDiffuse:Vector3D = new Vector3D(1, 1, 1, 1); // for scripting
+  public var pos2:FlxPoint = FlxPoint.get(); // for strum fade in / out, don't change
   public var fov:Float = 45;
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;
@@ -56,7 +57,7 @@ class FunkinActor extends FunkinSprite
 
   function getPos(vec:Vector3D)
   {
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix((pos.x + basePos.x) * baseZoom.x, (pos.y + basePos.y) * baseZoom.y,
+    var m:Array<Array<Float>> = ModchartMath.translateMatrix((pos.x + basePos.x + pos2.x) * baseZoom.x, (pos.y + basePos.y + pos2.y) * baseZoom.y,
       (pos.z + basePos.z) * baseZoom.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x + baseRotation.x, rotation.y + baseRotation.y, rotation.z + baseRotation.z,
       rotationOrder);
@@ -122,7 +123,7 @@ class FunkinActor extends FunkinSprite
         colorTransform.redMultiplier = diffuse.x * baseDiffuse.x;
         colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y;
         colorTransform.blueMultiplier = diffuse.z * baseDiffuse.z;
-        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w + glow.w;
+        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w * this.alpha * camera.alpha + glow.w;
         colorTransform.redOffset = glow.x * 255 * glow.w;
         colorTransform.greenOffset = glow.y * 255 * glow.w;
         colorTransform.blueOffset = glow.z * 255 * glow.w;

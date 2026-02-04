@@ -380,9 +380,8 @@ class SustainTrail extends FlxSprite
       realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
       parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 0, spSkew);
     }
-    fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x, fullPos.y, fullPos.z);
+    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
@@ -396,12 +395,11 @@ class SustainTrail extends FlxSprite
     var diffuses:Vector3D = new Vector3D(parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red') ?? 1,
       parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green') ?? 1,
       parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue') ?? 1,
-      ModchartMath.clamp(alpha + ((realSpStealth > 0.5) ? 1.0 : 0.0), 0, 1));
+      alpha * this.alpha * camera.alpha * ((realSpStealth > 0.5) ? 1.0 : 0.0));
     var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1),
-      glow
-      + ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0));
+      glow * ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0));
     return [zPos, diffuses, glowColor];
   }
 

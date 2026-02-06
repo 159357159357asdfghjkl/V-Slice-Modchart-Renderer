@@ -120,13 +120,13 @@ class FunkinActor extends FunkinSprite
         indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
         var colorTransform = new ColorTransform();
-        colorTransform.redMultiplier = diffuse.x * baseDiffuse.x;
-        colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y;
-        colorTransform.blueMultiplier = diffuse.z * baseDiffuse.z;
-        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w * this.alpha * camera.alpha + glow.w;
-        colorTransform.redOffset = glow.x * 255 * glow.w;
-        colorTransform.greenOffset = glow.y * 255 * glow.w;
-        colorTransform.blueOffset = glow.z * 255 * glow.w;
+        colorTransform.redMultiplier = diffuse.x * baseDiffuse.x * this.colorTransform.redMultiplier;
+        colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y * this.colorTransform.greenMultiplier;
+        colorTransform.blueMultiplier = diffuse.z * baseDiffuse.z * this.colorTransform.blueMultiplier;
+        colorTransform.alphaMultiplier = diffuse.w * baseDiffuse.w * this.alpha * camera.alpha * this.colorTransform.alphaMultiplier + glow.w;
+        colorTransform.redOffset = glow.x * 255 * glow.w + this.colorTransform.redOffset;
+        colorTransform.greenOffset = glow.y * 255 * glow.w + this.colorTransform.greenOffset;
+        colorTransform.blueOffset = glow.z * 255 * glow.w + this.colorTransform.blueOffset;
         camera.drawTriangles(graphic, vertices, indices, uvtData, new Vector<Int>(4, true, [0, 0, 0, 0]), _point, blend, true, antialiasing, colorTransform,
           shader); // fucking color array has no use
       }

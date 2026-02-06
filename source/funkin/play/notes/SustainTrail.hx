@@ -392,14 +392,16 @@ class SustainTrail extends FlxSprite
     var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false) ?? 0.0;
     var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset, false, true) ?? 1.0;
     var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
+    var none:Bool = (parentStrumline?.mods?.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) ?? 1.0) >= 1.0;
+    var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
+    var splineGlow:Float = ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
     var diffuses:Vector3D = new Vector3D(parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red') ?? 1,
       parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green') ?? 1,
       parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue') ?? 1,
-      alpha * this.alpha * camera.alpha * ((realSpStealth > 0.5) ? 1.0 : 0.0));
+      none ? splineStealth * this.alpha * camera.alpha : alpha * this.alpha * camera.alpha);
     var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
-      (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1),
-      glow * ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0));
+      (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), none ? splineGlow : glow);
     return [zPos, diffuses, glowColor];
   }
 
@@ -558,13 +560,13 @@ class SustainTrail extends FlxSprite
   function getShader(diffPos:Vector3D, glowPos:Vector3D)
   {
     var c:ColorTransform = new ColorTransform();
-    c.redMultiplier = diffPos.x;
-    c.greenMultiplier = diffPos.y;
-    c.blueMultiplier = diffPos.z;
-    c.alphaMultiplier = diffPos.w + glowPos.w;
-    c.redOffset = glowPos.x * 255 * glowPos.w;
-    c.greenOffset = glowPos.y * 255 * glowPos.w;
-    c.blueOffset = glowPos.z * 255 * glowPos.w;
+    c.redMultiplier = diffPos.x * colorTransform.redMultiplier;
+    c.greenMultiplier = diffPos.y * colorTransform.greenMultiplier;
+    c.blueMultiplier = diffPos.z * colorTransform.blueMultiplier;
+    c.alphaMultiplier = diffPos.w * colorTransform.alphaMultiplier + glowPos.w;
+    c.redOffset = glowPos.x * 255 * glowPos.w + colorTransform.redOffset;
+    c.greenOffset = glowPos.y * 255 * glowPos.w + colorTransform.greenOffset;
+    c.blueOffset = glowPos.z * 255 * glowPos.w + colorTransform.blueOffset;
     return c;
   }
 

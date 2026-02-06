@@ -494,7 +494,7 @@ class Strumline extends FlxSpriteGroup
     else if (order == 4) rotationOrder = 'xyz';
     else if (order == 5) rotationOrder = 'xzy';
     var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * spZoom.x, scalePos.y, scalePos.z);
+    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
     var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
@@ -960,15 +960,16 @@ class Strumline extends FlxSpriteGroup
       note._skew = skewPos.z;
       note.originVec = zOrigin;
       var yposWithoutReverse:Float = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff, false);
+      var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false) >= 1.0;
       note.diffuse.x = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'red');
       note.diffuse.y = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'green');
       note.diffuse.z = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'blue');
-      note.diffuse.w = mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false) * ((realSpStealth > 0.5) ? 1.0 : 0.0);
+      note.diffuse.w = none ? (realSpStealth > 0.5 ? 1.0 : 0.0) : mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       note.glow.x = mods.getValue('stealthglowred') * mods.getValue('stealthglowred$col');
       note.glow.y = mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$col');
       note.glow.z = mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
-      note.glow.w = mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null,
-        false) * ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
+      note.glow.w = none ? ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3,
+        0) : mods.GetGlow(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
       if (note.holdNoteSprite == null) rotation.incrementBy(spRot);
       note.rotation.copyFrom(rotation);
       note.fov = fov;

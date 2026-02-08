@@ -342,7 +342,7 @@ class CubicSpline
     points[i][0] = a;
   }
 
-  public function get_point_and_coefficients(i:Int, a:Float, b:Float, c:Float, d:Float):Array<Float>
+  public function get_point_and_coefficients(i:Int):Array<Float>
   {
     var coefficients:Array<Float> = get_coefficients(i);
     coefficients.unshift(points[i][0]);
@@ -355,7 +355,7 @@ class CubicSpline
     points.resize(s);
     for (i in oldSize...s)
     {
-      points[i] = [0.0, 0.0];
+      points[i] = [0.0, 0.0, 0.0, 0.0];
     }
   }
 
@@ -418,11 +418,11 @@ class CubicSplineN
         var tc:Array<Float> = [0.0, 0.0, 0.0, 0.0];
         if (p < from_size)
         {
-          from.splines[spli].get_point_and_coefficients(p, fc[0], fc[1], fc[2], fc[3]);
+          fc = from.splines[spli].get_point_and_coefficients(p);
         }
         if (p < to_size)
         {
-          to.splines[spli].get_point_and_coefficients(p, tc[0], tc[1], tc[2], tc[3]);
+          tc = to.splines[spli].get_point_and_coefficients(p);
         }
         else
         {

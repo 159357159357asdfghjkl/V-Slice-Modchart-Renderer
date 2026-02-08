@@ -643,7 +643,15 @@ class PlayState extends MusicBeatSubState
 
   static final BACKGROUND_COLOR:FlxColor = FlxColor.BLACK;
 
+  var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
+
+  public var strumlines:Array<Strumline> = [];
+
   public static var stageSeed:Int = 1;
+
+  var luaArray:Array<ModchartLuaState> = [];
+
+  public var sv:Array<Array<Float>> = []; // [[currentms, speed]]
 
   /**
    * Instantiate a new PlayState.
@@ -685,10 +693,6 @@ class PlayState extends MusicBeatSubState
     stageSeed = ModchartMath.rand();
     // Don't do anything else here! Wait until create() when we attach to the camera.
   }
-
-  var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
-
-  public var strumlines:Array<Strumline> = [];
 
   /**
    * Called when the PlayState is switched to.
@@ -887,8 +891,6 @@ class PlayState extends MusicBeatSubState
     // and it's important to call it last so all elements get affected.
     refresh();
   }
-
-  var luaArray:Array<ModchartLuaState> = [];
 
   function initLuaSystem()
   {
@@ -2849,6 +2851,22 @@ class PlayState extends MusicBeatSubState
       }
     }
     return null;
+  }
+
+  public function pushSVTable(sv:Array<Float>, useBeat:Bool = false)
+  {
+    if (sv.length == 2)
+    {
+      this.sv.push(sv);
+    }
+    else if (sv.length > 2 && sv.length % 2 == 0)
+    {
+      for (i in 0...Std.int(sv.length / 2))
+      {
+        if (useBeat) sv[i * 2] = Conductor.instance.getBeatTimeInMs(sv[i * 2]);
+        this.sv.push([sv[i * 2], sv[i * 2 + 1]]);
+      }
+    }
   }
 
   /**

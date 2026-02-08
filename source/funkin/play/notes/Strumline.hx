@@ -25,6 +25,7 @@ import funkin.play.modchart.util.CubicSplineHandler;
 import openfl.geom.Vector3D;
 import openfl.Vector;
 import flixel.math.FlxPoint;
+import flixel.math.FlxMath;
 #if mobile
 import funkin.mobile.input.ControlsHandler;
 import funkin.mobile.ui.FunkinHitbox.FunkinHitboxControlSchemes;
@@ -320,7 +321,7 @@ class Strumline extends FlxSpriteGroup
     this.active = true;
   }
 
-  public var enableSpline:Bool = false; // this spline system is too lag, i should create a method to close it
+  public var enableSpline:Bool = true; // this spline system is too lag, i should create a method to close it
 
   // credit me
   public function getSplineAxisPos(group:String, column:Int, beat:Float, target:Int, result:Vector3D)
@@ -340,8 +341,10 @@ class Strumline extends FlxSpriteGroup
           axis = ['stealth'];
       }
       var handler = this.cubicHandler.get('$group$column');
+
       for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
       {
+        var stop:Int = 0;
         var pointArray:Array<Float> = [];
         var offsetArray:Array<Float> = [];
         var typeArray:Array<Float> = [];
@@ -349,12 +352,16 @@ class Strumline extends FlxSpriteGroup
         {
           var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
           var position:Float = mods.getValue('spline$column${axis}offset$point') + mods.getValue('spline${axis}offset$point');
-          if (position != 0.0) pointArray[index] = magnitude * NOTE_SPACING;
-          else
-            pointArray[index] = 0;
           typeArray[index] = mods.getValue('spline${axis}type');
           offsetArray[index] = position * NOTE_SPACING;
+          pointArray[index] = magnitude * NOTE_SPACING;
+          if (point > 0 && FlxMath.equal(position, 0))
+          {
+            pointArray[index] = 0;
+            stop++;
+          }
         }
+        if (stop >= axis.length) break;
         if (pointArray.length < 3)
         {
           for (i in pointArray.length...3)
@@ -369,8 +376,8 @@ class Strumline extends FlxSpriteGroup
         handler.spline.set_offset(point, offsetArray);
       }
       handler.spline.solve();
-      if (target == 0 || target == 1) handler.EvalForBeat(conductorInUse.currentBeatTime, beat, result);
-      else if (target == 2 && group != 'rotation') handler.EvalForReceptor(conductorInUse.currentBeatTime, result);
+      if (target == 0 || target == 1) handler.EvalForBeat(mods.getBeat(), beat, result);
+      else if (target == 2) handler.EvalForReceptor(mods.getBeat(), result);
     }
   }
 

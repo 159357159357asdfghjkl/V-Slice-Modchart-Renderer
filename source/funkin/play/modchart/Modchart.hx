@@ -1,6 +1,7 @@
 package funkin.play.modchart;
 
 import flixel.FlxG;
+import flixel.math.FlxMath;
 import funkin.play.notes.Strumline;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
@@ -940,13 +941,12 @@ class Modchart
     var curTime:Float = getTime();
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
-    var fYOffset:Float = GRhythmUtil.getNoteY(time, 1, true, conductor) * -1;
+    var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, true, conductor) * -1;
     if (getValue('cmod') > 0)
     {
       fYOffset *= getValue('cmod') / 60 / 1000 * ARROW_SIZE; // alternative yOffset calculate method
     }
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
-    scrollSpeed *= speed;
     var fYAdjust:Float = 0;
     if (fYOffset < 0)
     {
@@ -1306,8 +1306,8 @@ class Modchart
       var iEndCol:Int = iCol + iTornadoWidth;
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1562,8 +1562,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {

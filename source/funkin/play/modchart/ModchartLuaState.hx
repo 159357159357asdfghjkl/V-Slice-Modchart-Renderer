@@ -82,6 +82,9 @@ class ModchartLuaState
           .split("/")[0].trim();
       return '';
     });
+    Lua_helper.add_callback(L, 'pushSVTable', function(sv:Array<Float>, useBeat:Bool = false) {
+      PlayState.instance.pushSVTable(sv, useBeat);
+    });
   }
 
   public static function setVar(variable:String, data:Dynamic)

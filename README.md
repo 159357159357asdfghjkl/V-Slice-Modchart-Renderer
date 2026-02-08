@@ -1,4 +1,4 @@
-### OPENFL'S DRAW PATH IS TOO LAG! HOW TO CHANGE
+i'm optimizer tails lol (fake)
 
 # NotITG FNF ver
 

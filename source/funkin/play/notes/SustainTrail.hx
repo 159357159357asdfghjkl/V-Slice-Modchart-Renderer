@@ -249,10 +249,14 @@ class SustainTrail extends FlxSprite
   override function update(elapsed)
   {
     super.update(elapsed);
-    updateClipping();
+
     if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0))
     {
       triggerRedraw();
+    }
+    else
+    {
+      updateClipping();
     }
 
     previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
@@ -402,7 +406,7 @@ class SustainTrail extends FlxSprite
     return [zPos, diffuses, glowColor];
   }
 
-  // without spline and straightholds calculation, use vector3 instead of matrix
+  // without spline and straightholds calculation, removed spiralholds cuz it is bugged without matrix, use vector3 instead of matrix
   function getPosWithOffsetFast(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
   {
     var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
@@ -450,8 +454,6 @@ class SustainTrail extends FlxSprite
       newZoom.z *= parentStrumline.zoom2.z;
       parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
         parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-      var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
-      if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
     }
     fullPos.incrementBy(realPos);
     var rotate:Vector3D = ModchartMath.rotateVec3(fullPos, rotation.x, rotation.y, rotation.z);
@@ -499,6 +501,7 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
+    var lowQuality:Bool = Preferences.framerate < 60;
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
     var roughness:Float = parentStrumline?.mods?.baseHoldSize ?? 1;
@@ -511,7 +514,7 @@ class SustainTrail extends FlxSprite
     if (parentStrumline != null)
     {
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
-      if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer())
+      if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer() && !lowQuality)
       {
         length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
       }
@@ -529,13 +532,15 @@ class SustainTrail extends FlxSprite
     draw_scale *= 1 + Math.abs(parentStrumline?.mods?.getValue('mini') ?? 0.0);
     draw_pixels_after_targets *= draw_scale;
     draw_pixels_before_targets *= draw_scale;
-    var uvArray:Array<Int> = [for (i in 0...length) i];
-    uvArray.reverse();
+    var uvIndexArray:Array<Int> = [for (i in 0...length) i];
+    uvIndexArray.reverse();
+    var verticesArray:Array<Float> = [];
+    var uvtDataArray:Array<Float> = []; // full name: UV Texture
     var indicesArray:Array<Int> = [];
     var drawTail:Bool = true;
     var trueIndex:Int = 0;
     var getPosWithOffset = this.getPosWithOffset;
-    if (Preferences.framerate < 60) getPosWithOffset = this.getPosWithOffsetFast; // optimization for most time
+    if (lowQuality) getPosWithOffset = this.getPosWithOffsetFast; // optimization for most time
     for (i in 0...length + 1)
     {
       var a:Int = trueIndex * 2;
@@ -550,19 +555,19 @@ class SustainTrail extends FlxSprite
         continue;
       }
 
-      vertices[a * 2] = pos1[0].x + halfWidth;
-      vertices[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
-      vertices[(a + 1) * 2] = pos2[0].x + halfWidth;
-      vertices[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
+      verticesArray[a * 2] = pos1[0].x + halfWidth;
+      verticesArray[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
+      verticesArray[(a + 1) * 2] = pos2[0].x + halfWidth;
+      verticesArray[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
 
       transforms[trueIndex * 2] = getShader(pos1[1], pos1[2]);
       transforms[trueIndex * 2 + 1] = getShader(pos2[1], pos2[2]);
 
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
-      uvtData[a * 2] = 1 / 4 * (noteDirection % 4);
-      uvtData[a * 2 + 1] = (fullVLength / length * uvArray[i]);
-      uvtData[(a + 1) * 2] = uvtData[a * 2] + 1 / 8;
-      uvtData[(a + 1) * 2 + 1] = uvtData[a * 2 + 1];
+      uvtDataArray[a * 2] = 1 / 4 * (noteDirection % 4);
+      uvtDataArray[a * 2 + 1] = (fullVLength / length * uvIndexArray[i]);
+      uvtDataArray[(a + 1) * 2] = uvtDataArray[a * 2] + 1 / 8;
+      uvtDataArray[(a + 1) * 2 + 1] = uvtDataArray[a * 2 + 1];
 
       indicesArray.push(a + 0);
       indicesArray.push(a + 1);
@@ -579,12 +584,12 @@ class SustainTrail extends FlxSprite
     var bottom:Int = (trueIndex + 1) * 2;
     if (drawTail)
     {
-      vertices[next * 2] = vertices[end * 2];
-      vertices[next * 2 + 1] = vertices[end * 2 + 1];
-      vertices[(next + 1) * 2] = vertices[(end + 1) * 2];
-      vertices[(next + 1) * 2 + 1] = vertices[(end + 1) * 2 + 1];
-      uvtData[next * 2] = 1 / 4 * (noteDirection % 4) + 1 / 8;
-      uvtData[next * 2 + 1] = if (partHeight > 0)
+      verticesArray[next * 2] = verticesArray[end * 2];
+      verticesArray[next * 2 + 1] = verticesArray[end * 2 + 1];
+      verticesArray[(next + 1) * 2] = verticesArray[(end + 1) * 2];
+      verticesArray[(next + 1) * 2 + 1] = verticesArray[(end + 1) * 2 + 1];
+      uvtDataArray[next * 2] = 1 / 4 * (noteDirection % 4) + 1 / 8;
+      uvtDataArray[next * 2 + 1] = if (partHeight > 0)
       {
         0;
       }
@@ -592,8 +597,8 @@ class SustainTrail extends FlxSprite
       {
         (bottomHeight - clipHeight) / zoom / graphic.height;
       };
-      uvtData[(next + 1) * 2] = uvtData[next * 2] + 1 / 8;
-      uvtData[(next + 1) * 2 + 1] = uvtData[next * 2 + 1];
+      uvtDataArray[(next + 1) * 2] = uvtDataArray[next * 2] + 1 / 8;
+      uvtDataArray[(next + 1) * 2 + 1] = uvtDataArray[next * 2 + 1];
       transforms[next] = transforms[end];
       transforms[next + 1] = transforms[end + 1];
       indicesArray.push(next + 0);
@@ -608,23 +613,24 @@ class SustainTrail extends FlxSprite
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
       var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      vertices[bottom * 2] = pos1[0].x + halfWidth;
-      vertices[bottom * 2 + 1] = pos1[0].y;
-      vertices[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-      vertices[(bottom + 1) * 2 + 1] = pos2[0].y;
+      verticesArray[bottom * 2] = pos1[0].x + halfWidth;
+      verticesArray[bottom * 2 + 1] = pos1[0].y;
+      verticesArray[(bottom + 1) * 2] = pos2[0].x + halfWidth;
+      verticesArray[(bottom + 1) * 2 + 1] = pos2[0].y;
       transforms[bottom] = getShader(pos1[1], pos1[2]);
       transforms[bottom + 1] = getShader(pos2[1], pos2[2]);
-      uvtData[bottom * 2] = uvtData[next * 2];
-      uvtData[bottom * 2 + 1] = bottomClip;
-      uvtData[(bottom + 1) * 2] = uvtData[(next + 1) * 2];
-      uvtData[(bottom + 1) * 2 + 1] = uvtData[bottom * 2 + 1];
+      uvtDataArray[bottom * 2] = uvtDataArray[next * 2];
+      uvtDataArray[bottom * 2 + 1] = bottomClip;
+      uvtDataArray[(bottom + 1) * 2] = uvtDataArray[(next + 1) * 2];
+      uvtDataArray[(bottom + 1) * 2 + 1] = uvtDataArray[bottom * 2 + 1];
     }
     else
     {
       indicesArray.splice(-6, 6);
     }
-
-    this.indices = new DrawData<Int>(indicesArray.length, true, indicesArray);
+    setVertices(verticesArray);
+    setUVTData(uvtDataArray);
+    setIndices(indicesArray);
   }
 
   function getShader(diffPos:Vector3D, glowPos:Vector3D)
@@ -759,7 +765,6 @@ class SustainTrail extends FlxSprite
     {
       if (!camera.visible || !camera.exists) continue;
       // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
-
       if (useNew)
       {
         #if !flash
@@ -815,6 +820,7 @@ class SustainTrail extends FlxSprite
     vertices = null;
     indices = null;
     uvtData = null;
+    transforms.splice(0, transforms.length);
 
     super.destroy();
   }

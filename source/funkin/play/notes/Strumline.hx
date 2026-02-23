@@ -427,7 +427,7 @@ class Strumline extends FlxSpriteGroup
   }
 
   // only for arrowpath
-  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float, column:Int):Array<Vector3D>
+  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float, column:Int):Vector3D
   {
     var conductorInUse:Conductor = conductorInUse ?? Conductor.instance;
     time += conductorInUse.getTimeWithDelta();
@@ -449,7 +449,7 @@ class Strumline extends FlxSpriteGroup
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
     var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false),
       mods.GetYPos(column, yOffset2, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, yOffset2, pn, xoffArray));
-    var diff:Float = pos4.subtract(pos);
+    var diff:Vector3D = pos4.subtract(pos);
     var ang:Float = Math.atan2(diff.y, diff.x);
     var angOrientX:Float = Math.atan2(diff.y, diff.z);
     var angOrientY:Float = Math.atan2(diff.z, diff.x);
@@ -929,7 +929,7 @@ class Strumline extends FlxSpriteGroup
       var realofs2 = mods.GetYOffset(conductorInUse, note.strumTime + timeDiff, scrollSpeed, col, note.strumTime + timeDiff) + c2;
       var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
         mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-      var diff:Float = pos2.subtract(pos);
+      var diff:Vector3D = pos2.subtract(pos);
       var ang:Float = Math.atan2(diff.y, diff.x);
       var angOrientX:Float = Math.atan2(diff.y, diff.z);
       var angOrientY:Float = Math.atan2(diff.z, diff.x);
@@ -1051,7 +1051,7 @@ class Strumline extends FlxSpriteGroup
       var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
       var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
         mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-      var diff:Float = pos2.subtract(pos3);
+      var diff:Vector3D = pos2.subtract(pos3);
       var ang:Float = Math.atan2(diff.y, diff.x);
       var angOrientX:Float = Math.atan2(diff.y, diff.z);
       var angOrientY:Float = Math.atan2(diff.z, diff.x);
@@ -1115,7 +1115,7 @@ class Strumline extends FlxSpriteGroup
       var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
       var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
         mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-      var diff:Float = pos2.subtract(pos3);
+      var diff:Vector3D = pos2.subtract(pos3);
       var ang:Float = Math.atan2(diff.y, diff.x);
       var angOrientX:Float = Math.atan2(diff.y, diff.z);
       var angOrientY:Float = Math.atan2(diff.z, diff.x);
@@ -1185,7 +1185,7 @@ class Strumline extends FlxSpriteGroup
       var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
       var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
         mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-      var diff:Float = pos2.subtract(pos3);
+      var diff:Vector3D = pos2.subtract(pos3);
       var ang:Float = Math.atan2(diff.y, diff.x);
       var angOrientX:Float = Math.atan2(diff.y, diff.z);
       var angOrientY:Float = Math.atan2(diff.z, diff.x);

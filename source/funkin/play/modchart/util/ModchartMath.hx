@@ -263,13 +263,13 @@ class ModchartMath
     var cZ:Float = FlxMath.fastCos(rZ);
     var sZ:Float = FlxMath.fastSin(rZ);
 
-    var m:Vector3D = new Vector3D(cZ * cY * v.x
-      + -sZ * cY * v.y + -sY * v.z, cZ * sY * sX
-      + sZ * cX * v.x
-      + -sZ * sY * sX + cZ * cX * v.y + cY * sX * v.z,
-      cZ * sY * cX
-      + sZ * -sX * v.x + -sZ * sY * cX + cZ * -sX * v.y + cY * cX * v.z, v.w);
-    return m;
+    return new Vector3D(cZ * cY * v.x
+      + -sZ * cY * v.y + -sY * v.z, (cZ * sY * sX + sZ * cX) * v.x
+      + (-sZ * sY * sX + cZ * cX) * v.y
+      + cY * sX * v.z,
+      (cZ * sY * cX + sZ * -sX) * v.x
+      + (-sZ * sY * cX + cZ * -sX) * v.y
+      + cY * cX * v.z, v.w);
   }
 
   public static function translateMatrix(x:Float, y:Float, z:Float):Array<Array<Float>>

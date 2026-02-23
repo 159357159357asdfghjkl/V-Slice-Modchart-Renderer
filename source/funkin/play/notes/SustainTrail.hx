@@ -293,7 +293,7 @@ class SustainTrail extends FlxSprite
     origin.set(width * 0.5, height * 0.5);
   }
 
-  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float)
+  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
   {
     var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
     var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
@@ -322,10 +322,10 @@ class SustainTrail extends FlxSprite
     var pos4:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset2, pn, xoffArray, false, true) ?? 0,
       parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) ?? 0,
       parentStrumline?.mods?.GetZPos(column, yOffset2, pn, xoffArray) ?? 0);
-    var diff = pos4.subtract(pos);
-    var ang = Math.atan2(diff.y, diff.x);
-    var angOrientX = Math.atan2(diff.y, diff.z);
-    var angOrientY = Math.atan2(diff.z, diff.x);
+    var diff:Vector3D = pos4.subtract(pos);
+    var ang:Float = Math.atan2(diff.y, diff.x);
+    var angOrientX:Float = Math.atan2(diff.y, diff.z);
+    var angOrientY:Float = Math.atan2(diff.z, diff.x);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;
@@ -352,16 +352,6 @@ class SustainTrail extends FlxSprite
     var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, pn) ?? 1;
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    if (parentStrumline != null)
-    {
-      parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-      var newZoom:Vector3D = parentStrumline.zoom.clone();
-      newZoom.x *= parentStrumline.zoom2.x;
-      newZoom.y *= parentStrumline.zoom2.y;
-      newZoom.z *= parentStrumline.zoom2.z;
-      parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
-        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-    }
     var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
     var spPos:Vector3D = new Vector3D();
     var spZoom:Vector3D = new Vector3D();
@@ -371,6 +361,13 @@ class SustainTrail extends FlxSprite
     var realSpStealth:Float = 0;
     if (parentStrumline != null)
     {
+      parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+      var newZoom:Vector3D = parentStrumline.zoom.clone();
+      newZoom.x *= parentStrumline.zoom2.x;
+      newZoom.y *= parentStrumline.zoom2.y;
+      newZoom.z *= parentStrumline.zoom2.z;
+      parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
+        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
       var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
       if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
       parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 0, spPos);
@@ -403,6 +400,77 @@ class SustainTrail extends FlxSprite
       (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
       (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), none ? splineGlow : glow);
     return [zPos, diffuses, glowColor];
+  }
+
+  // without spline and straightholds calculation, use vector3 instead of matrix
+  function getPosWithOffsetFast(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
+  {
+    var conductorInUse:Conductor = parentStrumline?.conductorInUse ?? Conductor.instance;
+    var speed:Float = parentStrumline?.scrollSpeed ?? 1.0;
+    var down:Bool = parentStrumline?.isDownscroll ?? false;
+    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+    var pn:Int = parentStrumline?.modNumber ?? 0;
+    var reversedOff:Float = (FlxG.height - (parentStrumline?.defaultHeight ?? 0.) - Constants.STRUMLINE_Y_OFFSET * 2);
+    var xoffArray:Array<Float> = parentStrumline?.xoffArray ?? [0, 0, 0, 0];
+    var ofs = ((parentStrumline?.mods?.getValue('centeredpath') ?? 0.0)
+      + (parentStrumline?.mods?.getValue('centeredpath$column') ?? 0.0)) * Strumline.NOTE_SPACING;
+    var timeDiff:Float = (parentStrumline?.mods?.baseHoldSize ?? 0);
+    var yOffset:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time, speed, column, strumTime) ?? 0.0) + ofs;
+    var pos:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset, pn, xoffArray, false, true) ?? 0.0,
+      parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) ?? 0.0,
+      parentStrumline?.mods?.GetZPos(column, yOffset, pn, xoffArray) ?? 0.0);
+    currentZValue = pos.z;
+    var yOffset2:Float = (parentStrumline?.mods?.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) ?? 0)
+      + ofs;
+    var pos4:Vector3D = new Vector3D(parentStrumline?.mods?.GetXPos(column, yOffset2, pn, xoffArray, false, true) ?? 0,
+      parentStrumline?.mods?.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) ?? 0,
+      parentStrumline?.mods?.GetZPos(column, yOffset2, pn, xoffArray) ?? 0);
+    var diff:Vector3D = pos4.subtract(pos);
+    var ang:Float = Math.atan2(diff.y, diff.x);
+    var angOrientX:Float = Math.atan2(diff.y, diff.z);
+    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
+    var rotation:Vector3D = new Vector3D(parentStrumline?.mods?.GetRotationX(column, yOffset, true, angOrientX) ?? 0.0,
+      parentStrumline?.mods?.GetRotationY(column, yOffset, true, angOrientY) ?? 0.0,
+      (parentStrumline?.mods?.GetRotationZ(column, yOffset, noteBeat, true, ang, true) ?? 0.0));
+    var fullPos:Vector3D = pos.clone();
+    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
+    var difference:Vector3D = (parentStrumline != null ? parentStrumline.getDifference() : new Vector3D());
+    var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
+    var scale:Array<Float> = parentStrumline?.mods?.GetScale(column, yOffset, pn) ?? [1, 1, 0, 0, 1];
+    var zoom:Float = parentStrumline?.mods?.GetZoom(column, yOffset, pn) ?? 1;
+    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
+    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+    if (parentStrumline != null)
+    {
+      parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+      var newZoom:Vector3D = parentStrumline.zoom.clone();
+      newZoom.x *= parentStrumline.zoom2.x;
+      newZoom.y *= parentStrumline.zoom2.y;
+      newZoom.z *= parentStrumline.zoom2.z;
+      parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
+        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
+      var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
+      if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
+    }
+    fullPos.incrementBy(realPos);
+    var rotate:Vector3D = ModchartMath.rotateVec3(fullPos, rotation.x, rotation.y, rotation.z);
+    var scale:Vector3D = ModchartMath.scaleVec3(rotate, scalePos.x, scalePos.y, scalePos.z);
+    var skew:Vector3D = ModchartMath.skewVec3(scale, skewPos.x, skewPos.y);
+    var zValue:Float = (Math.abs(skew.z) > FlxMath.EPSILON) ? (1.0 / (skew.z / 1000)) : 1.0;
+    skew.scaleBy(zValue);
+    skew.incrementBy(difference);
+    skew.incrementBy(new Vector3D(offsetX, offsetY));
+    var yposWithoutReverse:Float = parentStrumline?.mods?.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false) ?? 0.0;
+    var alpha:Float = parentStrumline?.mods?.GetAlpha(yposWithoutReverse, column, yOffset, false, true) ?? 1.0;
+    var glow:Float = parentStrumline?.mods?.GetGlow(yposWithoutReverse, column, yOffset, false, true) ?? 0.0;
+    var diffuses:Vector3D = new Vector3D(parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red') ?? 1,
+      parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green') ?? 1,
+      parentStrumline?.mods?.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue') ?? 1, alpha * this.alpha * camera.alpha);
+    var glowColor:Vector3D = new Vector3D((parentStrumline?.mods?.getValue('stealthglowred') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowred$column') ?? 1),
+      (parentStrumline?.mods?.getValue('stealthglowgreen') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowgreen$column') ?? 1),
+      (parentStrumline?.mods?.getValue('stealthglowblue') ?? 1) * (parentStrumline?.mods?.getValue('stealthglowblue$column') ?? 1), glow);
+    return [skew, diffuses, glowColor];
   }
 
   public function updateClipping(songTime:Float = 0)
@@ -466,6 +534,8 @@ class SustainTrail extends FlxSprite
     var indicesArray:Array<Int> = [];
     var drawTail:Bool = true;
     var trueIndex:Int = 0;
+    var getPosWithOffset = this.getPosWithOffset;
+    if (Preferences.framerate < 60) getPosWithOffset = this.getPosWithOffsetFast; // optimization for most time
     for (i in 0...length + 1)
     {
       var a:Int = trueIndex * 2;

@@ -250,7 +250,7 @@ class ModchartMath
     return m;
   }
 
-  public static function rotateVec3(a:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
+  public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
   {
     rX *= Math.PI / 180;
     rY *= Math.PI / 180;
@@ -263,13 +263,12 @@ class ModchartMath
     var cZ:Float = FlxMath.fastCos(rZ);
     var sZ:Float = FlxMath.fastSin(rZ);
 
-    var mat:Array<Array<Float>> = [
-      [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
-      [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
-      [-sY, cY * sX, cY * cX, 0],
-      [0, 0, 0, 1],
-    ];
-    var m:Vector3D = transform(a, mat);
+    var m:Vector3D = new Vector3D(cZ * cY * v.x
+      + -sZ * cY * v.y + -sY * v.z, cZ * sY * sX
+      + sZ * cX * v.x
+      + -sZ * sY * sX + cZ * cX * v.y + cY * sX * v.z,
+      cZ * sY * cX
+      + sZ * -sX * v.x + -sZ * sY * cX + cZ * -sX * v.y + cY * cX * v.z, v.w);
     return m;
   }
 
@@ -287,6 +286,11 @@ class ModchartMath
     return m;
   }
 
+  public static function skewVec3(v:Vector3D, sx:Float, sy:Float):Vector3D
+  {
+    return new Vector3D(v.x + v.y * sx, v.y + v.x * sy, v.z, v.w);
+  }
+
   public static function scaleMatrix(a:Array<Array<Float>>, sx:Float, sy:Float, sz:Float):Array<Array<Float>>
   {
     var mat:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
@@ -295,6 +299,11 @@ class ModchartMath
     mat[2][2] = sz;
     var m:Array<Array<Float>> = multiply(a, mat);
     return m;
+  }
+
+  public static function scaleVec3(v:Vector3D, sx:Float, sy:Float, sz:Float):Vector3D
+  {
+    return new Vector3D(sx * v.x, sy * v.y, sz * v.z, v.w);
   }
 
   public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float

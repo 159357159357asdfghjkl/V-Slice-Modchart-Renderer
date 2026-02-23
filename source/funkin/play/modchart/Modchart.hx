@@ -936,16 +936,30 @@ class Modchart
 
   public var scrollSpeed:Float = 1;
 
+  public function getCurrentSVMultiplier(songPosition:Float):Float
+  {
+    var sv:Array<Array<Float>> = PlayState.instance.sv;
+    if (sv.length > 0)
+    {
+      var currentMultiplier:Float = sv[0][1];
+      for (i in 0...sv.length)
+      {
+        if (songPosition >= sv[i][0]) currentMultiplier = sv[i][1];
+      }
+      return currentMultiplier;
+    }
+    return 1.0;
+  }
+
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
     var curTime:Float = getTime();
+    var distanceToTime:Float = SCREEN_HEIGHT / scrollSpeed / Constants.PIXELS_PER_MS;
+    // var noteSV:Float = getCurrentSVMultiplier(time);
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
     var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, true, conductor) * -1;
-    if (getValue('cmod') > 0)
-    {
-      fYOffset *= getValue('cmod') / 60 / 1000 * ARROW_SIZE; // alternative yOffset calculate method
-    }
+    if (getValue('cmod') > 0) fYOffset *= getValue('cmod') / 60 / 1000 * ARROW_SIZE;
     scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYAdjust:Float = 0;
     if (fYOffset < 0)

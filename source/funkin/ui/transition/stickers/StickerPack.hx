@@ -20,7 +20,7 @@ class StickerPack implements IRegistryEntry<StickerData>
    */
   public final _data:StickerData;
 
-  public function new(id:String)
+  public function new(id:String, ?params:Dynamic)
   {
     this.id = id;
     this._data = _fetchData(id);
@@ -73,7 +73,9 @@ class StickerPack implements IRegistryEntry<StickerData>
     return 'StickerPack($id)';
   }
 
-  public function destroy():Void {}
+  public function destroy():Void
+  {
+  }
 
   static function _fetchData(id:String):Null<StickerData>
   {

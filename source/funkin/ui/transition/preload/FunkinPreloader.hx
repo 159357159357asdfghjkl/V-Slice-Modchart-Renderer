@@ -19,7 +19,9 @@ using StringTools;
 // Polymod can't override this, so we can't use this technique elsewhere.
 #if FEATURE_TOUCH_HERE_TO_PLAY
 @:bitmap('art/touchHereToPlay.png')
-class TouchHereToPlayImage extends BitmapData {}
+class TouchHereToPlayImage extends BitmapData
+{
+}
 #end
 
 /**
@@ -120,8 +122,7 @@ class FunkinPreloader extends FlxBasePreloader
   {
     super(Constants.PRELOADER_MIN_STAGE_TIME);
 
-    // We can't even call trace() yet, until Flixel loads.
-    trace('Initializing custom preloader...');
+    trace(' PRELOADER '.bold().bg_note_left() + ' Starting custom preloader...');
   }
 
   override function create():Void
@@ -143,7 +144,7 @@ class FunkinPreloader extends FlxBasePreloader
     this._width = Lib.current.stage.stageWidth;
     this._height = Lib.current.stage.stageHeight;
 
-    trace('Preloader size: ' + this._width + 'x' + this._height);
+    trace(' PRELOADER '.bold().bg_note_left() + ' Resolution: ${this._width}x${this._height}');
 
     // Scale assets to the screen size.
     // Desktop is always 1:1 scale, mobile needs DPI normalization for consistent positioning
@@ -247,10 +248,11 @@ class FunkinPreloader extends FlxBasePreloader
     vfdBitmap.shader = vfdShader;
 
     #if FEATURE_TOUCH_HERE_TO_PLAY
-    touchHereToPlay = createBitmap(TouchHereToPlayImage, function(bmp:Bitmap) {
+    touchHereToPlay = createBitmap(TouchHereToPlayImage, function(bmp:Bitmap)
+    {
       // Scale and center the touch to start image.
       // We have to do this inside the async call, after the image size is known.
-      bmp.scaleX = bmp.scaleY = ratio;
+      bmp.scaleX = bmp.scaleY = ratio * 0.5;
       bmp.x = (this._width - bmp.width) / 2;
       bmp.y = (this._height - bmp.height) / 2;
     });
@@ -803,16 +805,12 @@ class FunkinPreloader extends FlxBasePreloader
   #if FEATURE_TOUCH_HERE_TO_PLAY
   function overTouchHereToPlay(e:MouseEvent):Void
   {
-    touchHereToPlay.scaleX = touchHereToPlay.scaleY = ratio * 1.1;
-    touchHereToPlay.x = (this._width - touchHereToPlay.width) / 2;
-    touchHereToPlay.y = (this._height - touchHereToPlay.height) / 2;
+    scaleAndCenter(touchHereToPlay, ratio * 1.1 * 0.5);
   }
 
   function outTouchHereToPlay(e:MouseEvent):Void
   {
-    touchHereToPlay.scaleX = touchHereToPlay.scaleY = ratio * 1;
-    touchHereToPlay.x = (this._width - touchHereToPlay.width) / 2;
-    touchHereToPlay.y = (this._height - touchHereToPlay.height) / 2;
+    scaleAndCenter(touchHereToPlay, ratio * 0.5);
   }
 
   function mouseDownTouchHereToPlay(e:MouseEvent):Void
@@ -822,8 +820,7 @@ class FunkinPreloader extends FlxBasePreloader
 
   function onTouchHereToPlay(e:MouseEvent):Void
   {
-    touchHereToPlay.x = (this._width - touchHereToPlay.width) / 2;
-    touchHereToPlay.y = (this._height - touchHereToPlay.height) / 2;
+    scaleAndCenter(touchHereToPlay, ratio * 0.5);
 
     removeEventListener(MouseEvent.CLICK, onTouchHereToPlay);
     touchHereSprite.removeEventListener(MouseEvent.MOUSE_OVER, overTouchHereToPlay);
@@ -832,6 +829,13 @@ class FunkinPreloader extends FlxBasePreloader
 
     // This is the actual thing that makes the game load.
     immediatelyStartGame();
+  }
+
+  function scaleAndCenter(bmp:Bitmap, scale:Float)
+  {
+    bmp.scaleX = bmp.scaleY = scale;
+    bmp.x = (this._width - bmp.width) / 2;
+    bmp.y = (this._height - bmp.height) / 2;
   }
   #end
 
@@ -877,7 +881,10 @@ class FunkinPreloader extends FlxBasePreloader
     var percentage:Int = Math.floor(percent * 100);
     progressRightText.text = '$percentage%';
 
-    if (currentState.getProgressLeftText() != null) trace('Preloader state: ' + currentState + ' (' + percentage + '%, ' + elapsed + 's)');
+    if (currentState.getProgressLeftText() != null)
+    {
+      trace(' PRELOADER '.bold().bg_note_left() + ' $currentState ($percentage%, $elapsed sec)');
+    }
 
     super.update(percent);
   }

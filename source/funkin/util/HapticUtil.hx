@@ -44,7 +44,7 @@ class HapticUtil
     final hapticsModes:Array<HapticsMode> = targetHapticsModes ?? [HapticsMode.ALL];
     if (!hapticsModes.contains(Preferences.hapticsMode)) return;
 
-    final amplitudeValue = FlxMath.bound(amplitude * Preferences.hapticsIntensityMultiplier, 0, Constants.MAX_VIBRATION_AMPLITUDE);
+    final amplitudeValue = (amplitude * Preferences.hapticsIntensityMultiplier).clamp(0, Constants.MAX_VIBRATION_AMPLITUDE);
 
     if (period > 0)
     {
@@ -97,16 +97,17 @@ class HapticUtil
 
     if (amplitudeTween != null) amplitudeTween.cancel();
 
-    amplitudeTween = FlxTween.num(startAmplitude, targetAmplitude, tweenDuration,
+    amplitudeTween = FlxTween.num(startAmplitude, targetAmplitude, tweenDuration, {
+      onComplete: function(_)
       {
-        onComplete: function(_) {
-          final finalAmplitude:Float = targetAmplitude * 2;
+        final finalAmplitude:Float = targetAmplitude * 2;
 
-          vibrate(Constants.DEFAULT_VIBRATION_PERIOD, Constants.DEFAULT_VIBRATION_DURATION, finalAmplitude);
-        }
-      }, function(currentAmplitude:Float) {
-        vibrate(0, Constants.DEFAULT_VIBRATION_DURATION / 10, currentAmplitude);
-      });
+        vibrate(Constants.DEFAULT_VIBRATION_PERIOD, Constants.DEFAULT_VIBRATION_DURATION, finalAmplitude);
+      }
+    }, function(currentAmplitude:Float)
+    {
+      vibrate(0, Constants.DEFAULT_VIBRATION_DURATION / 10, currentAmplitude);
+    });
   }
 
   static function get_defaultVibrationPreset():VibrationPreset

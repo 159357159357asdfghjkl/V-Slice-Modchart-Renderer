@@ -68,9 +68,14 @@ class CreditsState extends MusicBeatState
   static final CREDITS_SCROLL_BASE_SPEED = 100.0;
 
   /**
-   * The speed the credits scroll at while the button is held, in pixels per second.
+   * The speed the credits scroll at while accept keybind or spacebar is held, in pixels per second.
    */
   static final CREDITS_SCROLL_FAST_SPEED = CREDITS_SCROLL_BASE_SPEED * 4.0;
+
+  /**
+   * The speed the credits scroll at while the pause keybind is held, in pixels per second.
+   */
+  static final CREDITS_SCROLL_PAUSE_SPEED = 0.0;
 
   /**
    * The actual sprites and text used to display the credits.
@@ -102,15 +107,14 @@ class CreditsState extends MusicBeatState
     entriesToBuild = [];
     for (entry in CreditsDataHandler.CREDITS_DATA.entries)
     {
-      entriesToBuild.push(
-        {
-          data: entry,
-          lineIndexToBuild: 0,
-          backerIndexToBuild: 0,
-          hasBuiltHeader: (entry.header == null),
-          hasBuiltBody: (entry.body.length == 0),
-          hasBuiltBackers: (!entry.appendBackers || backersToBuild.length == 0)
-        });
+      entriesToBuild.push({
+        data: entry,
+        lineIndexToBuild: 0,
+        backerIndexToBuild: 0,
+        hasBuiltHeader: (entry.header == null),
+        hasBuiltBody: (entry.body.length == 0),
+        hasBuiltBackers: (!entry.appendBackers || backersToBuild.length == 0)
+      });
     }
 
     // Background
@@ -127,7 +131,7 @@ class CreditsState extends MusicBeatState
     // add(bg);
 
     // TODO: Once we need to display Kickstarter backers,
-    // make this use a recycled pool so we don't kill peformance.
+    // make this use a recycled pool so we don't kill performance.
     creditsGroup = new FlxSpriteGroup();
     creditsGroup.x = Math.max(funkin.ui.FullScreenScaleMode.gameNotchSize.x, SCREEN_PAD);
     creditsGroup.y = STARTING_HEIGHT;
@@ -137,13 +141,12 @@ class CreditsState extends MusicBeatState
     add(creditsGroup);
 
     // Music
-    FunkinSound.playMusic('freeplayRandom',
-      {
-        startingVolume: 0.0,
-        overrideExisting: true,
-        restartTrack: true,
-        loop: true
-      });
+    FunkinSound.playMusic('freeplayRandom', {
+      startingVolume: 0.0,
+      overrideExisting: true,
+      restartTrack: true,
+      loop: true
+    });
     FlxG.sound.music.fadeIn(6, 0, 0.8);
 
     #if mobile
@@ -216,11 +219,11 @@ class CreditsState extends MusicBeatState
 
   function killOffScreenLines():Void
   {
-    creditsGroup.forEachExists(function(creditsLine:FlxSprite) {
+    creditsGroup.forEachExists(function(creditsLine:FlxSprite)
+    {
       if (creditsLine.y + creditsLine.height <= 0)
       {
         creditsLine.kill();
-        trace("killed line");
       }
     });
   }
@@ -266,23 +269,23 @@ class CreditsState extends MusicBeatState
       // TODO: Replace with whatever the special note button is.
       if (FlxG.keys.pressed.ENTER || FlxG.keys.pressed.SPACE #if mobile || TouchUtil.pressed && !TouchUtil.overlaps(backButton) #end)
       {
-        // Move the whole group.
+        // Move the whole group by the base scroll speed.
         creditsGroup.y -= CREDITS_SCROLL_FAST_SPEED * elapsed;
+      }
+      else if (controls.PAUSE || FlxG.keys.pressed.SHIFT)
+      {
+        // Stop the whole group from moving.
+        creditsGroup.y -= CREDITS_SCROLL_PAUSE_SPEED * elapsed;
       }
       else
       {
-        // Move the whole group.
+        // Move the whole group by the base scroll speed.
         creditsGroup.y -= CREDITS_SCROLL_BASE_SPEED * elapsed;
       }
     }
-
-    if (controls.BACK || hasEnded())
+    if (controls.BACK_P || hasEnded())
     {
       exit();
-    }
-    else if (controls.PAUSE)
-    {
-      // scrollPaused = !scrollPaused;
     }
   }
 
@@ -293,6 +296,7 @@ class CreditsState extends MusicBeatState
 
   function exit():Void
   {
+    FlxG.keys.enabled = false;
     FlxG.switchState(() -> new MainMenuState());
   }
 

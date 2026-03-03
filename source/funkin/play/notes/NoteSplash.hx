@@ -14,13 +14,13 @@ class NoteSplash extends FunkinActor
   static var frameCollection:FlxFramesCollection;
 
   public var column:Int = 0;
-  public var currentZValue:Float = 0;
 
   public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
 
     setupSplashGraphic(noteStyle);
+
     this.animation.onFinish.add(this.onAnimationFinished);
   }
 

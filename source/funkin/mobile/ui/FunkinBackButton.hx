@@ -15,7 +15,14 @@ class FunkinBackButton extends FunkinButton
 
   public var enabled:Bool = true;
 
-  var confirming:Bool = false;
+  public var confirming(get, never):Bool;
+
+  function get_confirming():Bool
+  {
+    return _confirming;
+  }
+
+  var _confirming:Bool = false;
 
   public var restingOpacity:Float;
 
@@ -86,7 +93,7 @@ class FunkinBackButton extends FunkinButton
       return;
     }
 
-    confirming = true;
+    _confirming = true;
 
     FlxTween.cancelTweensOf(this);
     HapticUtil.vibrate(0, 0.05, 0.5);
@@ -96,9 +103,10 @@ class FunkinBackButton extends FunkinButton
 
     onConfirmStart.dispatch();
 
-    animation.onFinish.addOnce(function(name:String) {
+    animation.onFinish.addOnce(function(name:String)
+    {
       if (name != 'confirm') return;
-      confirming = false;
+      _confirming = false;
       held = false;
       onConfirmEnd.dispatch();
     });
@@ -112,13 +120,13 @@ class FunkinBackButton extends FunkinButton
     HapticUtil.vibrate(0, 0.01, 0.2);
     animation.play('idle');
 
-    FlxTween.tween(this, {alpha: restingOpacity}, 0.5,
+    FlxTween.tween(this, {alpha: restingOpacity}, 0.5, {
+      ease: FlxEase.expoOut,
+      onComplete: function(tween:FlxTween):Void
       {
-        ease: FlxEase.expoOut,
-        onComplete: function(tween:FlxTween):Void {
-          held = false;
-        }
-      });
+        held = false;
+      }
+    });
   }
 
   public function resetCallbacks():Void
@@ -127,7 +135,7 @@ class FunkinBackButton extends FunkinButton
     onDown.removeAll();
     onOut.removeAll();
 
-    confirming = false;
+    _confirming = false;
     held = false;
 
     onUp.add(playConfirmAnim);

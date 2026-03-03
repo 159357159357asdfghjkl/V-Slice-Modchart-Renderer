@@ -18,9 +18,9 @@ class GitarooPause extends MusicBeatState
 
   var replaySelect:Bool = false;
 
-  var previousParams:PlayStateParams;
+  var previousParams:Null<PlayStateParams>;
 
-  public function new(previousParams:PlayStateParams):Void
+  public function new(?previousParams:PlayStateParams):Void
   {
     super();
 
@@ -76,12 +76,13 @@ class GitarooPause extends MusicBeatState
   {
     if (controls.UI_LEFT_P || controls.UI_RIGHT_P #if mobile || SwipeUtil.justSwipedLeft || SwipeUtil.justSwipedRight #end) changeThing();
 
-    if (controls.ACCEPT #if mobile || checkSelectionPress() #end)
+    if (controls.ACCEPT_P #if mobile || checkSelectionPress() #end)
     {
       if (replaySelect)
       {
         FlxTransitionableState.skipNextTransIn = false;
         FlxTransitionableState.skipNextTransOut = false;
+        if (funkin.ui.FullScreenScaleMode.instance != null) funkin.ui.FullScreenScaleMode.instance.onMeasurePostAwait();
         FlxG.switchState(() -> new PlayState(previousParams));
       }
       else

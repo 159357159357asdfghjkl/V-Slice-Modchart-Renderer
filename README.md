@@ -1,31 +1,37 @@
-i'm optimizer tails lol (fake)
+<div align='center'><img src="docs/readme_images/FNF_logo.png" width="800">
 
-# NotITG FNF ver
-
-You can also call it NotITF
-
-An avant-garde FNF Modchart System
-
-Stepmania Port + NotITG Closed-source Modifiers + Mirin Template Port
-
-some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Psych Engine(lua system)
-
-Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
-
-WARNING : YOU SHOULD CREDIT ME IF YOU WANNA USE CubicX/Y/Z / Asymptote / RotationX/Y/Z / OrientX/Y/Z / StraightHolds / SpiralHolds / ZoomX/Y/Z / SkewX/Y (AND THEIR SUB MODIFIERS(if they have)) FROM MY CODE (because i want to become well-known lol)
-
-ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
-
-# Friday Night Funkin'
-
-Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for Ludum Dare 47.
+<h2>Friday Night Funkin' is a rhythm game. Built using HaxeFlixel for <a href="https://ldjam.com/events/ludum-dare/47">Ludum Dare 47.</a></h2>
 
 This game was made with love to Newgrounds and its community. Extra love to Tom Fulp.
+
+</div>
 
 - [Playable web demo on Newgrounds!](https://www.newgrounds.com/portal/view/770371)
 - [Demo download builds for Windows, Mac, and Linux from Itch.io!](https://ninja-muffin24.itch.io/funkin)
 - [Download Android builds from Google Play!](https://play.google.com/store/apps/details?id=me.funkin.fnf)
 - [Download iOS builds from the App Store!](https://apps.apple.com/app/id6740428530)
+
+<div align='center'>
+<table>
+  <tr>
+    <td><img src="docs/readme_images/Title_Card.gif" alt="Title Screen" width="350"/></td>
+    <td><img src="docs/readme_images/Menu.png" alt="Main Menu" width="350"/></td>
+  </tr>
+</table>
+</div>
+
+
+# VSlice Modchart Renderer
+
+You can also call it NotITF
+
+An avant-garde FNF Modchart System
+
+some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Psych Engine(lua system)
+
+Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scripts or mods/your-mod/scripts and rename it by song name
+
+ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
 
 # Getting Started
 
@@ -71,3 +77,6 @@ Full credits can be found in-game, or in the `credits.json` file which is locate
 - [Tom Fulp](https://twitter.com/tomfulp) - For being a great guy and for Newgrounds
 - [JohnnyUtah](https://twitter.com/JohnnyUtahNG/) - Voice of Tankman
 - [L0Litsmonica](https://twitter.com/L0Litsmonica) - Voice of Mommy Mearest
+
+
+## 真我教皇，真源嗣

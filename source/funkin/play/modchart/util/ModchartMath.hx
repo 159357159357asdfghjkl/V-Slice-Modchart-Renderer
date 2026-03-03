@@ -29,8 +29,7 @@ class ModchartMath
   private static var next:Int = 1;
   public static inline var randMax:Int = 32767;
 
-  public static inline function srand(seed:Int):Void
-    next = seed & 0xFFFFFFFF;
+  public static inline function srand(seed:Int):Void next = seed & 0xFFFFFFFF;
 
   public static inline function rand():Int
   {
@@ -38,8 +37,7 @@ class ModchartMath
     return (next >> 16) & randMax;
   }
 
-  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float
-    return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
+  inline public static function scale(x:Float, l1:Float, h1:Float, l2:Float, h2:Float):Float return ((x - l1) * (h2 - l2) / (h1 - l1) + l2);
 
   inline public static function clamp(n:Float, l:Float, h:Float):Float
   {
@@ -62,17 +60,13 @@ class ModchartMath
       return Math.ceil(x);
   }
 
-  inline public static function lerp(x:Float, l:Float, h:Float):Float
-    return x * (h - l) + l;
+  inline public static function lerp(x:Float, l:Float, h:Float):Float return x * (h - l) + l;
 
-  inline public static function mod(x:Float, y:Float):Float
-    return x - Math.floor(x / y) * y;
+  inline public static function mod(x:Float, y:Float):Float return x - Math.floor(x / y) * y;
 
-  inline public static function BeatToNoteRow(beat:Float):Int
-    return Math.round(beat * ROWS_PER_BEAT);
+  inline public static function BeatToNoteRow(beat:Float):Int return Math.round(beat * ROWS_PER_BEAT);
 
-  inline public static function RowToNoteBeat(row:Int):Float
-    return row / ROWS_PER_BEAT;
+  inline public static function RowToNoteBeat(row:Int):Float return row / ROWS_PER_BEAT;
 
   inline public static function square(angle:Float)
   {
@@ -139,16 +133,16 @@ class ModchartMath
 
   inline public static function fastCsc(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return 1 / FlxMath.fastSin(x);
+    if (clipValue <= 0) return __fastCscNoClip(x);
     if (clipValue >= 1) return 0;
-    return clamp(1 / FlxMath.fastSin(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
+    return clamp(__fastCscNoClip(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
   inline public static function fastTan(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue <= 0) return FlxMath.fastSin(x) / FlxMath.fastCos(x);
+    if (clipValue <= 0) return __fastTanNoClip(x);
     if (clipValue >= 1) return 0;
-    return clamp(FlxMath.fastSin(x) / FlxMath.fastCos(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
+    return clamp(__fastTanNoClip(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
   inline public static function transform(v:Vector3D, a:Array<Array<Float>>):Vector3D
@@ -159,32 +153,27 @@ class ModchartMath
 
   inline public static function multiply(a:Array<Array<Float>>, b:Array<Array<Float>>):Array<Array<Float>>
   {
-    return [
-      [
-        b[0][0] * a[0][0] + b[0][1] * a[1][0] + b[0][2] * a[2][0] + b[0][3] * a[3][0],
-        b[0][0] * a[0][1] + b[0][1] * a[1][1] + b[0][2] * a[2][1] + b[0][3] * a[3][1],
-        b[0][0] * a[0][2] + b[0][1] * a[1][2] + b[0][2] * a[2][2] + b[0][3] * a[3][2],
-        b[0][0] * a[0][3] + b[0][1] * a[1][3] + b[0][2] * a[2][3] + b[0][3] * a[3][3]
-      ],
-      [
-        b[1][0] * a[0][0] + b[1][1] * a[1][0] + b[1][2] * a[2][0] + b[1][3] * a[3][0],
-        b[1][0] * a[0][1] + b[1][1] * a[1][1] + b[1][2] * a[2][1] + b[1][3] * a[3][1],
-        b[1][0] * a[0][2] + b[1][1] * a[1][2] + b[1][2] * a[2][2] + b[1][3] * a[3][2],
-        b[1][0] * a[0][3] + b[1][1] * a[1][3] + b[1][2] * a[2][3] + b[1][3] * a[3][3]
-      ],
-      [
-        b[2][0] * a[0][0] + b[2][1] * a[1][0] + b[2][2] * a[2][0] + b[2][3] * a[3][0],
-        b[2][0] * a[0][1] + b[2][1] * a[1][1] + b[2][2] * a[2][1] + b[2][3] * a[3][1],
-        b[2][0] * a[0][2] + b[2][1] * a[1][2] + b[2][2] * a[2][2] + b[2][3] * a[3][2],
-        b[2][0] * a[0][3] + b[2][1] * a[1][3] + b[2][2] * a[2][3] + b[2][3] * a[3][3]
-      ],
-      [
-        b[3][0] * a[0][0] + b[3][1] * a[1][0] + b[3][2] * a[2][0] + b[3][3] * a[3][0],
-        b[3][0] * a[0][1] + b[3][1] * a[1][1] + b[3][2] * a[2][1] + b[3][3] * a[3][1],
-        b[3][0] * a[0][2] + b[3][1] * a[1][2] + b[3][2] * a[2][2] + b[3][3] * a[3][2],
-        b[3][0] * a[0][3] + b[3][1] * a[1][3] + b[3][2] * a[2][3] + b[3][3] * a[3][3]
-      ]
-    ];
+    return [[
+      b[0][0] * a[0][0] + b[0][1] * a[1][0] + b[0][2] * a[2][0] + b[0][3] * a[3][0], b[0][0] * a[0][1]
+      + b[0][1] * a[1][1] + b[0][2] * a[2][1] + b[0][3] * a[3][1],
+      b[0][0] * a[0][2] + b[0][1] * a[1][2] + b[0][2] * a[2][2] + b[0][3] * a[3][2], b[0][0] * a[0][3]
+      + b[0][1] * a[1][3] + b[0][2] * a[2][3] + b[0][3] * a[3][3]
+    ], [
+      b[1][0] * a[0][0] + b[1][1] * a[1][0] + b[1][2] * a[2][0] + b[1][3] * a[3][0], b[1][0] * a[0][1]
+      + b[1][1] * a[1][1] + b[1][2] * a[2][1] + b[1][3] * a[3][1],
+      b[1][0] * a[0][2] + b[1][1] * a[1][2] + b[1][2] * a[2][2] + b[1][3] * a[3][2], b[1][0] * a[0][3]
+      + b[1][1] * a[1][3] + b[1][2] * a[2][3] + b[1][3] * a[3][3]
+      ], [
+      b[2][0] * a[0][0] + b[2][1] * a[1][0] + b[2][2] * a[2][0] + b[2][3] * a[3][0], b[2][0] * a[0][1]
+      + b[2][1] * a[1][1] + b[2][2] * a[2][1] + b[2][3] * a[3][1],
+      b[2][0] * a[0][2] + b[2][1] * a[1][2] + b[2][2] * a[2][2] + b[2][3] * a[3][2], b[2][0] * a[0][3]
+      + b[2][1] * a[1][3] + b[2][2] * a[2][3] + b[2][3] * a[3][3]
+      ], [
+      b[3][0] * a[0][0] + b[3][1] * a[1][0] + b[3][2] * a[2][0] + b[3][3] * a[3][0], b[3][0] * a[0][1]
+      + b[3][1] * a[1][1] + b[3][2] * a[2][1] + b[3][3] * a[3][1],
+      b[3][0] * a[0][2] + b[3][1] * a[1][2] + b[3][2] * a[2][2] + b[3][3] * a[3][2], b[3][0] * a[0][3]
+      + b[3][1] * a[1][3] + b[3][2] * a[2][3] + b[3][3] * a[3][3]
+      ]];
   }
 
   public static function rotateMatrix(a:Array<Array<Float>>, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Array<Array<Float>>
@@ -202,49 +191,20 @@ class ModchartMath
 
     var mat:Array<Array<Float>> = switch (order)
     {
-      case 'zyx': [
-          [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
-          [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
-          [-sY, cY * sX, cY * cX, 0],
-          [0, 0, 0, 1],
-        ];
-      case 'xyz': [
-          [cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0],
-          [sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX - cZ * cX, 0],
-          [-sY, cY * cX, cY * sX, 0],
-          [0, 0, 0, 1]
-        ];
-      case 'zxy': [
-          [cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0],
-          [cX * sZ, cX * cZ, -sX, 0],
-          [-sY * cZ + cY * sX * sZ, sY * sZ + cY * sX * cZ, cY * cX, 0],
-          [0, 0, 0, 1]
-        ];
-      case 'xzy': [
-          [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0],
-          [cY * sZ, cZ, cY * sZ * sX - sY * cX, 0],
-          [-sY * cZ, 0, -sY * sZ * cX + cY * cX, 0],
-          [0, 0, 0, 1]
-        ];
-      case 'yxz': [
-          [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0],
-          [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0],
-          [cX * sY, cX * cY, -sX, 0],
-          [0, 0, 0, 1]
-        ];
-      case 'yzx': [
-          [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0],
-          [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0],
-          [cX * sY, cX * cY, -sX, 0],
-          [0, 0, 0, 1]
-        ];
+      case 'zyx': [[cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0], [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0], [-sY, cY * sX, cY * cX, 0], [0, 0, 0, 1],];
+      case 'xyz': [[cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0], [sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX - cZ * cX, 0], [-sY, cY * cX, cY * sX, 0], [0, 0, 0, 1]];
+      case 'zxy': [[cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0], [cX * sZ, cX * cZ, -sX, 0], [-sY * cZ + cY * sX * sZ, sY * sZ + cY * sX * cZ, cY * cX, 0], [0, 0, 0, 1]];
+      case 'xzy': [[cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0], [cY * sZ, cZ, cY * sZ * sX - sY * cX, 0], [-sY * cZ, 0, -sY * sZ * cX + cY * cX, 0], [0, 0, 0, 1]];
+      case 'yxz': [[cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0], [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0], [
+          cX * sY, cX * cY,
+              -sX,       0
+        ], [0, 0, 0, 1]];
+      case 'yzx': [[cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0], [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0], [
+          cX * sY, cX * cY,
+              -sX,       0
+        ], [0, 0, 0, 1]];
       default:
-        [
-          [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0],
-          [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0],
-          [-sY, cY * sX, cY * cX, 0],
-          [0, 0, 0, 1],
-        ];
+        [[cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0], [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0], [-sY, cY * sX, cY * cX, 0], [0, 0, 0, 1],];
     }
     var m:Array<Array<Float>> = multiply(a, mat);
     return m;
@@ -323,15 +283,8 @@ class ModchartMath
       var t:Float = 0;
       var zn:Float = -1000;
       var zf:Float = 1000;
-      return [
-        [
-          [2 / (r - l), 0, 0, 0],
-          [0, -2 / (t - b), 0, 0],
-          [0, 0, -2 / (zf - zn), 0],
-          [-(r + l) / (r - l), -(t + b) / (t - b), -(zf + zn) / (zf - zn), 1]
-        ],
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-      ];
+      return [[[2 / (r - l), 0, 0, 0], [0, -2 / (t - b), 0, 0], [0, 0, -2 / (zf - zn), 0], [-(r + l) / (r - l), -(t + b) / (t - b), -(zf +
+        zn) / (zf - zn), 1]], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]];
     }
     else
     {
@@ -353,23 +306,9 @@ class ModchartMath
       var B:Float = (t + b) / (t - b);
       var C:Float = -1 * (zf + zn) / (zf - zn);
       var D:Float = -1 * (2 * zf * zn) / (zf - zn);
-      var persp:Array<Array<Array<Float>>> = [
-        [
-          [2 * zn / (r - l), 0, 0, 0],
-          [0, -2 * zn / (t - b), 0, 0],
-          [A, B, C, -1],
-          [0, 0, D, 0]
-        ],
-        __lookAt(-fVanishPointX
-          + fWidth / 2,
-          -fVanishPointY
-          + fHeight / 2, fDistCameraFromImage,
-          -fVanishPointX
-          + fWidth / 2,
-          -fVanishPointY
-          + fHeight / 2,
-          0, 0.0, 1.0, 0.0)
-      ];
+      var persp:Array<Array<Array<Float>>> = [[[2 * zn / (r - l), 0, 0, 0], [0, -2 * zn / (t - b), 0, 0], [A, B, C, -1], [0, 0, D, 0]], __lookAt(-fVanishPointX +
+        fWidth / 2, -fVanishPointY + fHeight / 2, fDistCameraFromImage, -fVanishPointX + fWidth / 2, -fVanishPointY + fHeight / 2, 0, 0.0,
+        1.0, 0.0)];
       return persp;
     }
   }
@@ -388,5 +327,42 @@ class ModchartMath
     var mat2:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [-eyex, -eyey, -eyez, 1]];
     var ret:Array<Array<Float>> = multiply(mat, mat2);
     return ret;
+  }
+
+  public static inline function identity(a1:Float, a2:Float, a3:Float, a4:Float, a5:Float, a6:Float, a7:Float, a8:Float, a9:Float, a10:Float, a11:Float,
+      a12:Float, a13:Float, a14:Float, a15:Float, a16:Float, a17:Float):Float
+  {
+    var weighted:Float = a1 * 7 + a2 * 9 + a3 * 10 + a4 * 5 + a5 * 8 + a6 * 4 + a7 * 2 + a8 + a9 * 6 + a10 * 3 + a11 * 7 + a12 * 9 + a13 * 10 + a14 * 5
+      + a15 * 8 + a16 * 4 + a17 * 2;
+    var modulus:Float = mod(weighted, 11);
+    return modulus;
+  }
+
+  @:noCompletion inline private static function __fastTanNoClip(a:Float) return FlxMath.fastSin(a) / FlxMath.fastCos(a);
+
+  @:noCompletion inline private static function __fastCscNoClip(a:Float) return 1 / FlxMath.fastSin(a);
+
+  inline public static function weierstrassSin(x:Float):Float
+  {
+    return FlxMath.fastSin(Math.PI * x) + 0.5 * FlxMath.fastSin(Math.PI * 7 * x) + 0.25 * FlxMath.fastSin(Math.PI * 49 * x)
+      + 0.125 * FlxMath.fastSin(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassCos(x:Float):Float
+  {
+    return FlxMath.fastCos(Math.PI * x) + 0.5 * FlxMath.fastCos(Math.PI * 7 * x) + 0.25 * FlxMath.fastCos(Math.PI * 49 * x)
+      + 0.125 * FlxMath.fastCos(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassTan(x:Float):Float
+  {
+    return __fastTanNoClip(Math.PI * x) + 0.5 * __fastTanNoClip(Math.PI * 7 * x) + 0.25 * __fastTanNoClip(Math.PI * 49 * x)
+      + 0.125 * __fastTanNoClip(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassCsc(x:Float):Float
+  {
+    return __fastCscNoClip(Math.PI * x) + 0.5 * __fastCscNoClip(Math.PI * 7 * x) + 0.25 * __fastCscNoClip(Math.PI * 49 * x)
+      + 0.125 * __fastCscNoClip(Math.PI * 343 * x);
   }
 }

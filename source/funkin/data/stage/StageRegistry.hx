@@ -6,7 +6,7 @@ import funkin.util.tools.ISingleton;
 import funkin.data.DefaultRegistryImpl;
 
 @:nullSafety
-class StageRegistry extends BaseRegistry<Stage, StageData> implements ISingleton implements DefaultRegistryImpl
+class StageRegistry extends BaseRegistry<Stage, StageData, StageEntryParams> implements ISingleton implements DefaultRegistryImpl
 {
   /**
    * The current version string for the stage data format.
@@ -21,4 +21,8 @@ class StageRegistry extends BaseRegistry<Stage, StageData> implements ISingleton
   {
     super('STAGE', 'stages', STAGE_DATA_VERSION_RULE);
   }
+}
+
+typedef StageEntryParams =
+{
 }

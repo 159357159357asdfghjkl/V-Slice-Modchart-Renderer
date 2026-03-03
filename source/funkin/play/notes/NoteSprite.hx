@@ -5,14 +5,20 @@ import funkin.data.song.SongData.NoteParamData;
 import funkin.play.notes.notestyle.NoteStyle;
 import funkin.graphics.FunkinSprite;
 import funkin.graphics.shaders.HSVShader;
+import funkin.play.modchart.objects.FunkinActor;
 
-class NoteSprite extends funkin.play.modchart.objects.FunkinActor
+class NoteSprite extends FunkinActor
 {
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 
+  public var isBad:Bool = false;
+
+  /**
+   * The hold note sprite for this note.
+   */
   public var holdNoteSprite:SustainTrail;
 
-  public var hsvShader:HSVShader;
+  var hsvShader:HSVShader;
 
   /**
    * The strum time at which the note should be hit, in milliseconds.
@@ -95,8 +101,23 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
     return this.direction;
   }
 
+  /**
+   * The note data associated with this note sprite.
+   * This is used to store the strum time, length, and other properties.
+   */
   public var noteData:SongNoteData;
 
+  /**
+   * Set this to `false` to disable scoring for this note.
+   * The note will no longer count towards ratings, points, or accuracy.
+   * @default `true` to enable scoring.
+   */
+  public var scoreable:Bool = true;
+
+  /**
+   * Whether this note is a hold note.
+   * This is true if the length is greater than 0.
+   */
   public var isHoldNote(get, never):Bool;
 
   function get_isHoldNote():Bool
@@ -147,8 +168,6 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
    */
   public var handledMiss:Bool;
 
-  public var isBad:Bool = false;
-
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {
     super(0, -9999);
@@ -168,8 +187,6 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
-
-    this.shader = hsvShader;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -223,11 +240,13 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
   public function desaturate():Void
   {
     this.hsvShader.saturation = 0.2;
+    this.shader = this.hsvShader;
   }
 
   public function setHue(hue:Float):Void
   {
     this.hsvShader.hue = hue;
+    if (hue != 1.0) this.shader = this.hsvShader;
   }
 
   public override function revive():Void
@@ -240,7 +259,12 @@ class NoteSprite extends funkin.play.modchart.objects.FunkinActor
     this.hasBeenHit = false;
     this.mayHit = false;
     this.hasMissed = false;
+    this.handledMiss = false;
+    this.holdNoteSprite = null;
 
+    // The hsvShader should only be applied when it's necessary.
+    // Otherwise, it should be turned off to keep note batching.
+    this.shader = null;
     this.hsvShader.hue = 1.0;
     this.hsvShader.saturation = 1.0;
     this.hsvShader.value = 1.0;

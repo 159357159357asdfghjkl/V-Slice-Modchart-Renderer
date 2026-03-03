@@ -1,15 +1,17 @@
 package funkin.ui.debug.charting.util;
 
+#if FEATURE_CHART_EDITOR
 import funkin.data.notestyle.NoteStyleRegistry;
 import funkin.play.notes.notestyle.NoteStyle;
+import funkin.data.song.SongData.SongTimeChange;
 import funkin.play.event.SongEvent;
 import funkin.data.stage.StageRegistry;
-import funkin.play.character.CharacterData;
+import funkin.data.character.CharacterData;
 import haxe.ui.components.DropDown;
 import funkin.play.stage.Stage;
 import funkin.play.character.BaseCharacter.CharacterType;
 import funkin.data.event.SongEventRegistry;
-import funkin.play.character.CharacterData.CharacterDataParser;
+import funkin.data.character.CharacterData.CharacterDataParser;
 
 /**
  * Functions for populating dropdowns based on game data.
@@ -82,6 +84,37 @@ class ChartEditorDropdowns
     return returnValue;
   }
 
+  /**
+   * Populate a dropdown with a list of time changes.
+   */
+  public static function populateDropdownWithTimeChanges(dropDown:DropDown, timeChanges:Array<SongTimeChange>, startingTimeChange:Int = 0):DropDownEntry
+  {
+    dropDown.dataSource.clear();
+
+    var returnValue:DropDownEntry = {
+      id: "0",
+      text: '${timeChanges[0].timeStamp} ms : BPM: ${timeChanges[0].bpm} in ${timeChanges[0].timeSignatureNum}/${timeChanges[0].timeSignatureDen}'
+    };
+
+    for (index in 0...timeChanges.length)
+    {
+      var value = {
+        id: '$index',
+        text: '${timeChanges[index].timeStamp} ms : BPM: ${timeChanges[index].bpm} in ${timeChanges[index].timeSignatureNum}/${timeChanges[index].timeSignatureDen}'
+      };
+      if (startingTimeChange == index) returnValue = value;
+
+      dropDown.dataSource.add(value);
+    }
+
+    dropDown.dataSource.sort('id', ASCENDING);
+
+    return returnValue;
+  }
+
+  /**
+   * Populate a dropdown with a list of song events.
+   */
   public static function populateDropdownWithSongEvents(dropDown:DropDown, startingEventId:String):DropDownEntry
   {
     dropDown.dataSource.clear();
@@ -153,48 +186,16 @@ class ChartEditorDropdowns
     return returnValue;
   }
 
-  public static final NOTE_KINDS:Map<String, String> = [
-    // Base
-    "" => "Default",
-    "~CUSTOM~" => "Custom",
-    // Weeks 1-7
-    "mom" => "Mom Sings (Week 5)",
-    "ugh" => "Ugh (Week 7)",
-    "hehPrettyGood" => "Heh, Pretty Good (Week 7)",
-    // Weekend 1
-    "weekend-1-punchhigh" => "Punch High (Blazin')",
-    "weekend-1-punchhighdodged" => "Punch High (Dodge) (Blazin')",
-    "weekend-1-punchhighblocked" => "Punch High (Block) (Blazin')",
-    "weekend-1-punchhighspin" => "Punch High (Spin) (Blazin')",
-    "weekend-1-punchlow" => "Punch Low (Blazin')",
-    "weekend-1-punchlowdodged" => "Punch Low (Dodge) (Blazin')",
-    "weekend-1-punchlowblocked" => "Punch Low (Block) (Blazin')",
-    "weekend-1-punchlowspin" => "Punch High (Spin) (Blazin')",
-    "weekend-1-picouppercutprep" => "Pico Uppercut (Prep) (Blazin')",
-    "weekend-1-picouppercut" => "Pico Uppercut (Blazin')",
-    "weekend-1-blockhigh" => "Block High (Blazin')",
-    "weekend-1-blocklow" => "Block Low (Blazin')",
-    "weekend-1-blockspin" => "Block High (Spin) (Blazin')",
-    "weekend-1-dodgehigh" => "Dodge High (Blazin')",
-    "weekend-1-dodgelow" => "Dodge Low (Blazin')",
-    "weekend-1-dodgespin" => "Dodge High (Spin) (Blazin')",
-    "weekend-1-hithigh" => "Hit High (Blazin')",
-    "weekend-1-hitlow" => "Hit Low (Blazin')",
-    "weekend-1-hitspin" => "Hit High (Spin) (Blazin')",
-    "weekend-1-darnelluppercutprep" => "Darnell Uppercut (Prep) (Blazin')",
-    "weekend-1-darnelluppercut" => "Darnell Uppercut (Blazin')",
-    "weekend-1-idle" => "Idle (Blazin')",
-    "weekend-1-fakeout" => "Fakeout (Blazin')",
-    "weekend-1-taunt" => "Taunt (If Fakeout) (Blazin')",
-    "weekend-1-tauntforce" => "Taunt (Forced) (Blazin')",
-    "weekend-1-reversefakeout" => "Fakeout (Reverse) (Blazin')",
-  ];
+  public static final NOTE_KINDS:Map<String, String> = [ // Base
+    "" => "Default", "~CUSTOM~" => "Custom", "noanim" => "No Animation", "non_scoreable" => "Non-scoreable", // Weeks 1-7
+    "censor" => "[UH-OH!] Censor Bar", "mom" => "Mom Sings (Week 5)", "ugh" => "Tankman Ugh (Week 7)", "hehPrettyGood" => "Tankman Heh, Pretty Good (Week 7)", // Weekend 1
+    "weekend-1-lightcan" => "Darnell Light Can (2hot)", "weekend-1-kneecan" => "Darnell Knee Can (2hot)", "weekend-1-kickcan" => "Darnell Kick Can (2hot)", "weekend-1-cockgun" => "Pico Cock Gun (2hot)", "weekend-1-firegun" => "Pico Fire Gun (2hot)", "weekend-1-punchhigh" => "Punch High (Blazin')", "weekend-1-punchhighdodged" => "Punch High (Dodge) (Blazin')", "weekend-1-punchhighblocked" => "Punch High (Block) (Blazin')", "weekend-1-punchhighspin" => "Punch High (Spin) (Blazin')", "weekend-1-punchlow" => "Punch Low (Blazin')", "weekend-1-punchlowdodged" => "Punch Low (Dodge) (Blazin')", "weekend-1-punchlowblocked" => "Punch Low (Block) (Blazin')", "weekend-1-punchlowspin" => "Punch High (Spin) (Blazin')", "weekend-1-picouppercutprep" => "Pico Uppercut (Prep) (Blazin')", "weekend-1-picouppercut" => "Pico Uppercut (Blazin')", "weekend-1-blockhigh" => "Block High (Blazin')", "weekend-1-blocklow" => "Block Low (Blazin')", "weekend-1-blockspin" => "Block High (Spin) (Blazin')", "weekend-1-dodgehigh" => "Dodge High (Blazin')", "weekend-1-dodgelow" => "Dodge Low (Blazin')", "weekend-1-dodgespin" => "Dodge High (Spin) (Blazin')", "weekend-1-hithigh" => "Hit High (Blazin')", "weekend-1-hitlow" => "Hit Low (Blazin')", "weekend-1-hitspin" => "Hit High (Spin) (Blazin')", "weekend-1-darnelluppercutprep" => "Darnell Uppercut (Prep) (Blazin')", "weekend-1-darnelluppercut" => "Darnell Uppercut (Blazin')", "weekend-1-idle" => "Idle (Blazin')", "weekend-1-fakeout" => "Fakeout (Blazin')", "weekend-1-taunt" => "Taunt (If Fakeout) (Blazin')", "weekend-1-tauntforce" => "Taunt (Forced) (Blazin')", "weekend-1-reversefakeout" => "Fakeout (Reverse) (Blazin')",];
 
   public static function populateDropdownWithNoteKinds(dropDown:DropDown, startingKindId:String):DropDownEntry
   {
     dropDown.dataSource.clear();
 
-    var returnValue:DropDownEntry = lookupNoteKind('');
+    var returnValue:DropDownEntry = lookupNoteKind(startingKindId);
 
     for (noteKindId in NOTE_KINDS.keys())
     {
@@ -214,7 +215,7 @@ class ChartEditorDropdowns
   public static function lookupNoteKind(noteKindId:Null<String>):DropDownEntry
   {
     if (noteKindId == null) return lookupNoteKind('');
-    if (!NOTE_KINDS.exists(noteKindId)) return {id: '~CUSTOM~', text: 'Custom'};
+    if (noteKindId != '' && !NOTE_KINDS.exists(noteKindId)) return {id: '~CUSTOM~', text: 'Custom'};
     return {id: noteKindId ?? '', text: NOTE_KINDS.get(noteKindId) ?? 'Unknown'};
   }
 
@@ -253,3 +254,5 @@ typedef DropDownEntry =
   id:String,
   text:String
 };
+
+#end

@@ -21,7 +21,7 @@ class FreeplayStyle implements IRegistryEntry<FreeplayStyleData>
    * The full data for a freeplay style.
    */
   // public final _data:FreeplayStyleData;
-  public function new(id:String)
+  public function new(id:String, ?params:Dynamic)
   {
     this.id = id;
     this._data = _fetchData(id);
@@ -111,7 +111,9 @@ class FreeplayStyle implements IRegistryEntry<FreeplayStyleData>
     return FlxColor.fromString(_data?.capsuleTextColors[1] ?? "#00ccff") ?? 0x00CCFF;
   }
 
-  public function destroy():Void {}
+  public function destroy():Void
+  {
+  }
 
   static function _fetchData(id:String):Null<FreeplayStyleData>
   {

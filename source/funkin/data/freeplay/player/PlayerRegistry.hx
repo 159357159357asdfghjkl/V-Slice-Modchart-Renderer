@@ -8,7 +8,7 @@ import funkin.util.tools.ISingleton;
 import funkin.data.DefaultRegistryImpl;
 
 @:nullSafety
-class PlayerRegistry extends BaseRegistry<PlayableCharacter, PlayerData> implements ISingleton implements DefaultRegistryImpl
+class PlayerRegistry extends BaseRegistry<PlayableCharacter, PlayerData, PlayerEntryParams> implements ISingleton implements DefaultRegistryImpl
 {
   /**
    * The current version string for the stage data format.
@@ -70,7 +70,7 @@ class PlayerRegistry extends BaseRegistry<PlayableCharacter, PlayerData> impleme
   public function hasNewCharacter():Bool
   {
     #if (!UNLOCK_EVERYTHING)
-    var charactersSeen = Save.instance.charactersSeen.clone();
+    var charactersSeen = Save.instance.charactersSeen.value.clone();
 
     for (charId in listEntryIds())
     {
@@ -94,7 +94,7 @@ class PlayerRegistry extends BaseRegistry<PlayableCharacter, PlayerData> impleme
     var result = [];
 
     #if (!UNLOCK_EVERYTHING)
-    var charactersSeen = Save.instance.charactersSeen.clone();
+    var charactersSeen = Save.instance.charactersSeen.value.clone();
     for (charId in listEntryIds())
     {
       var player = fetchEntry(charId);
@@ -143,7 +143,11 @@ class PlayerRegistry extends BaseRegistry<PlayableCharacter, PlayerData> impleme
     #if UNLOCK_EVERYTHING
     return true;
     #else
-    return Save.instance.charactersSeen.contains(characterId);
+    return Save.instance.charactersSeen.value.contains(characterId);
     #end
   }
+}
+
+typedef PlayerEntryParams =
+{
 }

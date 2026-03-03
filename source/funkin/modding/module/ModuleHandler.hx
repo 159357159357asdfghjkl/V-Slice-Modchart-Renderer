@@ -6,6 +6,7 @@ import funkin.modding.events.ScriptEvent;
 import funkin.modding.events.ScriptEventDispatcher;
 import funkin.modding.module.Module;
 import funkin.modding.module.ScriptedModule;
+import flixel.FlxG;
 
 /**
  * Utility functions for loading and manipulating active modules.
@@ -28,20 +29,20 @@ class ModuleHandler
     trace("[MODULEHANDLER] Loading module cache...");
 
     var scriptedModuleClassNames:Array<String> = ScriptedModule.listScriptClasses();
-    trace('  Instantiating ${scriptedModuleClassNames.length} modules...');
+    trace(' Instantiating ${scriptedModuleClassNames.length} modules...');
     for (moduleCls in scriptedModuleClassNames)
     {
-      var module:Module = ScriptedModule.init(moduleCls, moduleCls);
+      var module:Module = ScriptedModule.scriptInit(moduleCls, moduleCls);
       if (module != null)
       {
-        trace('    Loaded module: ${moduleCls}');
+        trace('   Loaded module: ${moduleCls}');
 
         // Then store it.
         addToModuleCache(module);
       }
       else
       {
-        trace('    Failed to instantiate module: ${moduleCls}');
+        trace('   Failed to instantiate module: ${moduleCls}');
       }
     }
     reorderModuleCache();
@@ -145,6 +146,14 @@ class ModuleHandler
       // The module needs to be active to receive events.
       if (module != null && module.active)
       {
+        if (module.state != null)
+        {
+          // Only call the event if the current state is what the module's state is.
+          if (!(Type.getClass(FlxG.state) == module.state) && !(Type.getClass(FlxG.state?.subState) == module.state))
+          {
+            continue;
+          }
+        }
         ScriptEventDispatcher.callEvent(module, event);
       }
     }

@@ -12,7 +12,7 @@ import lime.app.Promise;
 
 /**
  * Handles caching of textures and sounds for the game.
- * TODO: Remove this once Eric finishes the memory system.
+ * I did this hello, this can be improved later on and I have ideas on how, but for now this functions well enough. -Zack
  */
 @:nullSafety
 class FunkinMemory
@@ -21,7 +21,6 @@ class FunkinMemory
   static var currentCachedTextures:Map<String, FlxGraphic> = [];
   static var previousCachedTextures:Map<String, FlxGraphic> = [];
 
-  // waow
   static var permanentCachedSounds:Map<String, Sound> = [];
   static var currentCachedSounds:Map<String, Sound> = [];
   static var previousCachedSounds:Map<String, Sound> = [];
@@ -97,6 +96,7 @@ class FunkinMemory
 
   /**
    * Clears the current texture and sound caches.
+   * @param callGarbageCollector Whether to call the system's garbage collector after purging.
    */
   public static inline function purgeCache(callGarbageCollector:Bool = false):Void
   {
@@ -117,10 +117,7 @@ class FunkinMemory
    */
   public static function cacheTexture(key:String):Void
   {
-    if (currentCachedTextures.exists(key))
-    {
-      return; // Already cached.
-    }
+    if (currentCachedTextures.exists(key)) return;
 
     if (previousCachedTextures.exists(key))
     {
@@ -135,13 +132,13 @@ class FunkinMemory
     if (graphic == null)
     {
       FlxG.log.warn('Failed to cache graphic: $key');
+      return;
     }
-    else
-    {
-      trace('Successfully cached graphic: $key');
-      graphic.persist = true;
-      currentCachedTextures.set(key, graphic);
-    }
+
+    log('Cached asset $key');
+    graphic.persist = true;
+    currentCachedTextures.set(key, graphic);
+    forceRender(graphic);
   }
 
   /**
@@ -150,24 +147,29 @@ class FunkinMemory
    */
   static function permanentCacheTexture(key:String):Void
   {
-    if (permanentCachedTextures.exists(key))
-    {
-      return; // Already cached.
-    }
+    if (permanentCachedTextures.exists(key)) return;
 
     var graphic:Null<FlxGraphic> = FlxGraphic.fromAssetKey(key, false, null, true);
     if (graphic == null)
     {
       FlxG.log.warn('Failed to cache graphic: $key');
-    }
-    else
-    {
-      trace('Successfully cached graphic: $key');
-      graphic.persist = true;
-      permanentCachedTextures.set(key, graphic);
+      return;
     }
 
-    currentCachedTextures = permanentCachedTextures;
+    log('Cached graphic $key');
+    graphic.persist = true;
+    permanentCachedTextures.set(key, graphic);
+    forceRender(graphic);
+    currentCachedTextures = permanentCachedTextures.copy();
+  }
+
+  public static function getCachedGraphic(path:String):Null<FlxGraphic>
+  {
+    if (permanentCachedTextures.exists(path)) return permanentCachedTextures.get(path);
+    if (currentCachedTextures.exists(path)) return currentCachedTextures.get(path);
+    if (previousCachedTextures.exists(path)) return previousCachedTextures.get(path); // just in case
+
+    return null;
   }
 
   /**
@@ -175,7 +177,7 @@ class FunkinMemory
    */
   public inline static function preparePurgeTextureCache():Void
   {
-    previousCachedTextures = currentCachedTextures;
+    previousCachedTextures = currentCachedTextures.copy();
 
     for (graphicKey in previousCachedTextures.keys())
     {
@@ -185,7 +187,7 @@ class FunkinMemory
       }
     }
 
-    currentCachedTextures = permanentCachedTextures;
+    currentCachedTextures = permanentCachedTextures.copy();
   }
 
   /**
@@ -207,6 +209,7 @@ class FunkinMemory
       if (graphic != null)
       {
         FlxG.bitmap.remove(graphic);
+        graphic.persist = false;
         graphic.destroy();
         previousCachedTextures.remove(graphicKey);
         Assets.cache.clear(graphicKey);
@@ -224,7 +227,7 @@ class FunkinMemory
     {
       var obj:Null<FlxGraphic> = FlxG.bitmap.get(key);
 
-      if (obj == null || obj.persist || permanentCachedTextures.exists(key) || key.contains("fonts"))
+      if (obj == null || (obj.persist && permanentCachedTextures.exists(key)) || key.contains("fonts"))
       {
         continue;
       }
@@ -236,6 +239,7 @@ class FunkinMemory
           if (key.contains(purgeEntry))
           {
             FlxG.bitmap.removeKey(key);
+            obj.persist = false;
             obj.destroy();
           }
         }
@@ -243,8 +247,42 @@ class FunkinMemory
     }
   }
 
+  /**
+   * Forces the GPU to load and upload a FlxGraphic.
+   * @param graphic The graphic to force render.
+   */
+  private static function forceRender(graphic:FlxGraphic):Void
+  {
+    if (graphic == null) return;
+
+    var bmp:Null<FlxGraphic> = FlxG.bitmap.get(graphic.key);
+    if (bmp != null && bmp.bitmap != null) var _:Int = bmp.bitmap.width; // Trigger
+
+    // Draws sprite and actually caches it.
+    var sprite = new flixel.FlxSprite();
+    sprite.loadGraphic(graphic);
+    sprite.draw(); // Draw sprite and load it into game's memory.
+    graphic.bitmap?.getTexture(FlxG.stage.context3D); // Just in case that didn't work...
+    sprite.destroy();
+  }
+
+  /**
+   * Determine whether the texture with the given key is cached.
+   * @param key The key of the texture to check.
+   * @return Whether the texture is cached.
+   */
+  public static function isTextureCached(key:String):Bool
+  {
+    return FlxG.bitmap.get(key) != null
+      && (permanentCachedTextures.exists(key) || currentCachedTextures.exists(key) || previousCachedTextures.exists(key));
+  }
+
   ///// NOTE STYLE //////
 
+  /**
+   *  Caches all assets for the given note style.
+   * @param style The note style to cache.
+   */
   public static function cacheNoteStyle(style:NoteStyle):Void
   {
     // TODO: Texture paths should fall back to the default values.
@@ -287,6 +325,10 @@ class FunkinMemory
 
   ///// SOUND //////
 
+  /**
+   * Caches a sound with the given key.
+   * @param key The key of the sound to cache.
+   */
   public static function cacheSound(key:String):Void
   {
     if (currentCachedSounds.exists(key)) return;
@@ -306,6 +348,10 @@ class FunkinMemory
       currentCachedSounds.set(key, sound);
   }
 
+  /**
+   * Permanently caches a sound with the given key.
+   * @param key The key of the sound to cache.
+   */
   public static function permanentCacheSound(key:String):Void
   {
     if (permanentCachedSounds.exists(key)) return;
@@ -318,9 +364,12 @@ class FunkinMemory
     if (sound != null) currentCachedSounds.set(key, sound);
   }
 
+  /**
+   * Prepares the cache for purging unused sounds.
+   */
   public static function preparePurgeSoundCache():Void
   {
-    previousCachedSounds = currentCachedSounds;
+    previousCachedSounds = currentCachedSounds.copy();
 
     for (key in previousCachedSounds.keys())
     {
@@ -330,7 +379,7 @@ class FunkinMemory
       }
     }
 
-    currentCachedSounds = permanentCachedSounds;
+    currentCachedSounds = permanentCachedSounds.copy();
   }
 
   /**
@@ -367,6 +416,9 @@ class FunkinMemory
 
   ///// MISC /////
 
+  /**
+   * Clears all Freeplay assets from memory.
+   */
   public static inline function clearFreeplay():Void
   {
     var keysToRemove:Array<String> = [];
@@ -383,7 +435,7 @@ class FunkinMemory
     @:privateAccess
     for (key in keysToRemove)
     {
-      trace('Cleaning up $key');
+      log('Cleaning asset $key');
       var obj:Null<FlxGraphic> = FlxG.bitmap.get(key);
       if (obj != null)
       {
@@ -398,6 +450,9 @@ class FunkinMemory
     purgeSoundCache();
   }
 
+  /**
+   * Clears all sticker assets from memory.
+   */
   public static inline function clearStickers():Void
   {
     var keysToRemove:Array<String> = [];
@@ -414,7 +469,7 @@ class FunkinMemory
     @:privateAccess
     for (key in keysToRemove)
     {
-      trace('Cleaning up $key');
+      log('Cleaning asset $key');
       var obj:Null<FlxGraphic> = FlxG.bitmap.get(key);
       if (obj != null)
       {
@@ -424,5 +479,14 @@ class FunkinMemory
       if (currentCachedTextures.exists(key)) currentCachedTextures.remove(key);
       Assets.cache.clear(key);
     }
+  }
+
+  /**
+   * Sends a trace with fancy ANSI colors.
+   * @param message The message to log.
+   */
+  private static function log(message:String):Void
+  {
+    trace(' MEMORY '.bg_bright_lilac().bold() + ' ${message}');
   }
 }

@@ -21,7 +21,7 @@ class CLIUtil
     gameDir = Path.addTrailingSlash(extension.androidtools.content.Context.getExternalFilesDir());
     #elseif ios
     // Why? Because for some reason lime.system.System.documentsDirectory is returning a directory that's different and we're unable to read or write from, so it's disabled and no solution is found...
-    trace('[WARN]: Reseting the Current Working Directory is unavailable on iOS targets');
+    trace(' WARNING '.warning() + ' : Reseting the Current Working Directory is unavailable on iOS targets');
     gameDir = cwd;
     #elseif mac
     gameDir = Path.addTrailingSlash(Path.join([Path.directory(Sys.programPath()), '../Resources/']));
@@ -91,6 +91,17 @@ class CLIUtil
               result.stage.shouldLoadStage = true;
               result.stage.stagePath = args.shift();
             }
+          case "--song":
+            if (args.length == 0)
+            {
+              trace('No chart path provided.');
+              printUsage();
+            }
+            else
+            {
+              result.song.shouldLoadSong = true;
+              result.song.songPath = args.shift();
+            }
         }
       }
       else
@@ -120,7 +131,7 @@ class CLIUtil
 
   static function printUsage():Void
   {
-    trace('Usage: Funkin.exe [--chart <chart>] [--stage <stage>] [--help] [--version]');
+    trace('Usage: Funkin.exe [--chart <chart>] [--stage <stage>] [--song <song>] [--help] [--version]');
   }
 
   static function buildDefaultParams():CLIParams
@@ -128,16 +139,18 @@ class CLIUtil
     return {
       args: [],
 
-      chart:
-        {
-          shouldLoadChart: false,
-          chartPath: null
-        },
-      stage:
-        {
-          shouldLoadStage: false,
-          stagePath: null
-        }
+      chart: {
+        shouldLoadChart: false,
+        chartPath: null
+      },
+      stage: {
+        shouldLoadStage: false,
+        stagePath: null
+      },
+      song: {
+        shouldLoadSong: false,
+        songPath: null
+      }
     };
   }
 
@@ -152,11 +165,13 @@ class CLIUtil
 
     if (args == null || args.length == 0) return result;
 
-    return args.map(function(arg:String):String {
+    return args.map(function(arg:String):String
+    {
       if (arg == null) return '';
 
       return arg.trim();
-    }).filter(function(arg:String):Bool {
+    }).filter(function(arg:String):Bool
+    {
       return arg != null && arg != '';
     });
   }
@@ -168,6 +183,7 @@ typedef CLIParams =
 
   var chart:CLIChartParams;
   var stage:CLIStageParams;
+  var song:CLISongParams;
 }
 
 typedef CLIChartParams =
@@ -180,4 +196,10 @@ typedef CLIStageParams =
 {
   var shouldLoadStage:Bool;
   var stagePath:Null<String>;
+};
+
+typedef CLISongParams =
+{
+  var shouldLoadSong:Bool;
+  var songPath:Null<String>;
 };

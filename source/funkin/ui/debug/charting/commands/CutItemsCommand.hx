@@ -1,5 +1,6 @@
 package funkin.ui.debug.charting.commands;
 
+#if FEATURE_CHART_EDITOR
 import funkin.data.song.SongData.SongNoteData;
 import funkin.data.song.SongData.SongEventData;
 import funkin.data.song.SongDataUtils;
@@ -24,11 +25,10 @@ class CutItemsCommand implements ChartEditorCommand
   public function execute(state:ChartEditorState):Void
   {
     // Copy the notes.
-    SongDataUtils.writeItemsToClipboard(
-      {
-        notes: SongDataUtils.buildNoteClipboard(notes),
-        events: SongDataUtils.buildEventClipboard(events)
-      });
+    SongDataUtils.writeItemsToClipboard({
+      notes: SongDataUtils.buildNoteClipboard(notes),
+      events: SongDataUtils.buildEventClipboard(events)
+    });
 
     // Delete the notes.
     state.currentSongChartNoteData = SongDataUtils.subtractNotes(state.currentSongChartNoteData, notes);
@@ -72,3 +72,4 @@ class CutItemsCommand implements ChartEditorCommand
       return 'Cut $len Items to Clipboard';
   }
 }
+#end

@@ -10,13 +10,25 @@ import io.newgrounds.NGLite.LoginOutcome;
 import io.newgrounds.NGLite.LoginFail;
 import io.newgrounds.objects.events.Outcome;
 import io.newgrounds.utils.MedalList;
+import io.newgrounds.utils.SaveSlotList;
 import io.newgrounds.utils.ScoreBoardList;
 import io.newgrounds.objects.User;
+#if FEATURE_MOBILE_WEBVIEW
+import funkin.mobile.util.WebViewUtil;
+#end
 
+@:build(funkin.util.macro.EnvironmentMacro.build())
 @:nullSafety
 class NewgroundsClient
 {
+  @:envField
+  static final API_NG_APP_ID:Null<String>;
+
+  @:envField
+  static final API_NG_ENC_KEY:Null<String>;
+
   public static var instance(get, never):NewgroundsClient;
+
   static var _instance:Null<NewgroundsClient> = null;
 
   static function get_instance():NewgroundsClient
@@ -29,14 +41,15 @@ class NewgroundsClient
   public var user(get, never):Null<User>;
   public var medals(get, never):Null<MedalList>;
   public var leaderboards(get, never):Null<ScoreBoardList>;
+  public var saveSlots(get, never):Null<SaveSlotList>;
 
   private function new()
   {
-    trace('[NEWGROUNDS] Initializing client...');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Initializing client...');
 
     #if FEATURE_NEWGROUNDS_DEBUG
-    trace('[NEWGROUNDS] App ID: ${NewgroundsCredentials.APP_ID}');
-    trace('[NEWGROUNDS] Encryption Key: ${NewgroundsCredentials.ENCRYPTION_KEY}');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' App ID: ${API_NG_APP_ID}');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Encryption Key: ${API_NG_ENC_KEY}');
     #end
 
     if (!hasValidCredentials())
@@ -45,16 +58,19 @@ class NewgroundsClient
       return;
     }
 
-    var debug = #if FEATURE_NEWGROUNDS_DEBUG true #else false #end;
-    NG.create(NewgroundsCredentials.APP_ID, getSessionId(), debug, onLoginResolved);
-    NG.core.setupEncryption(NewgroundsCredentials.ENCRYPTION_KEY);
+    @:nullSafety(Off)
+    {
+      NG.create(API_NG_APP_ID, getSessionId(), #if FEATURE_NEWGROUNDS_DEBUG true #else false #end, onLoginResolved);
+
+      NG.core.setupEncryption(API_NG_ENC_KEY);
+    }
   }
 
   public function init()
   {
     if (NG.core == null) return;
 
-    trace('[NEWGROUNDS] Setting up connection...');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Setting up connection...');
 
     #if FEATURE_NEWGROUNDS_DEBUG
     NG.core.verbose = true;
@@ -65,16 +81,16 @@ class NewgroundsClient
     if (NG.core.attemptingLogin)
     {
       // Session ID was valid and we should be logged in soon.
-      trace('[NEWGROUNDS] Waiting for existing login!');
+      trace(' NEWGROUNDS '.bold().bg_orange() + ' Waiting for existing login!');
     }
     else
     {
       #if FEATURE_NEWGROUNDS_AUTOLOGIN
       // Attempt an automatic login.
-      trace('[NEWGROUNDS] Attempting new login immediately!');
+      trace(' NEWGROUNDS '.bold().bg_orange() + ' Attempting new login immediately!');
       this.autoLogin();
       #else
-      trace('[NEWGROUNDS] Not logged in, you have to login manually!');
+      trace(' NEWGROUNDS '.bold().bg_orange() + ' Not logged in, you have to login manually!');
       #end
     }
   }
@@ -91,14 +107,41 @@ class NewgroundsClient
       FlxG.log.warn("No Newgrounds client initialized! Are your credentials invalid?");
       return;
     }
+    if (NG.core.attemptingLogin)
+    {
+      trace(" NEWGROUNDS '.bold().bg_orange() + ' Login attempt ongoing, will not login until finished.");
+      return;
+    }
+
+    var passportHandler:String->Void = function(passportUrl:String)
+    {
+      // This exists so we can create a popup on mobile but with a WebView instead.
+      #if FEATURE_MOBILE_WEBVIEW
+      if (passportUrl != null)
+      {
+        NG.core.logVerbose('Loading passport from WebView: ${passportUrl}');
+
+        WebViewUtil.openURL(passportUrl, function():Void
+        {
+          NG.core.cancelLoginRequest();
+        });
+
+        NG.core.onPassportUrlOpen();
+      }
+      else
+        NG.core.logError("Cannot open passport");
+      #else
+      NG.core.openPassportUrl();
+      #end
+    };
 
     if (onSuccess != null && onError != null)
     {
-      NG.core.requestLogin(onLoginResolvedWithCallbacks.bind(_, onSuccess, onError));
+      NG.core.requestLogin(onLoginResolvedWithCallbacks.bind(_, onSuccess, onError), passportHandler);
     }
     else
     {
-      NG.core.requestLogin(onLoginResolved);
+      NG.core.requestLogin(onLoginResolved, passportHandler);
     }
   }
 
@@ -110,7 +153,8 @@ class NewgroundsClient
       return;
     }
 
-    var dummyPassport:String->Void = function(_) {
+    var dummyPassport:String->Void = function(_)
+    {
       // just a dummy passport, so we don't create a popup
       // otherwise `NG.core.requestLogin()` will automatically attempt to open a tab at the beginning of the game
       // users should go to the Options Menu to login to NG
@@ -146,7 +190,7 @@ class NewgroundsClient
       }
     }
 
-    Save.instance.ngSessionId = null;
+    Save.instance.ngSessionId.value = null;
   }
 
   /**
@@ -166,16 +210,20 @@ class NewgroundsClient
    */
   static function hasValidCredentials():Bool
   {
-    return !(NewgroundsCredentials.APP_ID == null
-      || NewgroundsCredentials.APP_ID == ""
-      || NewgroundsCredentials.APP_ID.contains(" ")
-      || NewgroundsCredentials.ENCRYPTION_KEY == null
-      || NewgroundsCredentials.ENCRYPTION_KEY == ""
-      || NewgroundsCredentials.ENCRYPTION_KEY.contains(" "));
+    return !(API_NG_APP_ID == null
+      || API_NG_APP_ID == ""
+      || (API_NG_APP_ID != null && API_NG_APP_ID.contains(" "))
+      || API_NG_ENC_KEY == null
+      || API_NG_ENC_KEY == ""
+      || (API_NG_ENC_KEY != null && API_NG_ENC_KEY.contains(" ")));
   }
 
   function onLoginResolved(outcome:LoginOutcome):Void
   {
+    #if FEATURE_MOBILE_WEBVIEW
+    WebViewUtil.close();
+    #end
+
     switch (outcome)
     {
       case SUCCESS:
@@ -226,16 +274,20 @@ class NewgroundsClient
   {
     if (NG.core == null) return;
 
-    trace('[NEWGROUNDS] Login successful!');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Login successful!');
 
     // Persist the session ID.
-    Save.instance.ngSessionId = NG.core.sessionId;
+    Save.instance.ngSessionId.value = NG.core.sessionId;
 
-    trace('[NEWGROUNDS] Submitting medal request...');
+    trace(NG.core.sessionId);
+
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Submitting medal request...');
     NG.core.requestMedals(onFetchedMedals);
 
-    trace('[NEWGROUNDS] Submitting leaderboard request...');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Submitting leaderboard request...');
     NG.core.scoreBoards.loadList(onFetchedLeaderboards);
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Submitting save slot request...');
+    NG.core.saveSlots.loadList(onFetchedSaveSlots);
   }
 
   function onLoginFailed(result:LoginFail):Void
@@ -246,32 +298,32 @@ class NewgroundsClient
         switch (type)
         {
           case PASSPORT:
-            trace('[NEWGROUNDS] Login cancelled by passport website.');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login cancelled by passport website.');
           case MANUAL:
-            trace('[NEWGROUNDS] Login cancelled by application.');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login cancelled by application.');
           default:
-            trace('[NEWGROUNDS] Login cancelled by unknown source.');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login cancelled by unknown source.');
         }
       case ERROR(error):
         switch (error)
         {
           case HTTP(error):
-            trace('[NEWGROUNDS] Login failed due to HTTP error: ${error}');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login failed due to HTTP error: ${error}');
           case RESPONSE(error):
-            trace('[NEWGROUNDS] Login failed due to response error: ${error.message} (${error.code})');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login failed due to response error: ${error.message} (${error.code})');
           case RESULT(error):
-            trace('[NEWGROUNDS] Login failed due to result error: ${error.message} (${error.code})');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login failed due to result error: ${error.message} (${error.code})');
           default:
-            trace('[NEWGROUNDS] Login failed due to unknown error: ${error}');
+            trace(' NEWGROUNDS '.bold().bg_orange() + ' Login failed due to unknown error: ${error}');
         }
       default:
-        trace('[NEWGROUNDS] Login failed due to unknown reason.');
+        trace(' NEWGROUNDS '.bold().bg_orange() + ' Login failed due to unknown reason.');
     }
   }
 
   function onLogoutSuccessful():Void
   {
-    trace('[NEWGROUNDS] Logout successful!');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Logout successful!');
   }
 
   function onLogoutFailed(result:CallError):Void
@@ -279,26 +331,33 @@ class NewgroundsClient
     switch (result)
     {
       case HTTP(error):
-        trace('[NEWGROUNDS] Logout failed due to HTTP error: ${error}');
+        trace(' NEWGROUNDS '.bold().bg_orange() + ' Logout failed due to HTTP error: ${error}');
       case RESPONSE(error):
-        trace('[NEWGROUNDS] Logout failed due to response error: ${error.message} (${error.code})');
+        trace(' NEWGROUNDS '.bold().bg_orange() + ' Logout failed due to response error: ${error.message} (${error.code})');
       case RESULT(error):
-        trace('[NEWGROUNDS] Logout failed due to result error: ${error.message} (${error.code})');
+        trace(' NEWGROUNDS '.bold().bg_orange() + ' Logout failed due to result error: ${error.message} (${error.code})');
       default:
-        trace('[NEWGROUNDS] Logout failed due to unknown error: ${result}');
+        trace(' NEWGROUNDS '.bold().bg_orange() + ' Logout failed due to unknown error: ${result}');
     }
   }
 
   function onFetchedMedals(outcome:Outcome<CallError>):Void
   {
-    trace('[NEWGROUNDS] Fetched medals!');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Fetched medals!');
   }
 
   function onFetchedLeaderboards(outcome:Outcome<CallError>):Void
   {
-    trace('[NEWGROUNDS] Fetched leaderboards!');
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Fetched leaderboards!');
 
     // trace(funkin.api.newgrounds.Leaderboards.listLeaderboardData());
+  }
+
+  function onFetchedSaveSlots(outcome:Outcome<CallError>):Void
+  {
+    trace(' NEWGROUNDS '.bold().bg_orange() + ' Fetched save slots!');
+
+    NGSaveSlot.instance.checkSlot();
   }
 
   function get_user():Null<User>
@@ -319,6 +378,12 @@ class NewgroundsClient
     return NG.core.scoreBoards;
   }
 
+  function get_saveSlots():Null<SaveSlotList>
+  {
+    if (NG.core == null || !this.isLoggedIn()) return null;
+    return NG.core.saveSlots;
+  }
+
   static function getSessionId():Null<String>
   {
     #if js
@@ -328,7 +393,7 @@ class NewgroundsClient
     #end
 
     // We have to fetch the session ID from the save file.
-    return Save.instance.ngSessionId;
+    return Save.instance.ngSessionId.value;
   }
 }
 

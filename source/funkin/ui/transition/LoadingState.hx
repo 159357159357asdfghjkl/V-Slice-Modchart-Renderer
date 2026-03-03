@@ -12,6 +12,7 @@ import funkin.graphics.shaders.ScreenWipeShader;
 import funkin.play.PlayState;
 import funkin.play.PlayStatePlaylist;
 import funkin.play.song.Song.SongDifficulty;
+import funkin.play.stage.Stage;
 import haxe.io.Path;
 import lime.app.Future;
 import lime.app.Promise;
@@ -21,6 +22,7 @@ import lime.utils.Assets as LimeAssets;
 import openfl.filters.ShaderFilter;
 import openfl.utils.Assets as OpenFLAssets;
 
+@:nullSafety
 class LoadingState extends MusicBeatSubState
 {
   inline static var MIN_TIME = 1.0;
@@ -30,18 +32,21 @@ class LoadingState extends MusicBeatSubState
   var target:NextState;
   var playParams:Null<PlayStateParams>;
   var stopMusic:Bool = false;
-  var callbacks:MultiCallback;
+  var callbacks:Null<MultiCallback>;
   var danceLeft:Bool = false;
 
   var loadBar:FlxSprite;
   var funkay:FlxSprite;
 
-  function new(target:NextState, stopMusic:Bool, playParams:Null<PlayStateParams> = null)
+  function new(target:NextState, stopMusic:Bool, ?playParams:PlayStateParams)
   {
     super();
     this.target = target;
     this.playParams = playParams;
     this.stopMusic = stopMusic;
+
+    this.loadBar = new FunkinSprite(0, FlxG.height - 20).makeSolidColor(0, 10, 0xFFff16d2);
+    this.funkay = FunkinSprite.create('funkay');
   }
 
   override function create():Void
@@ -49,32 +54,37 @@ class LoadingState extends MusicBeatSubState
     var bg:FunkinSprite = new FunkinSprite().makeSolidColor(FlxG.width, FlxG.height, 0xFFcaff4d);
     add(bg);
 
-    funkay = FunkinSprite.create('funkay');
     funkay.setGraphicSize(0, FlxG.height);
     funkay.updateHitbox();
     add(funkay);
     funkay.scrollFactor.set();
     funkay.screenCenter();
 
-    loadBar = new FunkinSprite(0, FlxG.height - 20).makeSolidColor(0, 10, 0xFFff16d2);
     add(loadBar);
 
-    initSongsManifest().onComplete(function(lib) {
+    initSongsManifest().onComplete(function(lib)
+    {
       callbacks = new MultiCallback(onLoad);
       var introComplete = callbacks.add('introComplete');
 
       if (playParams != null)
       {
         // Load and cache the song's charts.
-        if (playParams.targetSong != null)
+        if (playParams.targetSong == null)
         {
-          playParams.targetSong.cacheCharts(true);
+          throw 'Invalid parameter: Target song should not be null';
         }
+
+        playParams.targetSong.cacheCharts(true);
 
         // Preload the song for the play state.
         var difficulty:String = playParams.targetDifficulty ?? Constants.DEFAULT_DIFFICULTY;
         var variation:String = playParams.targetVariation ?? Constants.DEFAULT_VARIATION;
-        var targetChart:SongDifficulty = playParams.targetSong?.getDifficulty(difficulty, variation);
+        var targetChart:Null<SongDifficulty> = playParams.targetSong.getDifficulty(difficulty, variation);
+        if (targetChart == null)
+        {
+          throw 'Couldn\'t retrieve chart data for song "${playParams.targetSong.songName}" on difficulty "$difficulty" and variation "$variation"';
+        }
         var instPath:String = targetChart.getInstPath(playParams.targetInstrumental);
         var voicesPaths:Array<String> = targetChart.buildVoiceList();
 
@@ -86,6 +96,7 @@ class LoadingState extends MusicBeatSubState
       }
 
       checkLibrary('shared');
+      checkLibrary('videos');
       checkLibrary(stageDirectory);
       checkLibrary('tutorial');
 
@@ -105,9 +116,10 @@ class LoadingState extends MusicBeatSubState
       // library.types.set(symbolPath, SOUND);
       // @:privateAccess
       // library.pathGroups.set(symbolPath, [library.__cacheBreak(symbolPath)]);
-      var callback = callbacks.add('song:' + path);
-      Assets.loadSound(path).onComplete(function(_) {
-        callback();
+      var callback = callbacks?.add('song:' + path);
+      Assets.loadSound(path).onComplete(function(_)
+      {
+        if (callback != null) callback();
       });
     }
   }
@@ -120,9 +132,10 @@ class LoadingState extends MusicBeatSubState
       @:privateAccess
       if (!LimeAssets.libraryPaths.exists(library)) throw 'Missing library: ' + library;
 
-      var callback = callbacks.add('library:' + library);
-      Assets.loadLibrary(library).onComplete(function(_) {
-        callback();
+      var callback = callbacks?.add('library:' + library);
+      Assets.loadLibrary(library).onComplete(function(_)
+      {
+        if (callback != null) callback();
       });
     }
   }
@@ -147,7 +160,7 @@ class LoadingState extends MusicBeatSubState
     funkay.updateHitbox();
     // funkay.updateHitbox();
 
-    if (controls.ACCEPT)
+    if (controls.ACCEPT_P)
     {
       funkay.setGraphicSize(Std.int(funkay.width + 60));
       funkay.updateHitbox();
@@ -177,6 +190,7 @@ class LoadingState extends MusicBeatSubState
   function onLoad():Void
   {
     // Stop the instrumental.
+    @:nullSafety(Off)
     if (stopMusic && FlxG.sound.music != null)
     {
       FlxG.sound.music.destroy();
@@ -197,7 +211,7 @@ class LoadingState extends MusicBeatSubState
 
   static function getSongPath():String
   {
-    return Paths.inst(PlayState.instance.currentSong.id);
+    return Paths.inst(PlayState.instance?.currentSong.id ?? throw 'Cannot retrieve song path');
   }
 
   static var stageDirectory:String = "shared";
@@ -211,20 +225,24 @@ class LoadingState extends MusicBeatSubState
    */
   public static function loadPlayState(params:PlayStateParams, shouldStopMusic = false, asSubState = false, ?onConstruct:PlayState->Void):Void
   {
-    var daChart:Null<SongDifficulty> = params.targetSong.getDifficulty(params.targetDifficulty ?? Constants.DEFAULT_DIFFICULTY,
+    var daChart:Null<SongDifficulty> = params.targetSong?.getDifficulty(params.targetDifficulty ?? Constants.DEFAULT_DIFFICULTY,
       params.targetVariation ?? Constants.DEFAULT_VARIATION);
 
-    var daStage = funkin.data.stage.StageRegistry.instance.fetchEntry(daChart?.stage ?? Constants.DEFAULT_STAGE);
+    var daStage:Null<Stage> = funkin.data.stage.StageRegistry.instance.fetchEntry(daChart?.stage ?? Constants.DEFAULT_STAGE);
     stageDirectory = daStage?._data?.directory ?? "shared";
     Paths.setCurrentLevel(stageDirectory);
 
-    var playStateCtor:() -> PlayState = function() {
+    if (funkin.ui.FullScreenScaleMode.instance != null) funkin.ui.FullScreenScaleMode.instance.onMeasurePostAwait();
+
+    var playStateCtor:() -> PlayState = function()
+    {
       return new PlayState(params);
     };
 
     if (onConstruct != null)
     {
-      playStateCtor = function() {
+      playStateCtor = function()
+      {
         var result = new PlayState(params);
         onConstruct(result);
         return result;
@@ -233,7 +251,8 @@ class LoadingState extends MusicBeatSubState
 
     #if NO_PRELOAD_ALL
     // Switch to loading state while we load assets (default on HTML5 target).
-    var loadStateCtor = function() {
+    var loadStateCtor = function()
+    {
       var result = new LoadingState(playStateCtor, shouldStopMusic, params);
       @:privateAccess
       result.asSubState = asSubState;
@@ -249,6 +268,7 @@ class LoadingState extends MusicBeatSubState
     }
     #else
     // All assets preloaded, switch directly to play state (defualt on other targets).
+    @:nullSafety(Off)
     if (shouldStopMusic && FlxG.sound.music != null)
     {
       FlxG.sound.music.destroy();
@@ -257,7 +277,7 @@ class LoadingState extends MusicBeatSubState
 
     // Load and cache the song's charts.
     // Don't do this if we already provided the music and charts.
-    if (params?.targetSong != null && !params.overrideMusic)
+    if (!(params.overrideMusic ?? false))
     {
       params.targetSong.cacheCharts(true);
     }
@@ -272,37 +292,17 @@ class LoadingState extends MusicBeatSubState
       var songDifficulty = params.targetSong.getDifficulty(params.targetDifficulty, params.targetVariation);
       if (songDifficulty != null)
       {
-        var noteStyle = NoteStyleRegistry.instance.fetchEntry(songDifficulty.noteStyle);
+        var noteStyle = NoteStyleRegistry.instance.fetchEntry(songDifficulty.noteStyle ?? '');
+        if (noteStyle == null) noteStyle = NoteStyleRegistry.instance.fetchDefault();
         FunkinMemory.cacheNoteStyle(noteStyle);
       }
 
       // TODO: This sucks lol.
       if (params.targetSong.songName == "2hot")
       {
-        var spritesToCache = [
-          "wked1_cutscene_1_can",
-          "spraypaintExplosionEZ",
-          "SpraypaintExplosion",
-          "CanImpactParticle",
-          "spraycanAtlas/spritemap1"
-        ];
+        var spritesToCache = ["wked1_cutscene_1_can", "spraypaintExplosionEZ", "SpraypaintExplosion", "CanImpactParticle", "spraycanAtlas/spritemap1"];
 
-        var soundsToCache = [
-          "Darnell_Lighter",
-          "fuse_burning",
-          "Gun_Prep",
-          "Kick_Can_FORWARD",
-          "Kick_Can_UP",
-          "Lightning1",
-          "Lightning2",
-          "Lightning3",
-          "Pico_Bonk",
-          "Shoot_1",
-          "shot1",
-          "shot2",
-          "shot3",
-          "shot4"
-        ];
+        var soundsToCache = ["Darnell_Lighter", "fuse_burning", "Gun_Prep", "Kick_Can_FORWARD", "Kick_Can_UP", "Lightning1", "Lightning2", "Lightning3", "Pico_Bonk", "Shoot_1", "shot1", "shot2", "shot3", "shot4"];
 
         for (sprite in spritesToCache)
         {
@@ -324,7 +324,8 @@ class LoadingState extends MusicBeatSubState
         for (sound in soundsToCache)
         {
           trace('Queueing $sound to preload.');
-          new Future<String>(function() {
+          new Future<String>(function()
+          {
             var path = Paths.sound(sound, "weekend1");
             funkin.FunkinMemory.cacheSound(path);
             return '${path} successfuly loaded.';
@@ -340,7 +341,8 @@ class LoadingState extends MusicBeatSubState
     else
     {
       // funkin.FunkinMemory.clearFreeplay();
-      FlxG.signals.preStateSwitch.addOnce(function() {
+      FlxG.signals.preStateSwitch.addOnce(function()
+      {
         funkin.FunkinMemory.clearFreeplay();
         funkin.FunkinMemory.purgeCache(true);
       });
@@ -439,7 +441,7 @@ class LoadingState extends MusicBeatSubState
     var libraryPaths = LimeAssets.libraryPaths;
     if (libraryPaths.exists(id))
     {
-      path = libraryPaths[id];
+      path = libraryPaths[id] ?? path;
       rootPath = Path.directory(path);
     }
     else
@@ -457,7 +459,8 @@ class LoadingState extends MusicBeatSubState
       path = LimeAssets.__cacheBreak(path);
     }
 
-    AssetManifest.loadFromFile(path, rootPath).onComplete(function(manifest) {
+    AssetManifest.loadFromFile(path, rootPath).onComplete(function(manifest)
+    {
       if (manifest == null)
       {
         promise.error('Cannot parse asset manifest for library \'' + id + '\'');
@@ -477,8 +480,9 @@ class LoadingState extends MusicBeatSubState
         library.onChange.add(LimeAssets.onChange.dispatch);
         promise.completeWith(Future.withValue(library));
       }
-    }).onError(function(_) {
-      promise.error('There is no asset library with an ID of \'' + id + '\'');
+    }).onError(function(_)
+    {
+        promise.error('There is no asset library with an ID of \'' + id + '\'');
     });
 
     return promise.future;
@@ -490,17 +494,18 @@ class LoadingState extends MusicBeatSubState
   }
 }
 
+@:nullSafety
 class MultiCallback
 {
   public var callback:Void->Void;
-  public var logId:String = null;
+  public var logId:Null<String>;
   public var length(default, null) = 0;
   public var numRemaining(default, null) = 0;
 
   var unfired = new Map<String, Void->Void>();
   var fired = new Array<String>();
 
-  public function new(callback:Void->Void, logId:String = null)
+  public function new(callback:Void->Void, ?logId:String)
   {
     this.callback = callback;
     this.logId = logId;
@@ -511,8 +516,8 @@ class MultiCallback
     id = '$length:$id';
     length++;
     numRemaining++;
-    var func:Void->Void = null;
-    func = function() {
+    var func:Void->Void = function()
+    {
       if (unfired.exists(id))
       {
         unfired.remove(id);
@@ -539,11 +544,9 @@ class MultiCallback
     if (logId != null) trace('$logId: $msg');
   }
 
-  public function getFired():Array<String>
-    return fired.copy();
+  public function getFired():Array<String> return fired.copy();
 
-  public function getUnfired():Array<Void->Void>
-    return unfired.array();
+  public function getUnfired():Array<Void->Void> return unfired.array();
 
   /**
    * Perform an FlxG.switchState with a nice transition
@@ -557,14 +560,14 @@ class MultiCallback
     var screenWipeShit:ScreenWipeShader = new ScreenWipeShader();
 
     screenWipeShit.funnyShit.input = screenShit.pixels;
-    FlxTween.tween(screenWipeShit, {daAlphaShit: 1}, time,
+    FlxTween.tween(screenWipeShit, {daAlphaShit: 1}, time, {
+      ease: FlxEase.quadInOut,
+      onComplete: function(twn)
       {
-        ease: FlxEase.quadInOut,
-        onComplete: function(twn) {
-          screenShit.destroy();
-          FlxG.switchState(state);
-        }
-      });
+        screenShit.destroy();
+        FlxG.switchState(state);
+      }
+    });
     FlxG.camera.filters = [new ShaderFilter(screenWipeShit)];
   }
 }

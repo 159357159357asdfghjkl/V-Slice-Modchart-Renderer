@@ -7,13 +7,6 @@ using StringTools;
 /**
  * Utilities for operating on the current window, such as changing the title.
  */
-#if (cpp && windows)
-@:cppFileCode('
-#include <iostream>
-#include <windows.h>
-#include <psapi.h>
-')
-#end
 @:nullSafety
 class WindowUtil
 {
@@ -108,15 +101,22 @@ class WindowUtil
    */
   public static function initWindowEvents():Void
   {
-    // onUpdate is called every frame just before rendering.
-
     // onExit is called when the game window is closed.
-    openfl.Lib.current.stage.application.onExit.add(function(exitCode:Int) {
+    openfl.Lib.current.stage.application.onExit.add(function(exitCode:Int)
+    {
       windowExit.dispatch(exitCode);
     });
 
-    #if desktop
-    openfl.Lib.current.stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, (e:openfl.events.KeyboardEvent) -> {
+    #if (desktop || html5)
+    openfl.Lib.current.stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, (e:openfl.events.KeyboardEvent) ->
+    {
+      #if FEATURE_HAXEUI
+      if (haxe.ui.focus.FocusManager.instance.focus != null)
+      {
+        return;
+      }
+      #end
+
       for (key in PlayerSettings.player1.controls.getKeysForAction(WINDOW_FULLSCREEN))
       {
         // FlxG.stage.focus is set to null by the debug console stuff,
@@ -140,24 +140,83 @@ class WindowUtil
   }
 
   /**
-   * Turns off that annoying "Report to Microsoft" dialog that pops up when the game crashes.
-   */
-  public static function disableCrashHandler():Void
-  {
-    #if (cpp && windows)
-    untyped __cpp__('SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);');
-    #else
-    // Do nothing.
-    #end
-  }
-
-  /**
    * Sets the title of the application window.
    * @param value The title to use.
    */
   public static function setWindowTitle(value:String):Void
   {
     lime.app.Application.current.window.title = value;
+  }
+
+  /**
+   * Shows an error dialog with an error icon.
+   * @param name The title of the dialog window.
+   * @param desc The error message to display.
+   */
+  public static function showError(name:String, desc:String):Void
+  {
+    #if (windows && cpp)
+    final handleVal:Float = lime.app.Application.current.window.nativeHandle;
+
+    final handlePtr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*)(uintptr_t){0}', handleVal);
+
+    funkin.external.windows.WinAPI.showError(handlePtr, desc, name);
+    #else
+    lime.app.Application.current.window.alert(desc, name);
+    #end
+  }
+
+  /**
+   * Shows a warning dialog with a warning icon.
+   * @param name The title of the dialog window.
+   * @param desc The warning message to display.
+   */
+  public static function showWarning(name:String, desc:String):Void
+  {
+    #if (windows && cpp)
+    final handleVal:Float = lime.app.Application.current.window.nativeHandle;
+
+    final handlePtr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*)(uintptr_t){0}', handleVal);
+
+    funkin.external.windows.WinAPI.showWarning(handlePtr, desc, name);
+    #else
+    lime.app.Application.current.window.alert(desc, name);
+    #end
+  }
+
+  /**
+   * Shows an information dialog with an information icon.
+   * @param name The title of the dialog window.
+   * @param desc The information message to display.
+   */
+  public static function showInformation(name:String, desc:String):Void
+  {
+    #if (windows && cpp)
+    final handleVal:Float = lime.app.Application.current.window.nativeHandle;
+
+    final handlePtr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*)(uintptr_t){0}', handleVal);
+
+    funkin.external.windows.WinAPI.showInformation(handlePtr, desc, name);
+    #else
+    lime.app.Application.current.window.alert(desc, name);
+    #end
+  }
+
+  /**
+   * Sets the dark mode appearance for the specified window.
+   *
+   * @param window The window instance to modify.
+   * @param value Whether to enable (`true`) or disable (`false`) dark mode.
+   */
+  public static function setDarkMode(window:lime.ui.Window, value:Bool):Void
+  {
+    #if (windows && cpp)
+    final handleVal:Float = window.nativeHandle;
+
+    final handlePtr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*)(uintptr_t){0}', handleVal);
+
+    funkin.external.windows.WinAPI.setDarkMode(handlePtr, value);
+    #end
   }
 
   public static function setVSyncMode(value:lime.ui.WindowVSyncMode):Void

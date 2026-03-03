@@ -12,7 +12,16 @@ class FunkinOptionsButton extends FunkinButton
   public var onConfirmStart(default, null):FlxSignal = new FlxSignal();
   public var onConfirmEnd(default, null):FlxSignal = new FlxSignal();
 
-  var confirming:Bool = false;
+  public var enabled:Bool = true;
+
+  public var confirming(get, never):Bool;
+
+  function get_confirming():Bool
+  {
+    return _confirming;
+  }
+
+  var _confirming:Bool = false;
   var instant:Bool = false;
   var held:Bool = false;
 
@@ -49,7 +58,7 @@ class FunkinOptionsButton extends FunkinButton
 
   function playHoldAnim():Void
   {
-    if (confirming || held) return;
+    if (confirming || held || !enabled) return;
 
     held = true;
 
@@ -70,7 +79,7 @@ class FunkinOptionsButton extends FunkinButton
       return;
     }
 
-    confirming = true;
+    _confirming = true;
 
     FlxTween.cancelTweensOf(this);
     HapticUtil.vibrate(0, 0.05, 0.5);
@@ -78,25 +87,30 @@ class FunkinOptionsButton extends FunkinButton
 
     FunkinSound.playOnce(Paths.sound('confirmMenu'));
 
-    new FlxTimer().start(0.05, function(_) {
+    new FlxTimer().start(0.05, function(_)
+    {
       HapticUtil.vibrate(0, 0.01, 0.2);
     }, 4);
 
     onConfirmStart.dispatch();
 
-    animation.onFinish.addOnce(function(name:String) {
+    animation.onFinish.addOnce(function(name:String)
+    {
       if (name != 'confirm') return;
+      _confirming = false;
+      held = false;
       onConfirmEnd.dispatch();
     });
   }
 
   function playOutAnim():Void
   {
-    if (confirming) return;
+    if (confirming || !enabled) return;
 
     FlxTween.cancelTweensOf(this);
     HapticUtil.vibrate(0, 0.01, 0.2);
     animation.play('idle');
+    held = false;
   }
 
   public function resetCallbacks():Void
@@ -105,7 +119,7 @@ class FunkinOptionsButton extends FunkinButton
     onDown.removeAll();
     onOut.removeAll();
 
-    confirming = false;
+    _confirming = false;
     held = false;
 
     onUp.add(playConfirmAnim);

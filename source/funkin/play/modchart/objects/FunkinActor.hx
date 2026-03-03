@@ -12,10 +12,11 @@ import openfl.geom.Vector3D;
 import funkin.graphics.FunkinSprite;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.ColorTransform;
+import flixel.math.FlxMath;
 
 class FunkinActor extends FunkinSprite
 {
-  public var skew(default, null):FlxPoint = FlxPoint.get();
+  public var SKEW(default, null):FlxPoint = FlxPoint.get();
   public var pos:Vector3D = new Vector3D();
   public var rotation:Vector3D = new Vector3D();
   public var SCALE:Vector3D = new Vector3D(1, 1);
@@ -46,7 +47,7 @@ class FunkinActor extends FunkinSprite
 
   override public function destroy():Void
   {
-    skew = FlxDestroyUtil.put(skew);
+    SKEW = FlxDestroyUtil.put(SKEW);
     rotation = null;
     SCALE = null;
     vertices = null;
@@ -55,7 +56,7 @@ class FunkinActor extends FunkinSprite
     super.destroy();
   }
 
-  function getPos(vec:Vector3D)
+  function getPos(vec:Vector3D):Vector3D
   {
     var m:Array<Array<Float>> = ModchartMath.translateMatrix((pos.x + basePos.x + pos2.x) * baseZoom.x, (pos.y + basePos.y + pos2.y) * baseZoom.y,
       (pos.z + basePos.z) * baseZoom.z);
@@ -63,61 +64,45 @@ class FunkinActor extends FunkinSprite
       rotationOrder);
     var scale:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, SCALE.x * baseScale.x * baseZoom.x, SCALE.y * baseScale.y * baseZoom.y,
       SCALE.z * baseScale.z * baseZoom.z);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, skew.x + baseSkew.x, skew.y + baseSkew.y);
+    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, SKEW.x + baseSkew.x, SKEW.y + baseSkew.y);
     var persp:Vector3D = ModchartMath.initPerspective(vec, skew, fov, FlxG.width, FlxG.height,
       ModchartMath.scale(_skew, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
-    if (persp == null) return null;
+    persp.x += offsetX; // - offset.x;
+    persp.y += offsetY; // - offset.y;
     return persp;
   }
+
+  @:noCompletion var _blank:Vector<Int> = new Vector<Int>(4, true, [0, 0, 0, 0]);
 
   override public function draw():Void
   {
     if (alpha == 0 || graphic == null || !exists || !visible) return;
+    var lowQuality:Bool = Preferences.framerate < 60;
+    if (originVec == null) originVec = new Vector3D(FlxG.width / 2, FlxG.height / 2);
+    var w:Float = frame.frame.width;
+    var h:Float = frame.frame.height;
+    var topLeft:Vector3D = new Vector3D(-w / 2, -h / 2, 0, 1);
+    var topRight:Vector3D = new Vector3D(w / 2, -h / 2, 0, 1);
+    var bottomLeft:Vector3D = new Vector3D(-w / 2, h / 2, 0, 1);
+    var bottomRight:Vector3D = new Vector3D(w / 2, h / 2, 0, 1);
+    topLeft = getPos(topLeft);
+    topRight = getPos(topRight);
+    bottomLeft = getPos(bottomLeft);
+    bottomRight = getPos(bottomRight);
+    var w:Float = width;
+    var h:Float = height;
+    vertices = new Vector<Float>(8, false,
+      [w / 2 + topLeft.x, h / 2 + topLeft.y, w / 2 + topRight.x, h / 2 + topRight.y, w / 2 + bottomLeft.x, h / 2 + bottomLeft.y, w / 2 + bottomRight.x, h / 2
+        + bottomRight.y]);
+    uvtData = new Vector<Float>(8, false,
+      [frame.uv.left, frame.uv.top, frame.uv.right, frame.uv.top, frame.uv.left, frame.uv.bottom, frame.uv.right, frame.uv.bottom]);
+    indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
 
     for (camera in cameras)
     {
       if (camera.exists && camera != null)
       {
         if (!camera.visible || camera.alpha == 0) continue;
-        if (originVec == null) originVec = new Vector3D(FlxG.width / 2, FlxG.height / 2);
-        var w:Float = frame.frame.width;
-        var h:Float = frame.frame.height;
-        var topLeft:Vector3D = new Vector3D(-w / 2, -h / 2, 0, 1);
-        var topRight:Vector3D = new Vector3D(w / 2, -h / 2, 0, 1);
-        var bottomLeft:Vector3D = new Vector3D(-w / 2, h / 2, 0, 1);
-        var bottomRight:Vector3D = new Vector3D(w / 2, h / 2, 0, 1);
-        topLeft = getPos(topLeft);
-        topRight = getPos(topRight);
-        bottomLeft = getPos(bottomLeft);
-        bottomRight = getPos(bottomRight);
-        vertices = new Vector<Float>(8, false, [
-          width / 2 + topLeft.x,
-          height / 2 + topLeft.y,
-          width / 2 + topRight.x,
-          height / 2 + topRight.y,
-          width / 2 + bottomLeft.x,
-          height / 2 + bottomLeft.y,
-          width / 2 + bottomRight.x,
-          height / 2 + bottomRight.y
-        ]);
-        var idx:Int = 0;
-        while (idx < vertices.length)
-        {
-          vertices[idx] += offsetX;
-          vertices[idx + 1] += offsetY;
-          idx += 2;
-        }
-        uvtData = new Vector<Float>(8, false, [
-          frame.uv.x,
-          frame.uv.y,
-          frame.uv.width,
-          frame.uv.y,
-          frame.uv.x,
-          frame.uv.height,
-          frame.uv.width,
-          frame.uv.height
-        ]);
-        indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
         getScreenPosition(_point, camera);
         var colorTransform = new ColorTransform();
         colorTransform.redMultiplier = diffuse.x * baseDiffuse.x * this.colorTransform.redMultiplier;
@@ -127,7 +112,7 @@ class FunkinActor extends FunkinSprite
         colorTransform.redOffset = glow.x * 255 * glow.w + this.colorTransform.redOffset;
         colorTransform.greenOffset = glow.y * 255 * glow.w + this.colorTransform.greenOffset;
         colorTransform.blueOffset = glow.z * 255 * glow.w + this.colorTransform.blueOffset;
-        camera.drawTriangles(graphic, vertices, indices, uvtData, new Vector<Int>(4, true, [0, 0, 0, 0]), _point, blend, true, antialiasing, colorTransform,
+        camera.drawTriangles(graphic, vertices, indices, uvtData, _blank, _point, blend, true, antialiasing, colorTransform,
           shader); // fucking color array has no use
       }
     }

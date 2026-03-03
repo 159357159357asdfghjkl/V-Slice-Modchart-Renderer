@@ -208,7 +208,7 @@ function inQuad(t) return t * t end
 accelerate = inQuad
 function outQuad(t) return -t * (t - 2) end
 decelerate = outQuad
-function spring(t)
+function spring(f)
 	return 1 - cos(f * pi * 2.5) / (1 + f * 3)
 end
 function inOutQuad(t)
@@ -1186,14 +1186,7 @@ definemod {
 	defer = true,
 }
 function initMods()
-definemod{'blacksphere', function(blacksphere)
-	local invert = 50 - 50 * math.cos(blacksphere * math.pi / 180)
-	local alternate = 25 * math.sin(blacksphere * math.pi / 180)
-	local reverse = -12.5 * math.sin(blacksphere * math.pi / 180)
-	return invert, alternate, reverse
-	end,'invert', 'alternate', 'reverse'}
-setdefault{0,'blacksphere'}
-ease{0,3,linear,360,'blacksphere'}
+
 end
 function onReady()
 	initMods()

@@ -6,8 +6,6 @@ dump/
 temp/
 docs/temp/
 export/
-assets/
-art/
 astc-textures/
 RECOVER_*.fla
 shitAudio/
@@ -15,10 +13,14 @@ shitAudio/
 .swp
 NewgroundsCredentials.hx
 
+# Exclude IntelliJ IDEA stuff
+.idea/
+*.iml
+
 # Mobile signing stuff
 .apple/
 .env
-key.keystore
+*.keystore
 
 # Exclude JS stuff
 node_modules/

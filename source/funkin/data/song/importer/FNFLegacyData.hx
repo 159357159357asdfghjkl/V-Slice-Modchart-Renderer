@@ -27,7 +27,9 @@ class LegacySongData
   public var notes:Either<Array<LegacyNoteSection>, LegacyNoteData>;
   public var song:String; // Song name
 
-  public function new() {}
+  public function new()
+  {
+  }
 
   public function toString():String
   {
@@ -120,6 +122,11 @@ class LegacyNote
 
   public inline function getKind():String
   {
-    return this.alt ? 'alt' : 'normal';
+    return this.alt ? 'alt' : '';
+  }
+
+  public function toString():String
+  {
+    return 'LegacyNote(${this.time}, ${this.data}, ${this.length}, ${this.alt})';
   }
 }

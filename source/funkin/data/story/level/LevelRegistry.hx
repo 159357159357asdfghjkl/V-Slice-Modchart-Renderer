@@ -7,7 +7,7 @@ import funkin.util.tools.ISingleton;
 import funkin.data.DefaultRegistryImpl;
 
 @:nullSafety
-class LevelRegistry extends BaseRegistry<Level, LevelData> implements ISingleton implements DefaultRegistryImpl
+class LevelRegistry extends BaseRegistry<Level, LevelData, LevelEntryParams> implements ISingleton implements DefaultRegistryImpl
 {
   /**
    * The current version string for the level data format.
@@ -31,17 +31,7 @@ class LevelRegistry extends BaseRegistry<Level, LevelData> implements ISingleton
   {
     // This MUST be hard-coded (overriding the auto-generated method)
     // because the auto-generated method spits out values in alphabetical order.
-    return [
-      'tutorial',
-      'week1',
-      'week2',
-      'week3',
-      'week4',
-      'week5',
-      'week6',
-      'week7',
-      'weekend1'
-    ];
+    return ['tutorial', 'week1', 'week2', 'week3', 'week4', 'week5', 'week6', 'week7', 'weekend1', 'sserafim'];
   }
 
   /**
@@ -55,4 +45,8 @@ class LevelRegistry extends BaseRegistry<Level, LevelData> implements ISingleton
     result.sort(SortUtil.defaultsThenAlphabetically.bind(listBaseGameEntryIds()));
     return result;
   }
+}
+
+typedef LevelEntryParams =
+{
 }

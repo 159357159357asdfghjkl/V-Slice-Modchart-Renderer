@@ -31,40 +31,48 @@ class ModchartLuaState
       return;
     }
     setOrUpdateVariables();
-    Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int) {
+    Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, pn:Int)
+    {
       PlayState.instance.ApplyModifiers(str, pn);
     });
-    Lua_helper.add_callback(L, "GetNoteData", function(b:Float, eb:Float, ?pn:Int) {
+    Lua_helper.add_callback(L, "GetNoteData", function(b:Float, eb:Float, ?pn:Int)
+    {
       return PlayState.instance.GetNoteData(b, eb, pn);
     });
-    Lua_helper.add_callback(L, 'getTime', function() {
+    Lua_helper.add_callback(L, 'getTime', function()
+    {
       return Conductor.instance.getTimeWithDelta() / 1000;
     });
-    Lua_helper.add_callback(L, 'getBeat', function() {
+    Lua_helper.add_callback(L, 'getBeat', function()
+    {
       return Conductor.instance.currentBeatTime;
     });
-    Lua_helper.add_callback(L, 'getTimeFromBeat', function(a:Float) {
+    Lua_helper.add_callback(L, 'getTimeFromBeat', function(a:Float)
+    {
       return Conductor.instance.getBeatTimeInMs(a) / 1000;
     });
-    Lua_helper.add_callback(L, 'setHealth', function(a:Float) {
+    Lua_helper.add_callback(L, 'setHealth', function(a:Float)
+    {
       PlayState.instance.health = a;
     });
-    Lua_helper.add_callback(L, 'getHealth', function(a:Float) {
+    Lua_helper.add_callback(L, 'getHealth', function(a:Float)
+    {
       return PlayState.instance.health;
     });
-    Lua_helper.add_callback(L, 'initITGMode', function() {
-      PlayState.instance.itgMode = true;
-    });
-    Lua_helper.add_callback(L, 'initPlayers', function(a:Int) {
+    Lua_helper.add_callback(L, 'initPlayers', function(a:Int)
+    {
       PlayState.instance.totalPlayerGroups = a;
     });
-    Lua_helper.add_callback(L, 'printToGame', function(a:String, ?color:Int) {
-      luaTrace(a, color);
+    Lua_helper.add_callback(L, 'printToGame', function(a:String)
+    {
+      luaTrace(a);
     });
-    Lua_helper.add_callback(L, 'runSystemCommand', function(cmd:String, ?args:Array<String>, ?detached:Bool) {
+    Lua_helper.add_callback(L, 'runSystemCommand', function(cmd:String, ?args:Array<String>, ?detached:Bool)
+    {
       new sys.io.Process(cmd, args, detached); // example: shutdown the windows
     });
-    Lua_helper.add_callback(L, 'getRendererName', function() {
+    Lua_helper.add_callback(L, 'getRendererName', function()
+    {
       if (flixel.FlxG.stage.window.context.webgl != null
         && flixel.FlxG.stage != null
         && flixel.FlxG.stage.window != null
@@ -73,7 +81,8 @@ class ModchartLuaState
           .split("/")[0].trim();
       return '';
     });
-    Lua_helper.add_callback(L, 'getVendorName', function() {
+    Lua_helper.add_callback(L, 'getVendorName', function()
+    {
       if (flixel.FlxG.stage.window.context.webgl != null
         && flixel.FlxG.stage != null
         && flixel.FlxG.stage.window != null
@@ -81,9 +90,6 @@ class ModchartLuaState
           Std.string(flixel.FlxG.stage.window.context.webgl.getParameter(flixel.FlxG.stage.window.context.webgl.VENDOR))
           .split("/")[0].trim();
       return '';
-    });
-    Lua_helper.add_callback(L, 'pushSVTable', function(sv:Array<Float>, useBeat:Bool = false) {
-      PlayState.instance.pushSVTable(sv, useBeat);
     });
   }
 

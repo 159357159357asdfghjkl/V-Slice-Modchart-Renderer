@@ -1,5 +1,6 @@
 package funkin.ui.debug.charting.dialogs;
 
+#if FEATURE_CHART_EDITOR
 import funkin.data.song.SongRegistry;
 import funkin.play.song.Song;
 import funkin.ui.debug.charting.ChartEditorState;
@@ -33,6 +34,8 @@ class ChartEditorWelcomeDialog extends ChartEditorBaseDialog
     this.splashCreateFromSongErectOnly.onClick = _ -> onClickLinkCreateErectOnly();
     this.splashCreateFromSongBasicErect.onClick = _ -> onClickLinkCreateBasicErect();
     this.splashImportChartLegacy.onClick = _ -> onClickLinkImportChartLegacy();
+    this.splashImportChartOsuMania.onClick = _ -> onClickLinkImportOsuMania();
+    this.splashImportChartStepMania.onClick = _ -> onClickLinkImportStepMania();
 
     // Add items to the Recent Charts list
     #if sys
@@ -55,11 +58,10 @@ class ChartEditorWelcomeDialog extends ChartEditorBaseDialog
    */
   public static function build(chartEditorState:ChartEditorState, ?closable:Bool, ?modal:Bool):ChartEditorWelcomeDialog
   {
-    var dialog = new ChartEditorWelcomeDialog(chartEditorState,
-      {
-        closable: closable ?? false,
-        modal: modal ?? true
-      });
+    var dialog = new ChartEditorWelcomeDialog(chartEditorState, {
+      closable: closable ?? false,
+      modal: modal ?? true
+    });
 
     dialog.showDialog(modal ?? true);
 
@@ -90,7 +92,8 @@ class ChartEditorWelcomeDialog extends ChartEditorBaseDialog
     linkRecentChart.tooltip += "\n" + lastModified;
     #end
 
-    linkRecentChart.onClick = function(_event) {
+    linkRecentChart.onClick = function(_event)
+    {
       linkRecentChart.hide();
 
       this.hideDialog(DialogButton.CANCEL);
@@ -139,18 +142,19 @@ class ChartEditorWelcomeDialog extends ChartEditorBaseDialog
 
     for (targetSongId in songList)
     {
-      var songData:Null<Song> = SongRegistry.instance.fetchEntry(targetSongId);
+      var songData:Null<Song> = SongRegistry.instance.fetchEntry(targetSongId, {variation: Constants.DEFAULT_VARIATION});
       if (songData == null) continue;
 
       var songName:Null<String> = songData.getDifficulty('normal')?.songName;
       if (songName == null) songName = songData.getDifficulty()?.songName;
       if (songName == null) // Still null?
       {
-        trace('[WARN] Could not fetch song name for ${targetSongId}');
+        trace(' WARNING '.warning() + ' Could not fetch song name for ${targetSongId}');
         continue;
       }
 
-      this.addTemplateSong(songName, targetSongId, (_) -> {
+      this.addTemplateSong(songName, targetSongId, (_) ->
+      {
         this.hideDialog(DialogButton.CANCEL);
 
         // Load song from template
@@ -241,4 +245,31 @@ class ChartEditorWelcomeDialog extends ChartEditorBaseDialog
     // Open the "Import Chart" dialog
     chartEditorState.openImportChartWizard('legacy', false);
   }
+
+  /**
+   * Called when the user clicks the "Import Chart: Osu! Mania" link in the dialog.
+   * Reassign this function to change the behavior.
+   */
+  public function onClickLinkImportOsuMania():Void
+  {
+    // Hide the welcome dialog
+    this.hideDialog(DialogButton.CANCEL);
+
+    // Open the "Import Chart" dialog
+    chartEditorState.openImportChartWizard('osumania', false);
+  }
+
+  /**
+   * Called when the user clicks the "Import Chart: StepMania" link in the dialog.
+   * Reassign this function to change the behavior.
+   */
+  public function onClickLinkImportStepMania():Void
+  {
+    // Hide the welcome dialog
+    this.hideDialog(DialogButton.CANCEL);
+
+    // Open the "Import Chart" dialog
+    chartEditorState.openImportChartWizard('stepmania', false);
+  }
 }
+#end

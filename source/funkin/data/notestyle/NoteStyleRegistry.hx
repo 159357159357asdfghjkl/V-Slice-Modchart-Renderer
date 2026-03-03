@@ -7,7 +7,7 @@ import funkin.util.tools.ISingleton;
 import funkin.data.DefaultRegistryImpl;
 
 @:nullSafety
-class NoteStyleRegistry extends BaseRegistry<NoteStyle, NoteStyleData> implements ISingleton implements DefaultRegistryImpl
+class NoteStyleRegistry extends BaseRegistry<NoteStyle, NoteStyleData, NoteStyleEntryParams> implements ISingleton implements DefaultRegistryImpl
 {
   /**
    * The current version string for the note style data format.
@@ -29,4 +29,8 @@ class NoteStyleRegistry extends BaseRegistry<NoteStyle, NoteStyleData> implement
     if (notestyle == null) throw 'Default notestyle was null! This should not happen!';
     return notestyle;
   }
+}
+
+typedef NoteStyleEntryParams =
+{
 }

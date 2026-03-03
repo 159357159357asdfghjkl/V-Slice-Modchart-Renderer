@@ -21,7 +21,6 @@ import funkin.util.MathUtil;
 import funkin.effects.RetroCameraFade;
 import flixel.math.FlxPoint;
 import funkin.util.TouchUtil;
-import openfl.utils.Assets;
 #if FEATURE_MOBILE_ADVERTISEMENTS
 import funkin.mobile.util.AdMobUtil;
 #end
@@ -102,18 +101,6 @@ class GameOverSubState extends MusicBeatSubState
 
   var canInput:Bool = false;
 
-  var justDied:Bool = true;
-
-  var isSpecialAnimation:Bool = false;
-
-  var gameOverVibrationPreset:VibrationPreset =
-    {
-      period: 0,
-      duration: Constants.DEFAULT_VIBRATION_DURATION,
-      amplitude: Constants.MIN_VIBRATION_AMPLITUDE,
-      sharpness: Constants.DEFAULT_VIBRATION_SHARPNESS
-    };
-
   public function new(params:GameOverParams)
   {
     super();
@@ -172,16 +159,18 @@ class GameOverSubState extends MusicBeatSubState
 
     // Pluck Boyfriend from the PlayState and place him (in the same position) in the GameOverSubState.
     // We can then play the character's `firstDeath` animation.
-    if ((parentPlayState?.isMinimalMode ?? true)) {}
+    if ((parentPlayState?.isMinimalMode ?? true))
+    {
+    }
     else
     {
-      boyfriend = parentPlayState?.currentStage.getBoyfriend(true);
+      boyfriend = parentPlayState?.currentStage?.getBoyfriend(true);
       if (boyfriend != null)
       {
         boyfriend.canPlayOtherAnims = true;
         boyfriend.isDead = true;
         add(boyfriend);
-        boyfriend.resetCharacter();
+        boyfriend.resetCharacter(false);
       }
     }
 
@@ -198,44 +187,42 @@ class GameOverSubState extends MusicBeatSubState
     addBackButton(FlxG.width - 230, FlxG.height - 200, FlxColor.WHITE, goBack);
     #end
 
+    HapticUtil.vibrate(0, Constants.DEFAULT_VIBRATION_DURATION);
+
     // Allow input a second later to prevent accidental gameover skips.
-    new FlxTimer().start(1, function(tmr:FlxTimer) {
+    new FlxTimer().start(1, function(tmr:FlxTimer)
+    {
       canInput = true;
     });
   }
 
-  @:nullSafety(Off)
   function setCameraTarget():Void
   {
-    if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null) return;
+    if (parentPlayState == null || parentPlayState.isMinimalMode || boyfriend == null) return;
 
     // Assign a camera follow point to the boyfriend's position.
     cameraFollowPoint = new FlxObject(parentPlayState.cameraFollowPoint.x, parentPlayState.cameraFollowPoint.y, 1, 1);
-    cameraFollowPoint.x = getMidPointOld(boyfriend).x;
-    cameraFollowPoint.y = getMidPointOld(boyfriend).y;
+    cameraFollowPoint.x = boyfriend.cameraFocusPoint.x;
+    cameraFollowPoint.y = boyfriend.cameraFocusPoint.y;
+
+    @:privateAccess
+    {
+      cameraFollowPoint.x -= Std.int(boyfriend._data.cameraOffsets[0]);
+      cameraFollowPoint.y -= Std.int(boyfriend._data.cameraOffsets[1]);
+
+      cameraFollowPoint.x -= Std.int((parentPlayState?.currentStage?._data?.characters?.bf?.cameraOffsets ?? [0, 0])[0]);
+      cameraFollowPoint.y -= Std.int((parentPlayState?.currentStage?._data?.characters?.bf?.cameraOffsets ?? [0, 0])[1]);
+    }
+
     var offsets:Array<Float> = boyfriend.getDeathCameraOffsets();
     cameraFollowPoint.x += offsets[0];
     cameraFollowPoint.y += offsets[1];
     add(cameraFollowPoint);
 
+    @:nullSafety(Off)
     FlxG.camera.target = null;
     FlxG.camera.follow(cameraFollowPoint, LOCKON, Constants.DEFAULT_CAMERA_FOLLOW_RATE / 2);
     targetCameraZoom = (parentPlayState?.currentStage?.camZoom ?? 1.0) * boyfriend.getDeathCameraZoom();
-  }
-
-  /**
-   * FlxSprite.getMidpoint(); calculations changed in this git commit
-   * https://github.com/HaxeFlixel/flixel/commit/1553b5af0871462fcefedc091b7885437d6c36d2
-   * https://github.com/HaxeFlixel/flixel/pull/3125
-   *
-   * So we use this to do the old math that gets the midpoint of our graphics
-   * Luckily, we don't use getGraphicMidpoint() much in the code, so it's fine being in GameoverSubState here.
-   * @return FlxPoint
-   */
-  function getMidPointOld(spr:FlxSprite, ?point:FlxPoint):FlxPoint
-  {
-    if (point == null) point = FlxPoint.get();
-    return point.set(spr.x + spr.frameWidth * 0.5 * spr.scale.x, spr.y + spr.frameHeight * 0.5 * spr.scale.y);
   }
 
   /**
@@ -269,7 +256,8 @@ class GameOverSubState extends MusicBeatSubState
         }
         else
         {
-          boyfriend.playAnimation('firstDeath', true, false); // ignoreOther is set to FALSE since you WANT to be able to mash and confirm game over!
+          boyfriend.playAnimation('firstDeath' + animationSuffix, true,
+            false); // ignoreOther is set to FALSE since you WANT to be able to mash and confirm game over!
           // Play the "blue balled" sound. May play a variant if one has been assigned.
           playBlueBalledSFX();
         }
@@ -284,7 +272,7 @@ class GameOverSubState extends MusicBeatSubState
     //
 
     // Restart the level when pressing the assigned key.
-    if ((controls.ACCEPT #if mobile || (TouchUtil.pressAction() && !TouchUtil.overlaps(backButton) && canInput) #end)
+    if ((controls.ACCEPT_P #if mobile || (TouchUtil.pressAction() && !TouchUtil.overlaps(backButton) && canInput) #end)
       && blueballed
       && !mustNotExit)
     {
@@ -292,7 +280,7 @@ class GameOverSubState extends MusicBeatSubState
       confirmDeath();
     }
 
-    if (controls.BACK && !mustNotExit && !isEnding) goBack();
+    if (controls.BACK_P && !mustNotExit && !isEnding) goBack();
 
     if (gameOverMusic != null && gameOverMusic.playing)
     {
@@ -330,9 +318,6 @@ class GameOverSubState extends MusicBeatSubState
       }
     }
 
-    // Handle vibrations on update.
-    if (HapticUtil.hapticsAvailable) handleAnimationVibrations();
-
     // Start death music before firstDeath gets replaced
     super.update(elapsed);
   }
@@ -357,7 +342,8 @@ class GameOverSubState extends MusicBeatSubState
     // Start music at lower volume
     startDeathMusic(0.2, false);
     boyfriend.playAnimation('deathLoop' + animationSuffix);
-    deathQuoteSound = FunkinSound.playOnce(deathQuote, function() {
+    deathQuoteSound = FunkinSound.playOnce(deathQuote, function()
+    {
       // Once the quote ends, fade in the game over music.
       if (!isEnding && gameOverMusic != null)
       {
@@ -385,30 +371,40 @@ class GameOverSubState extends MusicBeatSubState
 
       startDeathMusic(1.0, true); // isEnding changes this function's behavior.
 
-      if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null) {}
+      if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null)
+      {
+      }
       else
       {
         boyfriend.playAnimation('deathConfirm' + animationSuffix, true);
       }
 
+      // confirm music length divided by 7000
+      // this is here so mods with longer confirm sounds don't have it cut off!!!
+      final FADE_TIMER:Float = (gameOverMusic?.length ?? 0) / 7000;
+
       // After the animation finishes...
-      new FlxTimer().start(0.7, function(tmr:FlxTimer) {
+      new FlxTimer().start(FADE_TIMER, function(tmr:FlxTimer)
+      {
         // ...fade out the graphics. Then after that happens...
 
-        var resetPlaying = function(pixel:Bool = false) {
+        var resetPlaying = function(pixel:Bool = false)
+        {
           // ...close the GameOverSubState.
           if (pixel) RetroCameraFade.fadeBlack(FlxG.camera, 10, 1);
           else
             FlxG.camera.fade(FlxColor.BLACK, 1, true, null, true);
           if (parentPlayState != null) parentPlayState.needsReset = true;
 
-          if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null) {}
+          if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null)
+          {
+          }
           else
           {
             // Readd Boyfriend to the stage.
             boyfriend.isDead = false;
             remove(boyfriend);
-            parentPlayState?.currentStage.addCharacter(boyfriend, BF);
+            parentPlayState?.currentStage?.addCharacter(boyfriend, BF);
           }
 
           // Snap reset the camera which may have changed because of the player character data.
@@ -418,15 +414,17 @@ class GameOverSubState extends MusicBeatSubState
           close();
         };
 
-        if (musicSuffix == '-pixel')
+        if (musicSuffix.contains('-pixel'))
         {
           RetroCameraFade.fadeToBlack(FlxG.camera, 10, 2);
-          new FlxTimer().start(2, _ -> {
+          new FlxTimer().start(2, _ ->
+          {
             FlxG.camera.filters = [];
             #if FEATURE_MOBILE_ADVERTISEMENTS
             if (AdMobUtil.PLAYING_COUNTER >= AdMobUtil.MAX_BEFORE_AD)
             {
-              AdMobUtil.loadInterstitial(function():Void {
+              AdMobUtil.loadInterstitial(function():Void
+              {
                 AdMobUtil.PLAYING_COUNTER = 0;
                 resetPlaying(true);
               });
@@ -440,11 +438,13 @@ class GameOverSubState extends MusicBeatSubState
         }
         else
         {
-          FlxG.camera.fade(FlxColor.BLACK, 2, false, function() {
+          FlxG.camera.fade(FlxColor.BLACK, 2, false, function()
+          {
             #if FEATURE_MOBILE_ADVERTISEMENTS
             if (AdMobUtil.PLAYING_COUNTER >= AdMobUtil.MAX_BEFORE_AD)
             {
-              AdMobUtil.loadInterstitial(function():Void {
+              AdMobUtil.loadInterstitial(function():Void
+              {
                 AdMobUtil.PLAYING_COUNTER = 0;
                 resetPlaying();
               });
@@ -454,7 +454,7 @@ class GameOverSubState extends MusicBeatSubState
             #else
             resetPlaying();
             #end
-          });
+          }, true);
         }
       });
     }
@@ -508,10 +508,11 @@ class GameOverSubState extends MusicBeatSubState
       }
       else
       {
-        onComplete = function() {
-          isStarting = true;
+        onComplete = function()
+        {
+          isStarting = false;
           // We need to force to ensure that the non-starting music plays.
-          startDeathMusic(0.0, true);
+          startDeathMusic(1.0, true);
         };
       }
     }
@@ -545,7 +546,7 @@ class GameOverSubState extends MusicBeatSubState
    */
   public function goBack():Void
   {
-    if (blueballed == false) return;
+    if (!blueballed || mustNotExit) return;
     isEnding = true;
     blueballed = false;
     if (parentPlayState != null) parentPlayState.deathCounter = 0;
@@ -578,11 +579,11 @@ class GameOverSubState extends MusicBeatSubState
         PlayStatePlaylist.reset();
       }
 
-      var stickerPackId:Null<String> = parentPlayState?.currentChart.stickerPack;
+      var stickerPackId:Null<String> = parentPlayState?.currentChart?.stickerPack;
 
       if (stickerPackId == null)
       {
-        var playerCharacterId:Null<String> = PlayerRegistry.instance.getCharacterOwnerId(parentPlayState?.currentChart.characters.player);
+        var playerCharacterId:Null<String> = PlayerRegistry.instance.getCharacterOwnerId(parentPlayState?.currentChart?.characters.player);
         var playerCharacter:Null<PlayableCharacter> = PlayerRegistry.instance.fetchEntry(playerCharacterId ?? Constants.DEFAULT_CHARACTER);
 
         if (playerCharacter != null)
@@ -614,108 +615,6 @@ class GameOverSubState extends MusicBeatSubState
   }
 
   var hasPlayedDeathQuote:Bool = false;
-
-  /**
-   * Used for death haptics.
-   */
-  var startedTimerHaptics:Bool = false;
-
-  /**
-   * Unique vibrations for each death animation.
-   */
-  function handleAnimationVibrations():Void
-  {
-    if ((parentPlayState?.isMinimalMode ?? true) || boyfriend == null) return;
-
-    if (justDied)
-    {
-      if (isSpecialAnimation)
-      {
-        HapticUtil.vibrate(0, Constants.DEFAULT_VIBRATION_DURATION * 5);
-        trace("It's a special game over animation.");
-      }
-      else
-      {
-        HapticUtil.vibrate(0, Constants.DEFAULT_VIBRATION_DURATION);
-      }
-      justDied = false;
-    }
-
-    if (boyfriend.animation == null) return;
-
-    final curFrame:Int = (boyfriend.animation.curAnim != null) ? boyfriend.animation.curAnim.curFrame : -1;
-    if (boyfriend.characterId.startsWith("bf"))
-    {
-      // BF's mic drops.
-      if (boyfriend.getCurrentAnimation().startsWith('firstDeath') && curFrame == 27)
-      {
-        HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-      }
-
-      // BF's balls pulsating.
-      if (boyfriend.getCurrentAnimation().startsWith('deathLoop') && (curFrame == 0 || curFrame == 18))
-      {
-        HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-      }
-
-      return;
-    }
-
-    // Pico dies because of Darnell beating him up.
-    if (boyfriend.characterId == "pico-blazin")
-    {
-      if (!startedTimerHaptics)
-      {
-        startedTimerHaptics = true;
-
-        new FlxTimer().start(0.5, function(tmr:FlxTimer) {
-          // Pico falls on his knees.
-          HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-
-          new FlxTimer().start(0.6, function(tmr:FlxTimer) {
-            // Pico falls "asleep". :)
-            HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-          });
-        });
-
-        return;
-      }
-    }
-    else if (boyfriend.characterId.startsWith("pico") && boyfriend.characterId != "pico-holding-nene")
-    {
-      if (isSpecialAnimation)
-      {
-        if (startedTimerHaptics) return;
-
-        startedTimerHaptics = true;
-
-        // Death by Darnell's can.
-        new FlxTimer().start(1.85, function(tmr:FlxTimer) {
-          // Pico falls on his knees.
-          HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-        });
-      }
-      else
-      {
-        // Pico falls on his back.
-        if (boyfriend.getCurrentAnimation().startsWith('firstDeath') && curFrame == 20)
-        {
-          HapticUtil.vibrateByPreset(gameOverVibrationPreset);
-        }
-
-        // Blood firework woohoo!!!!
-        if (boyfriend.getCurrentAnimation().startsWith('deathLoop') && curFrame % 2 == 0)
-        {
-          final randomAmplitude:Float = FlxG.random.float(Constants.MIN_VIBRATION_AMPLITUDE / 100, Constants.MIN_VIBRATION_AMPLITUDE);
-          final randomDuration:Float = FlxG.random.float(Constants.DEFAULT_VIBRATION_DURATION / 10, Constants.DEFAULT_VIBRATION_DURATION);
-
-          HapticUtil.vibrate(0, randomDuration, randomAmplitude);
-        }
-      }
-
-      return;
-    }
-  }
 
   public override function destroy():Void
   {

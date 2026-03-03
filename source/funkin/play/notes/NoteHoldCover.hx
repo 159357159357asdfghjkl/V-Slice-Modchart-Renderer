@@ -17,10 +17,7 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
 
   var sparks:FunkinActor;
 
-  public var offsetX:Float = 0;
-  public var offsetY:Float = 0;
   public var column:Int = 0;
-  public var currentZValue:Float = 0;
 
   public function new(noteStyle:NoteStyle)
   {
@@ -55,6 +52,7 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FunkinActor>
 
   public function playStart():Void
   {
+    glow.setPosition(this.x, this.y);
     var direction:NoteDirection = holdNote.noteDirection;
     glow.animation.play('holdCoverStart${direction.colorName.toTitleCase()}');
   }

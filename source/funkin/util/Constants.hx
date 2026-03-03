@@ -127,8 +127,7 @@ class Constants
   /**
    * The base colors used by notes.
    */
-  public static var COLOR_NOTES:Array<FlxColor> = [
-    0xFFFF22AA, // left (0)
+  public static var COLOR_NOTES:Array<FlxColor> = [0xFFFF22AA, // left (0)
     0xFF00EEFF, // down (1)
     0xFF00CC00, // up (2)
     0xFFCC1111 // right (3)
@@ -236,6 +235,11 @@ class Constants
    * The default rate for camera zooms (in beats per zoom).
    */
   public static final DEFAULT_ZOOM_RATE:Int = 4;
+
+  /**
+   * The default offset of camera zooms (in beats).
+   */
+  public static final DEFAULT_ZOOM_OFFSET:Int = 0;
 
   /**
    * The default BPM for charts, so things don't break if none is specified.
@@ -376,7 +380,7 @@ class Constants
 
   /**
    * Number of steps in a beat.
-   * One step is one 16th note and one beat is one quarter note.
+   * The note length of a step varies based on the time signature denominator.
    */
   public static final STEPS_PER_BEAT:Int = 4;
 
@@ -394,6 +398,11 @@ class Constants
    *     The progress bare is automatically rescaled to match.
    */
   public static final PRELOADER_MIN_STAGE_TIME:Float = 0.1;
+
+  /**
+   * Time (in seconds) to wait on the Title Screen before entering the Attract State.
+   */
+  public static final TITLE_ATTRACT_DELAY:Float = 37.5;
 
   /**
    * HEALTH VALUES
@@ -560,6 +569,13 @@ class Constants
   public static final GHOST_TAP_DELAY:Float = 3 / 8;
   #end
 
+  #if FEATURE_LOST_FOCUS_VOLUME
+  /**
+   * How much volume should be reduced on Application Focus Lost.
+   */
+  public static final LOST_FOCUS_VOLUME_MULTIPLIER:Float = 0.5;
+  #end
+
   /**
    * Otherwise known as "The FuckCunt Variable"
    */
@@ -588,7 +604,7 @@ class Constants
   /**
    * The horizontal offset of the strumline from the left edge of the screen.
    */
-  public static final STRUMLINE_X_OFFSET:Float = 48; // 96
+  public static final STRUMLINE_X_OFFSET:Float = 48;
 
   /**
    * The vertical offset of the strumline from the top edge of the screen.
@@ -630,4 +646,30 @@ class Constants
    * Default vibration sharpness.
    */
   public inline static final DEFAULT_VIBRATION_SHARPNESS:Float = 1;
+
+  /**
+   * The path where our save data will be stored.
+   */
+  public inline static final SAVE_PATH:String = 'FunkinCrew';
+
+  /**
+   * The name of our save slot.
+   */
+  public inline static final SAVE_NAME:String = 'Funkin';
+
+  /**
+   * The legacy path where our save data was saved. Used for backwards compatibility.
+   */
+  public inline static final SAVE_PATH_LEGACY:String = 'ninjamuffin99';
+
+  /**
+   * The legacy save slot name, used for backwards compatibility.
+   */
+  public inline static final SAVE_NAME_LEGACY:String = 'funkin';
+
+  /**
+   * We always use this save slot.
+   * Alter this if you want to use a different save slot.
+   */
+  public inline static final BASE_SAVE_SLOT:Int = 1;
 }

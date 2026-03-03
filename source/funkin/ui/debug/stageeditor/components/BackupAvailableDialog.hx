@@ -1,5 +1,6 @@
 package funkin.ui.debug.stageeditor.components;
 
+#if FEATURE_STAGE_EDITOR
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.containers.dialogs.Dialog.DialogButton;
 import funkin.util.FileUtil;
@@ -9,7 +10,7 @@ import funkin.util.DateUtil;
 using StringTools;
 
 @:xml('
-<dialog id="backupAvailableDialog" width="475" height="150" title="Hey! Listen!">
+<dialog id="backupAvailableDialog" width="475" height="200" title="Hey! Listen!">
 	<vbox width="100%" height="100%">
 		<label text="There is a stage backup available, would you like to open it?\n" width="100%" textAlign="center" />
 		<spacer height="6" />
@@ -34,25 +35,20 @@ class BackupAvailableDialog extends Dialog
     if (!FileUtil.fileExists(filePath)) return;
 
     // time text
-    var fileDate = Path.withoutExtension(Path.withoutDirectory(filePath));
-    var dateParts = fileDate.split("-");
+    var file = Path.withoutExtension(Path.withoutDirectory(filePath));
 
-    while (dateParts.length < 8)
-      dateParts.push("0");
+    #if sys
+    var stat = sys.FileSystem.stat(filePath);
+    var sizeInMB = (stat.size / 1000000).round(3);
 
-    var year:Int = Std.parseInt(dateParts[2]) ?? 0; // copied parts from ChartEditorImportExportHandler.hx
-    var month:Int = Std.parseInt(dateParts[3]) ?? 1;
-    var day:Int = Std.parseInt(dateParts[4]) ?? 0;
-    var hour:Int = Std.parseInt(dateParts[5]) ?? 0;
-    var minute:Int = Std.parseInt(dateParts[6]) ?? 0;
-    var second:Int = Std.parseInt(dateParts[7]) ?? 0;
-
-    backupTimeLabel.text = DateUtil.generateCleanTimestamp(new Date(year, month - 1, day, hour, minute, second));
+    backupTimeLabel.text = "Full Name: " + file + "\nLast Modified: " + stat.mtime.toString() + "\nSize: " + sizeInMB + " MB";
+    #end
 
     // button callbacks
     dialogCancel.onClick = function(_) hideDialog(DialogButton.CANCEL);
 
-    buttonGoToFolder.onClick = function(_) {
+    buttonGoToFolder.onClick = function(_)
+    {
       // :[
       #if sys
       var absoluteBackupsPath:String = Path.join([Sys.getCwd(), StageEditorState.BACKUPS_PATH]);
@@ -60,7 +56,8 @@ class BackupAvailableDialog extends Dialog
       #end
     }
 
-    buttonOpenBackup.onClick = function(_) {
+    buttonOpenBackup.onClick = function(_)
+    {
       if (FileUtil.fileExists(filePath) && state.welcomeDialog != null) // doing a check in case a sleezy FUCK decides to delete the backup file AFTER dialog opens
       {
         state.welcomeDialog.loadFromFilePath(filePath);
@@ -69,7 +66,8 @@ class BackupAvailableDialog extends Dialog
     }
 
     // uhhh
-    onDialogClosed = function(event) {
+    onDialogClosed = function(event)
+    {
       if (event.button == DialogButton.APPLY)
       {
         if (state.welcomeDialog != null) state.welcomeDialog.hideDialog(DialogButton.APPLY);
@@ -77,3 +75,4 @@ class BackupAvailableDialog extends Dialog
     };
   }
 }
+#end

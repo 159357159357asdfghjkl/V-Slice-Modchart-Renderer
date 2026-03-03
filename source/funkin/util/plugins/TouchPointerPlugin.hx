@@ -1,8 +1,8 @@
 package funkin.util.plugins;
 
-import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.FlxCamera;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.input.touch.FlxTouch;
 import flixel.math.FlxAngle;
@@ -33,6 +33,11 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
    */
   private static var instance:TouchPointerPlugin = null;
 
+  /**
+   * A camera dedicated to displaying the pointers.
+   */
+  private static var pointerCamera:FlxCamera;
+
   public function new()
   {
     super();
@@ -43,7 +48,7 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
    */
   public static function initialize():Void
   {
-    var pointerCamera:FlxCamera = new FlxCamera();
+    pointerCamera = new FlxCamera();
     pointerCamera.bgColor.alpha = 0;
     instance = new TouchPointerPlugin();
     instance.cameras = [pointerCamera];
@@ -80,7 +85,8 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
 
     FlxG.cameras.cameraAdded.add(moveCameraToTop);
 
-    FlxG.cameras.cameraRemoved.add(function(camera:FlxCamera) {
+    FlxG.cameras.cameraRemoved.add(function(camera:FlxCamera)
+    {
       if (camera == pointerCamera)
       {
         if (!camera.exists) // The camera got destroyed, we make a new one!
@@ -101,7 +107,8 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
       }
     });
 
-    FlxG.signals.preStateSwitch.add(function() {
+    FlxG.signals.preStateSwitch.add(function()
+    {
       instance.removeAll();
     });
   }
@@ -125,7 +132,7 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
         add(pointer);
       }
 
-      pointer.updateFromTouch(touch);
+      pointer.updateFromTouch(touch, pointerCamera);
     }
 
     for (pointer in members)
@@ -134,13 +141,13 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
       if (pointer.touchId != -2)
       {
         pointer.alpha = 0.8;
-        FlxTween.tween(pointer, {alpha: 0}, FlxG.random.float(0.8, 0.9),
+        FlxTween.tween(pointer, {alpha: 0}, FlxG.random.float(0.8, 0.9), {
+          ease: FlxEase.cubeIn,
+          onComplete: function(_)
           {
-            ease: FlxEase.cubeIn,
-            onComplete: function(_) {
-              remove(pointer, true);
-            }
-          });
+            remove(pointer, true);
+          }
+        });
         pointer.touchId = -2;
       }
     }
@@ -205,13 +212,13 @@ class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
       }
 
       pointer.alpha = 0.8;
-      FlxTween.tween(pointer, {alpha: 0}, FlxG.random.float(0.8, 1),
+      FlxTween.tween(pointer, {alpha: 0}, FlxG.random.float(0.8, 1), {
+        ease: FlxEase.quadIn,
+        onComplete: function(_)
         {
-          ease: FlxEase.quadIn,
-          onComplete: function(_) {
-            remove(pointer, true);
-          }
-        });
+          remove(pointer, true);
+        }
+      });
     }
   }
 }
@@ -227,6 +234,12 @@ class TouchPointer extends FlxSprite
   public var touchId:Int = -1;
 
   /**
+   * An internal point for grabbing the view position of the camera.
+   * Useful for reducing point allocation.
+   */
+  private var viewPoint:FlxPoint;
+
+  /**
    * Stores the last position of the touch pointer.
    */
   private var lastPosition:FlxPoint;
@@ -240,6 +253,7 @@ class TouchPointer extends FlxSprite
     super();
     makeGraphic(16, 16, FlxColor.RED);
     scrollFactor.set(0, 0);
+    viewPoint = FlxPoint.get();
     lastPosition = FlxPoint.get();
   }
 
@@ -260,12 +274,16 @@ class TouchPointer extends FlxSprite
    * Used in TouchPointerPlugin's update method.
    *
    * @param touch The FlxTouch object containing the current touch input data.
+   * @param camera The FlxCamera to grab the touch's view position from.
    */
-  public function updateFromTouch(touch:FlxTouch):Void
+  public function updateFromTouch(touch:FlxTouch, camera:FlxCamera):Void
   {
+    // Grab the view coordinates
+    touch.getViewPosition(camera, viewPoint);
+
     // Update position
-    x = touch.viewX - width / 2;
-    y = touch.viewY - height / 2;
+    x = viewPoint.x - width / 2;
+    y = viewPoint.y - height / 2;
 
     if (camera.target != null)
     {
@@ -274,7 +292,7 @@ class TouchPointer extends FlxSprite
     }
 
     // Calculate angle if moving
-    if (lastPosition.distanceTo(FlxPoint.weak(touch.viewX, touch.viewY)) > 3)
+    if (lastPosition.distanceTo(FlxPoint.weak(viewPoint.x, viewPoint.y)) > 3)
     {
       var angle = FlxAngle.angleBetweenPoint(this, lastPosition, true);
       this.angle = angle;
@@ -286,11 +304,12 @@ class TouchPointer extends FlxSprite
       loadGraphic("assets/images/cursor/michael.png");
     }
 
-    lastPosition.set(touch.viewX, touch.viewY);
+    lastPosition.copyFrom(viewPoint);
   }
 
   override public function destroy():Void
   {
+    viewPoint.put();
     lastPosition.put();
     super.destroy();
   }

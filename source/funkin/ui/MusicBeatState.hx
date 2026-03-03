@@ -12,7 +12,9 @@ import funkin.modding.PolymodHandler;
 import funkin.modding.events.ScriptEvent;
 import funkin.modding.module.ModuleHandler;
 import funkin.util.SortUtil;
+import funkin.util.WindowUtil;
 import funkin.input.Controls;
+import funkin.ui.FullScreenScaleMode;
 #if mobile
 import funkin.graphics.FunkinCamera;
 import funkin.mobile.ui.FunkinHitbox;
@@ -31,8 +33,7 @@ class MusicBeatState extends FlxTransitionableState implements IEventHandler
 {
   var controls(get, never):Controls;
 
-  inline function get_controls():Controls
-    return PlayerSettings.player1.controls;
+  inline function get_controls():Controls return PlayerSettings.player1.controls;
 
   public var leftWatermarkText:Null<FlxText> = null;
   public var rightWatermarkText:Null<FlxText> = null;
@@ -54,6 +55,8 @@ class MusicBeatState extends FlxTransitionableState implements IEventHandler
 
   public function new()
   {
+    if (FullScreenScaleMode.instance != null) FullScreenScaleMode.instance.onMeasurePostAwait();
+
     super();
 
     initCallbacks();
@@ -139,6 +142,7 @@ class MusicBeatState extends FlxTransitionableState implements IEventHandler
 
     Conductor.beatHit.add(this.beatHit);
     Conductor.stepHit.add(this.stepHit);
+    dispatchEvent(new ScriptEvent(STATE_CREATE));
   }
 
   public override function destroy():Void
@@ -156,7 +160,11 @@ class MusicBeatState extends FlxTransitionableState implements IEventHandler
   function handleFunctionControls():Void
   {
     // Emergency exit button.
-    if (FlxG.keys.justPressed.F4) FlxG.switchState(() -> new MainMenuState());
+    if (FlxG.keys.justPressed.F4)
+    {
+      FlxG.switchState(() -> new MainMenuState());
+      WindowUtil.setWindowTitle('Friday Night Funkin\'');
+    }
   }
 
   override function update(elapsed:Float)
@@ -184,7 +192,7 @@ class MusicBeatState extends FlxTransitionableState implements IEventHandler
   {
     // Both have an xPos of 0, but a width equal to the full screen.
     // The rightWatermarkText is right aligned, which puts the text in the correct spot.
-    // Their xPos is only changed when there's a notch on the device so it doesn't get covered byt it.
+    // Their xPos is only changed when there's a notch on the device so it doesn't get covered by it.
     leftWatermarkText = new FlxText(funkin.ui.FullScreenScaleMode.gameNotchSize.x, FlxG.height - 18, FlxG.width, '', 12);
     rightWatermarkText = new FlxText(-(funkin.ui.FullScreenScaleMode.gameNotchSize.x), FlxG.height - 18, FlxG.width, '', 12);
 

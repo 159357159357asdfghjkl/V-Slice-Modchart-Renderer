@@ -64,13 +64,7 @@ class ControlsSchemeMenu extends MusicBeatSubState
   /**
    * An array of every single scheme.
    */
-  final availableSchemes:Array<String> = [
-    FunkinHitbox.FunkinHitboxControlSchemes.Arrows,
-    FunkinHitbox.FunkinHitboxControlSchemes.FourLanes,
-    FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbTriangle,
-    FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbSquare,
-    FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbDPad
-  ];
+  final availableSchemes:Array<String> = [FunkinHitbox.FunkinHitboxControlSchemes.Arrows, FunkinHitbox.FunkinHitboxControlSchemes.FourLanes, FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbTriangle, FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbSquare, FunkinHitbox.FunkinHitboxControlSchemes.DoubleThumbDPad];
 
   /**
    * Current selected index
@@ -227,7 +221,8 @@ class ControlsSchemeMenu extends MusicBeatSubState
 
     FlxTween.tween(hsv, {hue: 0, saturation: 0, value: 0.5}, 0.5);
 
-    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase) {
+    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase)
+    {
       hitboxShowcase.visible = false;
     });
 
@@ -237,7 +232,8 @@ class ControlsSchemeMenu extends MusicBeatSubState
 
     addHitbox(true, false, availableSchemes[currentIndex]);
 
-    hitbox.forEachAlive(function(hint:FunkinHint) {
+    hitbox.forEachAlive(function(hint:FunkinHint)
+    {
       if (availableSchemes[currentIndex] == FunkinHitboxControlSchemes.Arrows) hint.alpha = 1;
 
       if (!hint.deadZones.contains(cast(currentButton.body, FunkinSprite))) hint.deadZones.push(cast(currentButton.body, FunkinSprite));
@@ -253,7 +249,8 @@ class ControlsSchemeMenu extends MusicBeatSubState
 
     FlxTween.tween(hsv, {hue: -0.6, saturation: 0.9, value: 3.6}, 0.5);
 
-    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase) {
+    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase)
+    {
       hitboxShowcase.visible = true;
     });
 
@@ -270,7 +267,7 @@ class ControlsSchemeMenu extends MusicBeatSubState
    */
   function setSelection(index:Int):Void
   {
-    final newIndex:Int = Math.floor(FlxMath.bound(index, 0, hitboxShowcases.length - 1));
+    final newIndex:Int = Math.floor(index.clamp(0, hitboxShowcases.length - 1));
 
     if (currentIndex != newIndex)
     {
@@ -285,7 +282,8 @@ class ControlsSchemeMenu extends MusicBeatSubState
 
     schemeNameText.text = availableSchemes[currentIndex];
 
-    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase) {
+    hitboxShowcases.forEach(function(hitboxShowcase:HitboxShowcase)
+    {
       hitboxShowcase.selectionIndex = currentIndex;
     });
   }
@@ -348,7 +346,7 @@ class ControlsSchemeMenu extends MusicBeatSubState
       hitboxShowcases.x = MathUtil.smoothLerpPrecision(hitboxShowcases.x, showcasesTargetX, elapsed, 0.5);
 
       final minShowcasesX:Float = -1500 * availableSchemes.length;
-      hitboxShowcases.x = FlxMath.bound(hitboxShowcases.x, minShowcasesX, 400);
+      hitboxShowcases.x = hitboxShowcases.x.clamp(minShowcasesX, 400);
 
       final targetIndex:Int = Math.round(hitboxShowcases.x / -1500);
 
@@ -356,8 +354,9 @@ class ControlsSchemeMenu extends MusicBeatSubState
     }
     else
     {
-      hitboxShowcases.x = MathUtil.smoothLerpPrecision(hitboxShowcases.x, (-1500 * currentIndex) + (-1500 / (availableSchemes.length + 1) * currentIndex), elapsed, 0.5);
+      hitboxShowcases.x = MathUtil.smoothLerpPrecision(hitboxShowcases.x, (-1500 * currentIndex) + (-1500 / (availableSchemes.length + 1) * currentIndex),
+        elapsed, 0.5);
     }
-  #end
   }
+  #end
 }

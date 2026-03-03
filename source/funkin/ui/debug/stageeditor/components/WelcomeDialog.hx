@@ -1,5 +1,6 @@
 package funkin.ui.debug.stageeditor.components;
 
+#if FEATURE_STAGE_EDITOR
 import haxe.ui.containers.dialogs.Dialog;
 import haxe.ui.containers.dialogs.Dialogs;
 import haxe.ui.containers.dialogs.MessageBox.MessageBoxType;
@@ -10,8 +11,6 @@ import flixel.FlxG;
 import funkin.data.stage.StageData;
 import funkin.data.stage.StageRegistry;
 import funkin.ui.debug.stageeditor.StageEditorState.StageEditorDialogType;
-
-using funkin.util.tools.FloatTools;
 
 @:build(haxe.ui.macros.ComponentMacros.build("assets/exclude/data/ui/stage-editor/dialogs/welcome.xml"))
 class WelcomeDialog extends Dialog
@@ -24,14 +23,15 @@ class WelcomeDialog extends Dialog
 
     stageEditorState = state;
 
-    buttonNew.onClick = function(_) {
+    buttonNew.onClick = function(_)
+    {
       stageEditorState.clearAssets();
       stageEditorState.loadDummyData();
       stageEditorState.currentFile = "";
       killDaDialog();
     }
 
-    for (file in Save.instance.stageEditorPreviousFiles)
+    for (file in Save.instance.stageEditorPreviousFiles.value)
     {
       trace(file);
 
@@ -42,24 +42,26 @@ class WelcomeDialog extends Dialog
       var fileText = new Link();
       fileText.percentWidth = 100;
       fileText.text = patj.file + "." + patj.ext;
-      fileText.onClick = function(_) {
+      fileText.onClick = function(_)
+      {
         fileText.hide();
         loadFromFilePath(file);
       };
 
       #if sys
       var stat = sys.FileSystem.stat(file);
-      var sizeInMB = (stat.size / 1000000).round(2);
+      var sizeInMB = (stat.size / 1000000).round(3);
 
-      fileText.tooltip = "Full Name: " + file + "\nLast Modified: " + stat.mtime.toString() + "\nSize: " + sizeInMB + "MB";
+      fileText.tooltip = "Full Name: " + file + "\nLast Modified: " + stat.mtime.toString() + "\nSize: " + sizeInMB + " MB";
       #end
 
       contentRecent.addComponent(fileText);
     }
 
-    boxDrag.onClick = function(_) FileUtil.browseForSaveFile([FileUtil.FILE_FILTER_FNFS], loadFromFilePath, null, null, "Open Stage Data");
+    boxDrag.onClick = function(_) FileUtil.browseForBinaryFile("Open Stage Data", [FileUtil.FILE_EXTENSION_INFO_FNFS],
+      (fileInfo) -> loadFromFilePath(fileInfo.fullPath));
 
-    var defaultStages:Array<String> = StageRegistry.instance.listBaseGameEntryIds();
+    var defaultStages:Array<String> = StageRegistry.instance.listEntryIds();
     defaultStages.sort(funkin.util.SortUtil.alphabetically);
 
     for (stage in defaultStages)
@@ -86,7 +88,8 @@ class WelcomeDialog extends Dialog
     if (!stageEditorState.saved)
     {
       Dialogs.messageBox("This will destroy all of your Unsaved Work.\n\nAre you sure? This cannot be undone.", "Load Stage", MessageBoxType.TYPE_YESNO, true,
-        function(btn:DialogButton) {
+        function(btn:DialogButton)
+        {
           if (btn == DialogButton.YES)
           {
             stageEditorState.saved = true;
@@ -108,7 +111,8 @@ class WelcomeDialog extends Dialog
     if (!stageEditorState.saved)
     {
       Dialogs.messageBox("This will destroy all of your Unsaved Work.\n\nAre you sure? This cannot be undone.", "Load Stage", MessageBoxType.TYPE_YESNO, true,
-        function(btn:DialogButton) {
+        function(btn:DialogButton)
+        {
           if (btn == DialogButton.YES)
           {
             stageEditorState.saved = true;
@@ -145,3 +149,4 @@ class WelcomeDialog extends Dialog
     destroy();
   }
 }
+#end

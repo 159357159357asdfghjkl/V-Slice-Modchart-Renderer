@@ -15,8 +15,7 @@ import funkin.data.DefaultRegistryImpl;
 
 using funkin.data.song.migrator.SongDataMigrator;
 
-@:nullSafety
-class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleton implements DefaultRegistryImpl
+@:nullSafety class SongRegistry extends BaseRegistry<Song, SongMetadata, SongEntryParams> implements ISingleton implements DefaultRegistryImpl
 {
   /**
    * The current version string for the stage data format.
@@ -37,6 +36,8 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
 
   public static var DEFAULT_GENERATEDBY(get, never):String;
 
+  public var scriptedSongVariations:Map<String, Song> = new Map<String, Song>();
+
   static function get_DEFAULT_GENERATEDBY():String
   {
     return '${Constants.TITLE} - ${Constants.VERSION}';
@@ -55,7 +56,7 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
     // SCRIPTED ENTRIES
     //
     var scriptedEntryClassNames:Array<String> = getScriptedClassNames();
-    log('Parsing ${scriptedEntryClassNames.length} scripted entries...');
+    log(' INFO '.info() + 'Parsing ${scriptedEntryClassNames.length} scripted entries...');
 
     for (entryCls in scriptedEntryClassNames)
     {
@@ -63,9 +64,17 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
 
       if (entry != null)
       {
-        log('Successfully created scripted entry (${entryCls} = ${entry.id})');
-        entries.set(entry.id, entry);
-        scriptedEntryIds.set(entry.id, entryCls);
+        if (entry.variation != null)
+        {
+          scriptedSongVariations.set('${entry.id}:${entry.variation}', entry);
+          log('Successfully created scripted entry (${entryCls} = ${entry.id}, ${entry.variation})');
+        }
+        else
+        {
+          entries.set(entry.id, entry);
+          scriptedEntryIds.set(entry.id, entryCls);
+          log('Successfully created scripted entry (${entryCls} = ${entry.id})');
+        }
       }
       else
       {
@@ -76,10 +85,12 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
     //
     // UNSCRIPTED ENTRIES
     //
-    var entryIdList:Array<String> = DataAssets.listDataFilesInPath('songs/', '-metadata.json').map(function(songDataPath:String):String {
+    var entryIdList:Array<String> = DataAssets.listDataFilesInPath('songs/', '-metadata.json').map(function(songDataPath:String):String
+    {
       return songDataPath.split('/')[0];
     });
-    var unscriptedEntryIds:Array<String> = entryIdList.filter(function(entryId:String):Bool {
+    var unscriptedEntryIds:Array<String> = entryIdList.filter(function(entryId:String):Bool
+    {
       return !entries.exists(entryId);
     });
     log('Parsing ${unscriptedEntryIds.length} unscripted entries...');
@@ -90,15 +101,15 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
         var entry:Null<Song> = createEntry(entryId);
         if (entry != null)
         {
-          trace('  Loaded entry data: ${entry}');
+          log('Loaded entry data: ${entry}');
           entries.set(entry.id, entry);
         }
       }
       catch (e:Dynamic)
       {
         // Print the error.
-        trace('  Failed to load entry data: ${entryId}');
-        trace(e);
+        log(' ERROR '.error() + 'Failed to load entry data: ${entryId}');
+        log(' ERROR '.error() + e);
         continue;
       }
     }
@@ -118,6 +129,51 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
   public function parseEntryDataRaw(contents:String, ?fileName:String = 'raw'):Null<SongMetadata>
   {
     return parseEntryMetadataRaw(contents);
+  }
+
+  public override function isScriptedEntry(id:String, ?params:Null<SongEntryParams>)
+  {
+    var variation:String = params?.variation ?? Constants.DEFAULT_VARIATION;
+    if (variation != Constants.DEFAULT_VARIATION)
+    {
+      return scriptedSongVariations.exists('${id}:${variation}');
+    }
+    return super.isScriptedEntry(id, params);
+  }
+
+  public override function getScriptedEntryClassName(id:String, ?params:Null<SongEntryParams>):Null<String>
+  {
+    var variation:String = params?.variation ?? Constants.DEFAULT_VARIATION;
+    if (variation != Constants.DEFAULT_VARIATION)
+    {
+      final variationSongId:ScriptedSong = cast scriptedSongVariations.get('${id}:${variation}');
+      @:privateAccess
+      var path:String = variationSongId._asc._c.name;
+      return path;
+    }
+    return super.getScriptedEntryClassName(id, params);
+  }
+
+  /**
+   * We override `fetchEntry` to handle song variations!
+   */
+  public override function fetchEntry(id:String, ?params:SongEntryParams):Null<Song>
+  {
+    var variation:String = params?.variation ?? Constants.DEFAULT_VARIATION;
+
+    if (variation != Constants.DEFAULT_VARIATION)
+    {
+      if (scriptedSongVariations.exists('${id}:${variation}'))
+      {
+        var variationSongScript:Null<Song> = scriptedSongVariations.get('${id}:${variation}');
+        if (variationSongScript != null)
+        {
+          return variationSongScript;
+        }
+      }
+    }
+
+    return super.fetchEntry(id, params);
   }
 
   public function parseEntryMetadata(id:String, ?variation:String):Null<SongMetadata>
@@ -395,12 +451,13 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
     }
   }
 
-  public function parseEntryChartDataRawWithMigration(contents:String, ?fileName:String = 'raw', version:thx.semver.Version):Null<SongChartData>
+  public function parseEntryChartDataRawWithMigration(contents:String, ?fileName:String = 'raw', version:thx.semver.Version,
+      ?variation:String):Null<SongChartData>
   {
     // If a version rule is not specified, do not check against it.
     if (SONG_CHART_DATA_VERSION_RULE == null || VersionUtil.validateVersion(version, SONG_CHART_DATA_VERSION_RULE))
     {
-      return parseEntryChartDataRaw(contents, fileName);
+      return parseEntryChartDataRaw(contents, fileName, variation);
     }
     else
     {
@@ -414,7 +471,7 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
     var entryFilePath:String = Paths.json('$dataFilePath/$id/$id-metadata${variation == Constants.DEFAULT_VARIATION ? '' : '-$variation'}');
     if (!openfl.Assets.exists(entryFilePath))
     {
-      trace('  [WARN] Could not locate file $entryFilePath');
+      trace('  WARNING '.bold().bg_yellow() + ' Could not locate file $entryFilePath');
       return null;
     }
     var rawJson:Null<String> = openfl.Assets.getText(entryFilePath);
@@ -492,7 +549,7 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
 
     if (character == null)
     {
-      trace('  [WARN] Could not locate character $characterId');
+      trace('  WARNING '.bold().bg_yellow() + ' Could not locate character $characterId');
       return allDifficulties;
     }
 
@@ -508,12 +565,22 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata> implements ISingleto
       }
     }
 
+    allDifficulties.sort(funkin.util.SortUtil.defaultsThenAlphabetically.bind(Constants.DEFAULT_DIFFICULTY_LIST_FULL));
+
     if (allDifficulties.length == 0)
     {
-      trace('  [WARN] No difficulties found. Returning default difficulty list.');
+      trace('  WARNING '.bold().bg_yellow() + ' No difficulties found. Returning default difficulty list.');
       allDifficulties = Constants.DEFAULT_DIFFICULTY_LIST.copy();
     }
 
     return allDifficulties;
   }
+}
+
+typedef SongEntryParams =
+{
+  /**
+   * The variation ID for the song.
+   */
+  var variation:String;
 }

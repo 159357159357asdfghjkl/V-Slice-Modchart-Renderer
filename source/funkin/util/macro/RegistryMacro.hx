@@ -38,11 +38,7 @@ typedef RegistryTypeParams =
  */
 class RegistryMacro
 {
-  #if ios
-  static final DATA_FILE_BASE_PATH:String = "../../../../../assets/preload/data";
-  #else
   static final DATA_FILE_BASE_PATH:String = "assets/preload/data";
-  #end
 
   /**
    * Builds the registry class.
@@ -105,26 +101,34 @@ class RegistryMacro
    */
   static function getTypeParams(cls:ClassType):RegistryTypeParams
   {
+    var params:Array<Type> = [];
+    var typeParams:Array<Any> = [];
     switch (cls.superClass.t.get().kind)
     {
-      case KGenericInstance(_, params):
-        var typeParams:Array<Any> = [];
-        for (param in params)
-        {
-          switch (param)
-          {
-            case TInst(t, _):
-              typeParams.push(t.get());
-            case TType(t, _):
-              typeParams.push(t.get());
-            default:
-              throw 'Not a class';
-          }
-        }
-        return {entryType: typeParams[0], dataType: typeParams[1]};
+      case KGenericInstance(_, _params):
+        params = _params;
+      case KGeneric:
+        // For some reason the only case where it's KGeneric
+        // is on the language server so we have to handle it too.
+        // This seems to be somehow related to the broken code completion.
+        params = cls.superClass.params;
       default:
         throw '${cls.name}: Could not interpret type parameters of Registry class.';
     }
+
+    for (param in params)
+    {
+      switch (param)
+      {
+        case TInst(t, _):
+          typeParams.push(t.get());
+        case TType(t, _):
+          typeParams.push(t.get());
+        default:
+          throw 'Not a class';
+      }
+    }
+    return {entryType: typeParams[0], dataType: typeParams[1]};
   }
 
   /**
@@ -142,12 +146,18 @@ class RegistryMacro
 
     var getScriptedClassName:String = '${scriptedEntryClsName}';
 
-    var createScriptedEntry:String = '${scriptedEntryClsName}.init(clsName, "unknown")';
+    var createScriptedEntry:String = '${scriptedEntryClsName}.scriptInit(clsName, "unknown")';
 
     var newJsonParser:String = 'new json2object.JsonParser<${dataType.module}.${dataType.name}>()';
 
     var dataFilePath:String = getRegistryDataFilePath(cls, fields);
-    var baseGameEntryIds:Array<Expr> = listBaseGameEntryIds('${DATA_FILE_BASE_PATH}/${dataFilePath}/');
+
+    var dataPath:String = DATA_FILE_BASE_PATH;
+    #if ios
+    if (!sys.FileSystem.exists(dataPath)) dataPath = "../../../../../" + dataPath;
+    #end
+
+    var baseGameEntryIds:Array<Expr> = listBaseGameEntryIds('${dataPath}/${dataFilePath}/');
 
     return (macro class TempClass
       {
@@ -158,7 +168,8 @@ class RegistryMacro
 
         public function listModdedEntryIds():Array<String>
         {
-          return listEntryIds().filter(function(id:String):Bool {
+          return listEntryIds().filter(function(id:String):Bool
+          {
             return listBaseGameEntryIds().indexOf(id) == -1;
           });
         }
@@ -182,7 +193,7 @@ class RegistryMacro
           switch (this.loadEntryFile(id))
           {
             case {fileName: fileName, contents: contents}:
-              parser.fromJson(contents, fileName);
+              parser.fromJson(funkin.util.SerializerUtil.sanitizeJSON(contents), fileName);
             default:
               return null;
           }
@@ -296,30 +307,31 @@ class RegistryMacro
 
     var registry:String = '${registryCls.module}.${registryCls.name}';
 
-    Context.defineType(
-      {
-        pos: Context.currentPos(),
-        pack: ['funkin', 'macro', 'impl'],
-        name: '_${cls.name}_Impl',
-        kind: TypeDefKind.TDClass(null, [], false, false, false),
-        fields: (macro class TempClass
+    Context.defineType({
+      pos: Context.currentPos(),
+      pack: ['funkin', 'macro', 'impl'],
+      name: '_${cls.name}_Impl',
+      kind: TypeDefKind.TDClass(null, [], false, false, false),
+      fields: (macro class TempClass
+        {
+          public static inline function _fetchData(me:$clsType, id:String)
           {
-            public static inline function _fetchData(me:$clsType, id:String)
+            return $
             {
-              return $
-              {
-                Context.parse(registry, Context.currentPos())
-              }.instance.parseEntryDataWithMigration(id, ${Context.parse(registry, Context.currentPos())}.instance.fetchEntryVersion(id));
-            }
+              Context.parse(registry, Context.currentPos())
+            }.instance.parseEntryDataWithMigration(id, ${Context.parse(registry, Context.currentPos())}.instance.fetchEntryVersion(id));
+          }
 
-            public static inline function toString(me:$clsType)
-            {
-              return $v{cls.name} + '(' + me.id + ')';
-            }
+          public static inline function toString(me:$clsType)
+          {
+            return $v{cls.name} + '(' + me.id + ')';
+          }
 
-            public static inline function destroy(me:$clsType) {}
-          }).fields
-      });
+          public static inline function destroy(me:$clsType)
+          {
+          }
+        }).fields
+    });
   }
 
   static function getRegistryDataFilePath(cls:ClassType, fields:Array<Field>):String

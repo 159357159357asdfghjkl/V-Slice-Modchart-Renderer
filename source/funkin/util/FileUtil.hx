@@ -8,10 +8,12 @@ import haxe.io.Path;
 import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
+#if FEATURE_HAXEUI
 import haxe.ui.containers.dialogs.Dialog.DialogButton;
 import haxe.ui.containers.dialogs.Dialogs;
 import haxe.ui.containers.dialogs.Dialogs.SelectedFileInfo;
 import haxe.ui.containers.dialogs.Dialogs.FileDialogExtensionInfo;
+#end
 
 using StringTools;
 
@@ -27,27 +29,25 @@ class FileUtil
   public static final FILE_FILTER_PNG:FileFilter = new FileFilter("PNG Image (.png)", "*.png");
   public static final FILE_FILTER_FNFS:FileFilter = new FileFilter("Friday Night Funkin' Stage (.fnfs)", "*.fnfs");
 
-  public static final FILE_EXTENSION_INFO_FNFC:FileDialogExtensionInfo =
-    {
-      extension: 'fnfc',
-      label: 'Friday Night Funkin\' Chart',
-    };
-  public static final FILE_EXTENSION_INFO_ZIP:FileDialogExtensionInfo =
-    {
-      extension: 'zip',
-      label: 'ZIP Archive',
-    };
-  public static final FILE_EXTENSION_INFO_PNG:FileDialogExtensionInfo =
-    {
-      extension: 'png',
-      label: 'PNG Image',
-    };
+  #if FEATURE_HAXEUI
+  public static final FILE_EXTENSION_INFO_FNFC:FileDialogExtensionInfo = {
+    extension: 'fnfc',
+    label: 'Friday Night Funkin\' Chart',
+  };
+  public static final FILE_EXTENSION_INFO_ZIP:FileDialogExtensionInfo = {
+    extension: 'zip',
+    label: 'ZIP Archive',
+  };
+  public static final FILE_EXTENSION_INFO_PNG:FileDialogExtensionInfo = {
+    extension: 'png',
+    label: 'PNG Image',
+  };
 
-  public static final FILE_EXTENSION_INFO_FNFS:FileDialogExtensionInfo =
-    {
-      extension: 'fnfs',
-      label: 'Friday Night Funkin\' Stage',
-    };
+  public static final FILE_EXTENSION_INFO_FNFS:FileDialogExtensionInfo = {
+    extension: 'fnfs',
+    label: 'Friday Night Funkin\' Stage',
+  };
+  #end
 
   /**
    * Paths which should not be deleted or modified by scripts.
@@ -56,25 +56,7 @@ class FileUtil
 
   public static function get_PROTECTED_PATHS():Array<String>
   {
-    final protected:Array<String> = [
-      '',
-      '.',
-      'assets',
-      'assets/*',
-      'backups',
-      'backups/*',
-      'manifest',
-      'manifest/*',
-      'plugins',
-      'plugins/*',
-      'Funkin.exe',
-      'Funkin',
-      'icon.ico',
-      'libvlc.dll',
-      'libvlccore.dll',
-      'lime.ndll',
-      'scores.json'
-    ];
+    final protected:Array<String> = ['', '.', 'assets', 'assets/*', 'backups', 'backups/*', 'manifest', 'manifest/*', 'plugins', 'plugins/*', 'Funkin.exe', 'Funkin', 'icon.ico', 'libvlc.dll', 'libvlccore.dll', 'lime.ndll', 'scores.json'];
 
     #if sys
     for (i in 0...protected.length)
@@ -106,6 +88,7 @@ class FileUtil
   }
   #end
 
+  #if FEATURE_HAXEUI
   /**
    * Browses for a single file, then calls `onSelect(fileInfo)` when a file is selected.
    * Powered by HaxeUI, so it works on all platforms.
@@ -118,7 +101,8 @@ class FileUtil
   public static function browseForBinaryFile(dialogTitle:String, ?typeFilter:Array<FileDialogExtensionInfo>, onSelect:(SelectedFileInfo) -> Void,
       ?onCancel:() -> Void)
   {
-    var onComplete = function(button, selectedFiles) {
+    var onComplete = function(button, selectedFiles)
+    {
       if (button == DialogButton.OK && selectedFiles.length > 0)
       {
         onSelect(selectedFiles[0]);
@@ -129,14 +113,13 @@ class FileUtil
       }
     };
 
-    Dialogs.openFile(onComplete,
-      {
-        readContents: true,
-        readAsBinary: true, // Binary
-        multiple: false,
-        extensions: typeFilter ?? new Array<FileDialogExtensionInfo>(),
-        title: dialogTitle,
-      });
+    Dialogs.openFile(onComplete, {
+      readContents: true,
+      readAsBinary: true, // Binary
+      multiple: false,
+      extensions: typeFilter ?? new Array<FileDialogExtensionInfo>(),
+      title: dialogTitle,
+    });
   }
 
   /**
@@ -151,7 +134,8 @@ class FileUtil
   public static function browseForTextFile(dialogTitle:String, ?typeFilter:Array<FileDialogExtensionInfo>, onSelect:(SelectedFileInfo) -> Void,
       ?onCancel:() -> Void):Void
   {
-    var onComplete = function(button, selectedFiles) {
+    var onComplete = function(button, selectedFiles)
+    {
       if (button == DialogButton.OK && selectedFiles.length > 0)
       {
         onSelect(selectedFiles[0]);
@@ -162,15 +146,15 @@ class FileUtil
       }
     };
 
-    Dialogs.openFile(onComplete,
-      {
-        readContents: true,
-        readAsBinary: false, // Text
-        multiple: false,
-        extensions: typeFilter ?? new Array<FileDialogExtensionInfo>(),
-        title: dialogTitle,
-      });
+    Dialogs.openFile(onComplete, {
+      readContents: true,
+      readAsBinary: false, // Text
+      multiple: false,
+      extensions: typeFilter ?? new Array<FileDialogExtensionInfo>(),
+      title: dialogTitle,
+    });
   }
+  #end
 
   /**
    * Browses for a directory, then calls `onSelect(path)` when a path chosen.
@@ -339,7 +323,8 @@ class FileUtil
   {
     #if desktop
     // Prompt the user for a directory, then write all of the files to there.
-    var onSelectDir:(String) -> Void = function(targetPath:String):Void {
+    var onSelectDir:(String) -> Void = function(targetPath:String):Void
+    {
       var paths:Array<String> = new Array<String>();
       for (resource in resources)
       {
@@ -412,7 +397,8 @@ class FileUtil
   {
     // Create a ZIP file.
     var zipBytes:Bytes = createZIPFromEntries(resources);
-    var onSave:(String) -> Void = function(path:String) {
+    var onSave:(String) -> Void = function(path:String)
+    {
       trace('Saved ${resources.length} files to ZIP at "$path"');
 
       if (onSave != null)
@@ -434,7 +420,8 @@ class FileUtil
   {
     // Create a ZIP file.
     var zipBytes:Bytes = createZIPFromEntries(resources);
-    var onSave:(String) -> Void = function(path:String) {
+    var onSave:(String) -> Void = function(path:String)
+    {
       trace('Saved FNFC file to "$path"');
 
       if (onSave != null)
@@ -507,11 +494,13 @@ class FileUtil
   public static function browseFileReference(callback:(FileReference) -> Void):Void
   {
     var file = new FileReference();
-    file.addEventListener(Event.SELECT, function(e) {
+    file.addEventListener(Event.SELECT, function(e)
+    {
       var selectedFileRef:FileReference = e.target;
       trace('Selected file: ' + selectedFileRef.name);
 
-      selectedFileRef.addEventListener(Event.COMPLETE, function(e) {
+      selectedFileRef.addEventListener(Event.COMPLETE, function(e)
+      {
         var loadedFileRef:FileReference = e.target;
         trace('Loaded file: ' + loadedFileRef.name);
 
@@ -531,17 +520,20 @@ class FileUtil
   {
     var file = new FileReference();
 
-    file.addEventListener(Event.COMPLETE, function(e:Event) {
+    file.addEventListener(Event.COMPLETE, function(e:Event)
+    {
       trace('Successfully wrote file: "$path"');
       callback("success");
     });
 
-    file.addEventListener(Event.CANCEL, function(e:Event) {
+    file.addEventListener(Event.CANCEL, function(e:Event)
+    {
       trace('Cancelled writing file: "$path"');
       callback("info");
     });
 
-    file.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent) {
+    file.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent)
+    {
       trace('IO error writing file: "$path"');
       callback("error");
     });
@@ -1174,8 +1166,20 @@ class FileUtil
     // thats why the above comment is there!
     Sys.command('open', [pathFolder]);
     #elseif linux
-    // TODO: implement linux
-    // some shit with xdg-open :thinking: emoji...
+    var exitCode = Sys.command("xdg-open", [pathFolder]);
+    if (exitCode == 0) return;
+    var fileManagers:Array<String> = ["dolphin", "nautilus", "nemo", "thunar", "caja", "konqueror", "spacefm", "pcmanfm"];
+
+    for (fm in fileManagers)
+    {
+      if (Sys.command("which", [fm]) == 0)
+      {
+        exitCode = Sys.command(fm, [pathFolder]);
+        if (exitCode == 0) return;
+      }
+    }
+
+    trace('No compatible file manager found for Linux.');
     #end
     #else
     throw 'External folder open is not supported on this platform.';
@@ -1201,8 +1205,9 @@ class FileUtil
     #elseif mac
     Sys.command('open', ['-R', path]);
     #elseif linux
-    // TODO: unsure of the linux equivalent to opening a folder and then "selecting" a file.
-    Sys.command('open', [path]);
+    trace('File selection not reliably supported on Linux, opening parent folder instead.');
+    path = Path.directory(path);
+    openFolder(path);
     #end
     #else
     throw 'External file selection is not supported on this platform.';
@@ -1325,6 +1330,7 @@ class FileUtilSandboxed
   public static final FILE_FILTER_ZIP:FileFilter = FileUtil.FILE_FILTER_ZIP;
   public static final FILE_FILTER_PNG:FileFilter = FileUtil.FILE_FILTER_PNG;
 
+  #if FEATURE_HAXEUI
   public static final FILE_EXTENSION_INFO_FNFC:FileDialogExtensionInfo = FileUtil.FILE_EXTENSION_INFO_FNFC;
   public static final FILE_EXTENSION_INFO_ZIP:FileDialogExtensionInfo = FileUtil.FILE_EXTENSION_INFO_ZIP;
   public static final FILE_EXTENSION_INFO_PNG:FileDialogExtensionInfo = FileUtil.FILE_EXTENSION_INFO_PNG;
@@ -1340,6 +1346,7 @@ class FileUtilSandboxed
   {
     FileUtil.browseForTextFile(dialogTitle, typeFilter, onSelect, onCancel);
   }
+  #end
 
   public static function browseForDirectory(?typeFilter:Array<FileFilter>, onSelect:(String) -> Void, ?onCancel:() -> Void, ?defaultPath:String,
       ?dialogTitle:String):Bool

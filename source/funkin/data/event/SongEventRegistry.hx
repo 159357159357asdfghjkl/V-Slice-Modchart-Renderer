@@ -1,9 +1,11 @@
 package funkin.data.event;
 
-import funkin.play.event.SongEvent;
+import flixel.util.FlxSort;
 import funkin.data.song.SongData.SongEventData;
-import funkin.util.macro.ClassMacro;
 import funkin.play.event.ScriptedSongEvent;
+import funkin.play.event.SongEvent;
+import funkin.util.macro.ClassMacro;
+import funkin.util.SortUtil;
 
 /**
  * This class statically handles the parsing of internal and scripted song event handlers.
@@ -13,7 +15,7 @@ class SongEventRegistry
 {
   /**
    * Every built-in event class must be added to this list.
-   * Thankfully, with the power of `SongEventMacro`, this is done automatically.
+   * Thankfully, with the power of `ClassMacro`, this is done automatically.
    */
   static final BUILTIN_EVENTS:List<Class<SongEvent>> = ClassMacro.listSubclassesOf(SongEvent);
 
@@ -46,12 +48,12 @@ class SongEventRegistry
 
       if (event != null)
       {
-        trace('  Loaded built-in song event: ${event.id}');
+        trace(' Loaded built-in song event: ${event.id}');
         eventCache.set(event.id, event);
       }
       else
       {
-        trace('  Failed to load built-in song event: ${Type.getClassName(eventCls)}');
+        trace(' Failed to load built-in song event: ${Type.getClassName(eventCls)}');
       }
     }
   }
@@ -64,16 +66,16 @@ class SongEventRegistry
 
     for (eventCls in scriptedEventClassNames)
     {
-      var event:SongEvent = ScriptedSongEvent.init(eventCls, "UKNOWN");
+      var event:SongEvent = ScriptedSongEvent.scriptInit(eventCls, "UKNOWN");
 
       if (event != null)
       {
-        trace('  Loaded scripted song event: ${event.id}');
+        trace(' Loaded scripted song event: ${event.id}');
         eventCache.set(event.id, event);
       }
       else
       {
-        trace('  Failed to instantiate scripted song event class: ${eventCls}');
+        trace(' Failed to instantiate scripted song event class: ${eventCls}');
       }
     }
   }
@@ -108,8 +110,7 @@ class SongEventRegistry
 
   public static function handleEvent(data:SongEventData):Void
   {
-    var eventKind:String = data.eventKind;
-    var eventHandler:Null<SongEvent> = eventCache.get(eventKind);
+    var eventHandler:Null<SongEvent> = getEvent(data.eventKind);
 
     if (eventHandler != null)
     {
@@ -117,7 +118,7 @@ class SongEventRegistry
     }
     else
     {
-      trace('WARNING: No event handler for event with kind: ${eventKind}');
+      trace('WARNING: No event handler for event with kind: ${data.eventKind}');
     }
 
     data.activated = true;
@@ -132,12 +133,14 @@ class SongEventRegistry
   }
 
   /**
-   * Given a list of song events and the current timestamp,
-   * return a list of events that should be handled.
+   * @param events The list of available song events.
+   * @param currentTime The current time in milliseconds.
+   * @return The list of events which haven't been handled yet.
    */
   public static function queryEvents(events:Array<SongEventData>, currentTime:Float):Array<SongEventData>
   {
-    return events.filter(function(event:SongEventData):Bool {
+    var result:Array<SongEventData> = events.filter(function(event:SongEventData):Bool
+    {
       // If the event is already activated, don't activate it again.
       if (event.activated) return false;
 
@@ -146,6 +149,10 @@ class SongEventRegistry
 
       return true;
     });
+
+    result.sort(SortUtil.eventDataByTime.bind(FlxSort.ASCENDING));
+
+    return result;
   }
 
   /**

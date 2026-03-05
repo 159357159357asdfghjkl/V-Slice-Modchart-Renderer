@@ -19,15 +19,10 @@ import flixel.math.FlxPoint;
 import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.objects.PolyLine;
-import funkin.play.modchart.util.CubicSplineHandler;
 import openfl.geom.Vector3D;
+import openfl.geom.Matrix3D;
 import openfl.Vector;
-import flixel.math.FlxPoint;
 import flixel.math.FlxMath;
-import openfl.geom.Vector3D;
-import openfl.Vector;
-import funkin.play.modchart.objects.PolyLine;
-import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.util.CubicSplineHandler;
 #if mobile
 import funkin.mobile.input.ControlsHandler;
@@ -514,7 +509,7 @@ class Strumline extends FlxSpriteGroup
     var spSkew:Vector3D = new Vector3D();
     getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
     fullPos.incrementBy(difference);
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
+    var m:Matrix3D = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
     var order:Int = Std.int(mods.getValue('rotationorder'));
     var rotationOrder:String = 'zyx';
     if (order == 0) rotationOrder = 'zyx';
@@ -523,9 +518,9 @@ class Strumline extends FlxSpriteGroup
     else if (order == 3) rotationOrder = 'yxz';
     else if (order == 4) rotationOrder = 'xyz';
     else if (order == 5) rotationOrder = 'xzy';
-    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
+    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
+    var scaleMat:Matrix3D = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
+    var skew:Matrix3D = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
     var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
       ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
     zPos.decrementBy(offset);
@@ -1025,7 +1020,8 @@ class Strumline extends FlxSpriteGroup
     note.diffuse.x = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'red');
     note.diffuse.y = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'green');
     note.diffuse.z = mods.ArrowGetPercentRGB(col, realofs, yposWithoutReverse, 'blue');
-    note.diffuse.w = none ? (realSpStealth > 0.5 ? 1.0 : 0.0) : mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null, false);
+    note.diffuse.w = none ? (realSpStealth > 0.5 ? 1.0 : 0.0) * this.alpha : mods.GetAlpha(yposWithoutReverse, col, realofs, note.holdNoteSprite != null,
+      false) * this.alpha;
     note.glow.x = mods.getValue('stealthglowred') * mods.getValue('stealthglowred$col');
     note.glow.y = mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$col');
     note.glow.z = mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$col');
@@ -1146,7 +1142,7 @@ class Strumline extends FlxSpriteGroup
     strumNote.pos.copyFrom(pos.add(difference));
     var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
     fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-    strumNote.diffuse.w = fBaseAlpha;
+    strumNote.diffuse.w = fBaseAlpha * this.alpha;
   }
 
   function updateOneSplash(splash:NoteSplash):Void
@@ -1222,7 +1218,7 @@ class Strumline extends FlxSpriteGroup
     splash.pos.copyFrom(pos.add(difference));
     var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
     fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-    splash.diffuse.w = fBaseAlpha;
+    splash.diffuse.w = fBaseAlpha * this.alpha;
   }
 
   function updateOneCover(cover:NoteHoldCover):Void
@@ -1303,7 +1299,7 @@ class Strumline extends FlxSpriteGroup
     glow.pos.copyFrom(pos.add(difference));
     var fBaseAlpha:Float = 1 - mods.getValue('dark') - mods.getValue('dark$col');
     fBaseAlpha = ModchartMath.clamp(fBaseAlpha, 0, 1);
-    glow.diffuse.w = fBaseAlpha;
+    glow.diffuse.w = fBaseAlpha * this.alpha;
   }
 
   public var pathSizeBack:Float = 200;
@@ -1328,6 +1324,7 @@ class Strumline extends FlxSpriteGroup
       var line:PolyLine = this.arrowpaths.members[column];
       line.x = line.y = 0;
       var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+      alpha *= this.alpha;
       line.alpha = alpha;
       if (alpha <= 0) continue;
       var player = modNumber;

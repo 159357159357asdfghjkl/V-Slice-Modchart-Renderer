@@ -25,7 +25,7 @@ This game was made with love to Newgrounds and its community. Extra love to Tom 
 
 You can also call it NotITF
 
-An avant-garde FNF Modchart System
+An avant-garde FNF Modchart System which is always WIP, never release
 
 some modchart codes are from stepmania(90% maths) / mirin template(the default template to write mods) / Psych Engine(lua system)
 

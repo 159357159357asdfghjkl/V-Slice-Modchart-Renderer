@@ -1,18 +1,14 @@
 package funkin.play.modchart.objects;
 
 import flixel.math.FlxPoint;
-import openfl.geom.Matrix;
-import flixel.FlxCamera;
+import openfl.geom.Matrix3D;
 import flixel.FlxG;
-import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
-import flixel.math.FlxAngle;
 import flixel.util.FlxDestroyUtil;
 import openfl.Vector;
 import openfl.geom.Vector3D;
 import funkin.graphics.FunkinSprite;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.ColorTransform;
-import flixel.math.FlxMath;
 
 class FunkinActor extends FunkinSprite
 {
@@ -58,17 +54,17 @@ class FunkinActor extends FunkinSprite
 
   function getPos(vec:Vector3D):Vector3D
   {
-    var m:Array<Array<Float>> = ModchartMath.translateMatrix((pos.x + basePos.x + pos2.x) * baseZoom.x, (pos.y + basePos.y + pos2.y) * baseZoom.y,
+    var m:Matrix3D = ModchartMath.translateMatrix((pos.x + basePos.x + pos2.x) * baseZoom.x, (pos.y + basePos.y + pos2.y) * baseZoom.y,
       (pos.z + basePos.z) * baseZoom.z);
-    var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x + baseRotation.x, rotation.y + baseRotation.y, rotation.z + baseRotation.z,
+    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x + baseRotation.x, rotation.y + baseRotation.y, rotation.z + baseRotation.z,
       rotationOrder);
-    var scale:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, SCALE.x * baseScale.x * baseZoom.x, SCALE.y * baseScale.y * baseZoom.y,
+    var scale:Matrix3D = ModchartMath.scaleMatrix(rotate, SCALE.x * baseScale.x * baseZoom.x, SCALE.y * baseScale.y * baseZoom.y,
       SCALE.z * baseScale.z * baseZoom.z);
-    var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scale, SKEW.x + baseSkew.x, SKEW.y + baseSkew.y);
+    var skew:Matrix3D = ModchartMath.skewMatrix(scale, SKEW.x + baseSkew.x, SKEW.y + baseSkew.y);
     var persp:Vector3D = ModchartMath.initPerspective(vec, skew, fov, FlxG.width, FlxG.height,
       ModchartMath.scale(_skew, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
-    persp.x += offsetX; // - offset.x;
-    persp.y += offsetY; // - offset.y;
+    persp.x += offsetX;
+    persp.y += offsetY;
     return persp;
   }
 

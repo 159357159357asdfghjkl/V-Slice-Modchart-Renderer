@@ -8,8 +8,10 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxMath;
 import openfl.geom.Vector3D;
+import openfl.geom.Matrix3D;
 import openfl.geom.ColorTransform;
 import funkin.play.modchart.util.ModchartMath;
+import funkin.play.modchart.Modchart;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -254,7 +256,7 @@ class SustainTrail extends FlxSprite
     {
       triggerRedraw();
     }
-    else if (useNew)
+    else
     {
       updateClipping();
     }
@@ -298,114 +300,108 @@ class SustainTrail extends FlxSprite
 
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
   {
-    if (parentStrumline != null)
+    var mods:Modchart = parentStrumline.mods;
+    var conductorInUse:Conductor = parentStrumline.conductorInUse;
+    var speed:Float = parentStrumline.scrollSpeed;
+    var down:Bool = parentStrumline.isDownscroll;
+    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+    var pn:Int = parentStrumline.modNumber;
+    var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
+    var xoffArray:Array<Float> = parentStrumline.xoffArray;
+    var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
+    var timeDiff:Float = mods.baseHoldSize;
+    var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
+    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
+      mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
+    var difference:Vector3D = parentStrumline.getDifference();
+    var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
+    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, down, reversedOff),
+      mods.GetZPos(column, ofs, pn, xoffArray));
+    if (mods.getValue('fixeffect') != 0)
     {
-      var conductorInUse:Conductor = parentStrumline.conductorInUse;
-      var speed:Float = parentStrumline.scrollSpeed;
-      var down:Bool = parentStrumline.isDownscroll;
-      var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
-      var pn:Int = parentStrumline.modNumber;
-      var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
-      var xoffArray:Array<Float> = parentStrumline.xoffArray;
-      var ofs:Float = (parentStrumline.mods.getValue('centeredpath') + parentStrumline.mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
-      var timeDiff:Float = parentStrumline.mods.baseHoldSize;
-      var yOffset:Float = parentStrumline.mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
-      var pos:Vector3D = new Vector3D(parentStrumline.mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
-        parentStrumline.mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) + this.yOffset,
-        parentStrumline.mods.GetZPos(column, yOffset, pn, xoffArray));
-      var difference:Vector3D = parentStrumline.getDifference();
-      var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-      var strumPos:Vector3D = new Vector3D(parentStrumline.mods.GetXPos(column, ofs, pn, xoffArray, false),
-        parentStrumline.mods.GetYPos(column, ofs, pn, xoffArray, down, reversedOff), parentStrumline.mods.GetZPos(column, ofs, pn, xoffArray));
-      if (parentStrumline.mods.getValue('fixeffect') != 0)
-      {
-        originVec.incrementBy(strumPos);
-        originVec.x -= xoffArray[column];
-        originVec.y += 2 * Strumline.NOTE_SPACING;
-      }
-      var effect:Float = 1 - parentStrumline.mods.getValue('straightholds');
-      var noteYOffset:Float = parentStrumline.mods.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) + ofs;
-      var notePos:Vector3D = new Vector3D(parentStrumline.mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
-        parentStrumline.mods.GetYPos(column, noteYOffset, pn, xoffArray, down, reversedOff), parentStrumline.mods.GetZPos(column, noteYOffset, pn, xoffArray));
-      var yOffset2:Float = parentStrumline.mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
-      var pos4:Vector3D = new Vector3D(parentStrumline.mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
-        parentStrumline.mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset,
-        parentStrumline.mods.GetZPos(column, yOffset2, pn, xoffArray));
-      var diff:Vector3D = pos4.subtract(pos);
-      var ang:Float = Math.atan2(diff.y, diff.x);
-      var angOrientX:Float = Math.atan2(diff.y, diff.z);
-      var angOrientY:Float = Math.atan2(diff.z, diff.x);
-      var pos2:Vector3D = notePos.clone();
-      var pos3:Vector3D = strumPos.clone();
-      pos2.x *= effect;
-      pos2.z *= effect;
-      pos3.x *= effect;
-      pos3.z *= effect;
-      pos.x *= effect;
-      pos.z *= effect;
-      var offset:Vector3D = new Vector3D(pos2.x - notePos.x, 0, pos2.z - notePos.z);
-      if (hitNote && !missedNote)
-      {
-        offset.x = pos3.x - strumPos.x;
-        offset.z = pos3.z - strumPos.z;
-      }
-      var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-      var rotation:Vector3D = new Vector3D(parentStrumline.mods.GetRotationX(column, yOffset, true, angOrientX),
-        parentStrumline.mods.GetRotationY(column, yOffset, true, angOrientY), parentStrumline.mods.GetRotationZ(column, yOffset, noteBeat, true, ang, true));
-      var fullPos:Vector3D = pos.clone();
-      var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
-      var scale:Array<Float> = parentStrumline.mods.GetScale(column, yOffset, pn);
-      var zoom:Float = parentStrumline.mods.GetZoom(column, yOffset, pn);
-      var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
-      var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-      var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
-      var spPos:Vector3D = new Vector3D();
-      var spZoom:Vector3D = new Vector3D();
-      var spSkew:Vector3D = new Vector3D();
-      var spStealth:Vector3D = new Vector3D();
-      var realSpZoom:Float = 1;
-      var realSpStealth:Float = 0;
-      parentStrumline.mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-      var newZoom:Vector3D = parentStrumline.zoom.clone();
-      newZoom.x *= parentStrumline.zoom2.x;
-      newZoom.y *= parentStrumline.zoom2.y;
-      newZoom.z *= parentStrumline.zoom2.z;
-      parentStrumline.mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
-        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-      var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
-      if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
-      parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 0, spPos);
-      parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 0, spZoom);
-      realSpZoom = 1 - 0.5 * spZoom.x;
-      parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 0, spStealth);
-      realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
-      parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 0, spSkew);
-      fullPos.incrementBy(difference);
-      var m:Array<Array<Float>> = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
-      var rotate:Array<Array<Float>> = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-      var scaleMat:Array<Array<Float>> = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
-      var skew:Array<Array<Float>> = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
-      var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, fov, FlxG.width, FlxG.height,
-        ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
-      zPos.decrementBy(offset);
-      zPos.incrementBy(new Vector3D(offsetX, offsetY));
-      var yposWithoutReverse:Float = parentStrumline.mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
-      var alpha:Float = parentStrumline.mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
-      var glow:Float = parentStrumline.mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
-      var none:Bool = parentStrumline.mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
-      var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
-      var splineGlow:Float = ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
-      var diffuses:Vector3D = new Vector3D(parentStrumline.mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red'),
-        parentStrumline.mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green'),
-        parentStrumline.mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue'),
-        none ? splineStealth * this.alpha * camera.alpha : alpha * this.alpha * camera.alpha);
-      var glowColor:Vector3D = new Vector3D(parentStrumline.mods.getValue('stealthglowred') * parentStrumline.mods.getValue('stealthglowred$column'),
-        parentStrumline.mods.getValue('stealthglowgreen') * parentStrumline.mods.getValue('stealthglowgreen$column'),
-        parentStrumline.mods.getValue('stealthglowblue') * parentStrumline.mods.getValue('stealthglowblue$column'), none ? splineGlow : glow);
-      return [zPos, diffuses, glowColor];
+      originVec.incrementBy(strumPos);
+      originVec.x -= xoffArray[column];
+      originVec.y += 2 * Strumline.NOTE_SPACING;
     }
-    else
-      return [new Vector3D(0, 0, 0, 1), new Vector3D(1, 1, 1, 1), new Vector3D(1, 1, 1, 0)];
+    var effect:Float = 1 - mods.getValue('straightholds');
+    var noteYOffset:Float = mods.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) + ofs;
+    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
+      mods.GetYPos(column, noteYOffset, pn, xoffArray, down, reversedOff), mods.GetZPos(column, noteYOffset, pn, xoffArray));
+    var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
+    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
+      mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
+    var diff:Vector3D = pos4.subtract(pos);
+    var ang:Float = Math.atan2(diff.y, diff.x);
+    var angOrientX:Float = Math.atan2(diff.y, diff.z);
+    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var pos2:Vector3D = notePos.clone();
+    var pos3:Vector3D = strumPos.clone();
+    pos2.x *= effect;
+    pos2.z *= effect;
+    pos3.x *= effect;
+    pos3.z *= effect;
+    pos.x *= effect;
+    pos.z *= effect;
+    var offset:Vector3D = new Vector3D(pos2.x - notePos.x, 0, pos2.z - notePos.z);
+    if (hitNote && !missedNote)
+    {
+      offset.x = pos3.x - strumPos.x;
+      offset.z = pos3.z - strumPos.z;
+    }
+    var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angOrientX), mods.GetRotationY(column, yOffset, true, angOrientY),
+      mods.GetRotationZ(column, yOffset, noteBeat, true, ang, true));
+    var fullPos:Vector3D = pos.clone();
+    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
+    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
+    var zoom:Float = mods.GetZoom(column, yOffset, pn);
+    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
+    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+    var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
+    var spPos:Vector3D = new Vector3D();
+    var spZoom:Vector3D = new Vector3D();
+    var spSkew:Vector3D = new Vector3D();
+    var spStealth:Vector3D = new Vector3D();
+    var realSpZoom:Float = 1;
+    var realSpStealth:Float = 0;
+    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+    var newZoom:Vector3D = parentStrumline.zoom.clone();
+    newZoom.x *= parentStrumline.zoom2.x;
+    newZoom.y *= parentStrumline.zoom2.y;
+    newZoom.z *= parentStrumline.zoom2.z;
+    mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
+      parentStrumline.skew.add(parentStrumline.skew2), newZoom);
+    var spiralHolds:Float = mods.getValue('spiralholds');
+    if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
+    parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 0, spPos);
+    parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 0, spZoom);
+    realSpZoom = 1 - 0.5 * spZoom.x;
+    parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 0, spStealth);
+    realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
+    parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 0, spSkew);
+    fullPos.incrementBy(difference);
+    var m:Matrix3D = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
+    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
+    var scaleMat:Matrix3D = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
+    var skew:Matrix3D = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
+    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, fov, FlxG.width, FlxG.height,
+      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
+    zPos.decrementBy(offset);
+    zPos.incrementBy(new Vector3D(offsetX, offsetY));
+    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
+    var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
+    if (none) alpha = splineStealth;
+    alpha *= this.alpha * camera.alpha * parentStrumline.alpha;
+    var glow:Float = mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
+    var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
+    var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
+    var splineGlow:Float = ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
+    var diffuses:Vector3D = new Vector3D(mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red'),
+      mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green'), mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue'), alpha);
+    var glowColor:Vector3D = new Vector3D(mods.getValue('stealthglowred') * mods.getValue('stealthglowred$column'),
+      mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$column'),
+      mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$column'), none ? splineGlow : glow);
+    return [zPos, diffuses, glowColor];
   }
 
   public function updateClipping(songTime:Float = 0)
@@ -419,7 +415,7 @@ class SustainTrail extends FlxSprite
 
   public function updateClippingNew(songTime:Float = 0):Void
   {
-    if (graphic == null)
+    if (graphic == null || parentStrumline == null)
     {
       return;
     }
@@ -433,33 +429,27 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
-    var drawsize:Float = 1 + (parentStrumline?.mods?.getValue('drawsize') ?? 0.0);
-    var drawsizeback:Float = 1 + (parentStrumline?.mods?.getValue('drawsizeback') ?? 0.0);
-    var draw_ms_after_targets:Float = -(parentStrumline?.pathSizeBack ?? 200) * drawsizeback;
-    var centered_times_boomerang:Float = (parentStrumline?.mods?.getValue('centered') ?? 0.0) * (parentStrumline?.mods?.getValue('boomerang') ?? 0.0);
+    var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');
+    var drawsizeback:Float = 1 + parentStrumline.mods.getValue('drawsizeback');
+    var draw_ms_after_targets:Float = -parentStrumline.pathSizeBack * drawsizeback;
+    var centered_times_boomerang:Float = parentStrumline.mods.getValue('centered') * parentStrumline.mods.getValue('boomerang');
     draw_ms_after_targets -= Std.int(ModchartMath.scale(centered_times_boomerang, 0.0, 1.0, 0.0, -FlxG.height / 2));
-    var draw_ms_before_targets:Float = (parentStrumline?.pathSizeFront ?? 1000) * drawsize;
-    var draw_scale:Float = 1 + 0.5 * Math.abs(parentStrumline?.mods?.tilt ?? 0.0);
-    draw_scale *= 1 + Math.abs(parentStrumline?.mods?.getValue('mini') ?? 0.0);
+    var draw_ms_before_targets:Float = parentStrumline.pathSizeFront * drawsize;
+    var draw_scale:Float = 1 + 0.5 * Math.abs(parentStrumline.mods.tilt);
+    draw_scale *= 1 + Math.abs(parentStrumline.mods.getValue('mini'));
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
-    var roughness:Float = parentStrumline?.mods?.baseHoldSize ?? 4;
-    var longHolds:Float = 1 + (parentStrumline?.mods?.getValue('longholds') ?? 0.0);
+    var roughness:Float = parentStrumline.mods.baseHoldSize;
+    var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
-    var grain:Float = parentStrumline?.mods?.getValue('granulate') ?? 0;
+    var grain:Float = parentStrumline.mods.getValue('granulate');
     if (Math.abs(grain) <= FlxMath.EPSILON) grain = 4;
     var length:Int = Math.floor((fullSustainLength) / (roughness * grain));
     if (grain < 0) length = Math.floor((fullSustainLength) / (roughness / Math.abs(grain)));
-    if (parentStrumline != null)
-    {
-      var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
-      if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer())
-      {
-        length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
-      }
-    }
+    var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
+    if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;
     var halfWidth:Float = graphicWidth / 2;
     var uvIndexArray:Array<Int> = [for (i in 0...length) i];

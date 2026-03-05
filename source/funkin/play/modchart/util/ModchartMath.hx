@@ -1,6 +1,8 @@
 package funkin.play.modchart.util;
 
 import openfl.geom.Vector3D;
+import openfl.geom.Matrix3D;
+import openfl.Vector;
 import funkin.play.notes.Strumline;
 import openfl.Lib;
 import flixel.math.FlxMath;
@@ -100,15 +102,17 @@ class ModchartMath
     }
   }
 
-  public static function initPerspective(vec:Vector3D, m:Array<Array<Float>>, fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,
-      fVanishPointY:Float)
+  public static function initPerspective(vec:Vector3D, m:Matrix3D, fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float)
   {
-    var matrix:Array<Array<Array<Float>>> = __loadPerspective(fovDegrees, fWidth, fHeight, fVanishPointX, fVanishPointY);
-    var projection:Array<Array<Float>> = matrix[0];
-    var modelView:Array<Array<Float>> = multiply(matrix[1], m);
-    var a:Vector3D = transform(transform(vec, modelView), projection);
-    a.project();
-    var b:Vector3D = new Vector3D((a.x + 1) / 2 * fWidth, (a.y + 1) / 2 * fHeight);
+    var matrix:Array<Matrix3D> = __loadPerspective(fovDegrees, fWidth, fHeight, fVanishPointX, fVanishPointY);
+    var proj:Matrix3D = matrix[0];
+    m.append(matrix[1]); // modelView
+    var p1:Vector3D = new Vector3D();
+    m.transformVectorToOutput(vec, p1);
+    var p2:Vector3D = new Vector3D();
+    proj.transformVectorToOutput(p1, p2);
+    p2.project();
+    var b:Vector3D = new Vector3D((p2.x + 1) / 2 * fWidth, (p2.y + 1) / 2 * fHeight);
     return b;
   }
 
@@ -145,38 +149,7 @@ class ModchartMath
     return clamp(__fastTanNoClip(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
-  inline public static function transform(v:Vector3D, a:Array<Array<Float>>):Vector3D
-  {
-    return new Vector3D(a[0][0] * v.x + a[1][0] * v.y + a[2][0] * v.z + a[3][0] * v.w, a[0][1] * v.x + a[1][1] * v.y + a[2][1] * v.z + a[3][1] * v.w,
-      a[0][2] * v.x + a[1][2] * v.y + a[2][2] * v.z + a[3][2] * v.w, a[0][3] * v.x + a[1][3] * v.y + a[2][3] * v.z + a[3][3] * v.w);
-  }
-
-  inline public static function multiply(a:Array<Array<Float>>, b:Array<Array<Float>>):Array<Array<Float>>
-  {
-    return [[
-      b[0][0] * a[0][0] + b[0][1] * a[1][0] + b[0][2] * a[2][0] + b[0][3] * a[3][0], b[0][0] * a[0][1]
-      + b[0][1] * a[1][1] + b[0][2] * a[2][1] + b[0][3] * a[3][1],
-      b[0][0] * a[0][2] + b[0][1] * a[1][2] + b[0][2] * a[2][2] + b[0][3] * a[3][2], b[0][0] * a[0][3]
-      + b[0][1] * a[1][3] + b[0][2] * a[2][3] + b[0][3] * a[3][3]
-    ], [
-      b[1][0] * a[0][0] + b[1][1] * a[1][0] + b[1][2] * a[2][0] + b[1][3] * a[3][0], b[1][0] * a[0][1]
-      + b[1][1] * a[1][1] + b[1][2] * a[2][1] + b[1][3] * a[3][1],
-      b[1][0] * a[0][2] + b[1][1] * a[1][2] + b[1][2] * a[2][2] + b[1][3] * a[3][2], b[1][0] * a[0][3]
-      + b[1][1] * a[1][3] + b[1][2] * a[2][3] + b[1][3] * a[3][3]
-      ], [
-      b[2][0] * a[0][0] + b[2][1] * a[1][0] + b[2][2] * a[2][0] + b[2][3] * a[3][0], b[2][0] * a[0][1]
-      + b[2][1] * a[1][1] + b[2][2] * a[2][1] + b[2][3] * a[3][1],
-      b[2][0] * a[0][2] + b[2][1] * a[1][2] + b[2][2] * a[2][2] + b[2][3] * a[3][2], b[2][0] * a[0][3]
-      + b[2][1] * a[1][3] + b[2][2] * a[2][3] + b[2][3] * a[3][3]
-      ], [
-      b[3][0] * a[0][0] + b[3][1] * a[1][0] + b[3][2] * a[2][0] + b[3][3] * a[3][0], b[3][0] * a[0][1]
-      + b[3][1] * a[1][1] + b[3][2] * a[2][1] + b[3][3] * a[3][1],
-      b[3][0] * a[0][2] + b[3][1] * a[1][2] + b[3][2] * a[2][2] + b[3][3] * a[3][2], b[3][0] * a[0][3]
-      + b[3][1] * a[1][3] + b[3][2] * a[2][3] + b[3][3] * a[3][3]
-      ]];
-  }
-
-  public static function rotateMatrix(a:Array<Array<Float>>, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Array<Array<Float>>
+  public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Matrix3D
   {
     rX *= Math.PI / 180;
     rY *= Math.PI / 180;
@@ -189,25 +162,35 @@ class ModchartMath
     var cZ:Float = FlxMath.fastCos(rZ);
     var sZ:Float = FlxMath.fastSin(rZ);
 
-    var mat:Array<Array<Float>> = switch (order)
+    var mat:Matrix3D = new Matrix3D(new Vector<Float>( switch (order)
     {
-      case 'zyx': [[cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0], [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0], [-sY, cY * sX, cY * cX, 0], [0, 0, 0, 1],];
-      case 'xyz': [[cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0], [sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX - cZ * cX, 0], [-sY, cY * cX, cY * sX, 0], [0, 0, 0, 1]];
-      case 'zxy': [[cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0], [cX * sZ, cX * cZ, -sX, 0], [-sY * cZ + cY * sX * sZ, sY * sZ + cY * sX * cZ, cY * cX, 0], [0, 0, 0, 1]];
-      case 'xzy': [[cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0], [cY * sZ, cZ, cY * sZ * sX - sY * cX, 0], [-sY * cZ, 0, -sY * sZ * cX + cY * cX, 0], [0, 0, 0, 1]];
-      case 'yxz': [[cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0], [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0], [
-          cX * sY, cX * cY,
-              -sX,       0
-        ], [0, 0, 0, 1]];
-      case 'yzx': [[cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0], [sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0], [
-          cX * sY, cX * cY,
-              -sX,       0
-        ], [0, 0, 0, 1]];
+      case 'zyx': [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
+          -sZ * cY,
+          -sZ * sY * sX
+          + cZ * cX,
+          -sZ * sY * cX
+          + cZ * -sX, 0,
+          -sY, cY * sX, cY * cX, 0, 0, 0, 0, 1];
+      case 'xyz': [cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0, sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX
+          - cZ * cX, 0, -sY, cY * cX, cY * sX, 0, 0, 0, 0, 1];
+      case 'zxy': [cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0, cX * sZ, cX * cZ, -sX, 0, -sY * cZ + cY * sX * sZ, sY * sZ
+          + cY * sX * cZ, cY * cX, 0, 0, 0, 0, 1];
+      case 'xzy': [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0, cY * sZ, cZ, cY * sZ * sX - sY * cX, 0, -sY * cZ, 0, -sY * sZ * cX + cY * cX, 0, 0, 0, 0, 1];
+      case 'yxz': [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY
+          + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY, -sX, 0, 0, 0, 0, 1];
+      case 'yzx': [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY
+          + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY, -sX, 0, 0, 0, 0, 1];
       default:
-        [[cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * (-sX), 0], [(-sZ) * cY, (-sZ) * sY * sX + cZ * cX, (-sZ) * sY * cX + cZ * (-sX), 0], [-sY, cY * sX, cY * cX, 0], [0, 0, 0, 1],];
-    }
-    var m:Array<Array<Float>> = multiply(a, mat);
-    return m;
+        [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
+          -sZ * cY,
+          -sZ * sY * sX
+          + cZ * cX,
+          -sZ * sY * cX
+          + cZ * -sX, 0,
+          -sY, cY * sX, cY * cX, 0, 0, 0, 0, 1];
+    }));
+    mat.append(a);
+    return mat;
   }
 
   public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
@@ -232,18 +215,20 @@ class ModchartMath
       + cY * cX * v.z, v.w);
   }
 
-  public static function translateMatrix(x:Float, y:Float, z:Float):Array<Array<Float>>
+  public static function translateMatrix(x:Float, y:Float, z:Float):Matrix3D
   {
-    return [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [x, y, z, 1]];
+    var mat:Matrix3D = new Matrix3D();
+    mat.appendTranslation(x, y, z);
+    return mat;
   }
 
-  public static function skewMatrix(a:Array<Array<Float>>, sx:Float, sy:Float):Array<Array<Float>>
+  public static function skewMatrix(a:Matrix3D, sx:Float, sy:Float):Matrix3D
   {
-    var mat:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-    mat[1][0] = sx;
-    mat[0][1] = sy;
-    var m:Array<Array<Float>> = multiply(a, mat);
-    return m;
+    var mat:Matrix3D = new Matrix3D();
+    mat.rawData[4] = sx;
+    mat.rawData[1] = sy;
+    mat.append(a);
+    return mat;
   }
 
   public static function skewVec3(v:Vector3D, sx:Float, sy:Float):Vector3D
@@ -251,14 +236,10 @@ class ModchartMath
     return new Vector3D(v.x + v.y * sx, v.y + v.x * sy, v.z, v.w);
   }
 
-  public static function scaleMatrix(a:Array<Array<Float>>, sx:Float, sy:Float, sz:Float):Array<Array<Float>>
+  public static function scaleMatrix(a:Matrix3D, sx:Float, sy:Float, sz:Float):Matrix3D
   {
-    var mat:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-    mat[0][0] = sx;
-    mat[1][1] = sy;
-    mat[2][2] = sz;
-    var m:Array<Array<Float>> = multiply(a, mat);
-    return m;
+    a.prependScale(sx, sy, sz);
+    return a;
   }
 
   public static function scaleVec3(v:Vector3D, sx:Float, sy:Float, sz:Float):Vector3D
@@ -273,7 +254,7 @@ class ModchartMath
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
 
-  private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Array<Array<Float>>>
+  private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Matrix3D>
   {
     if (fovDegrees == 0)
     {
@@ -283,8 +264,10 @@ class ModchartMath
       var t:Float = 0;
       var zn:Float = -1000;
       var zf:Float = 1000;
-      return [[[2 / (r - l), 0, 0, 0], [0, -2 / (t - b), 0, 0], [0, 0, -2 / (zf - zn), 0], [-(r + l) / (r - l), -(t + b) / (t - b), -(zf +
-        zn) / (zf - zn), 1]], [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]];
+      return [new Matrix3D(new Vector<Float>([2 / (r - l), 0, 0, 0, 0, -2 / (t - b), 0, 0, 0, 0, -2 / (zf - zn), 0,
+        -(r + l) / (r - l),
+        -(t + b) / (t - b),
+        -(zf + zn) / (zf - zn), 1])), new Matrix3D()];
     }
     else
     {
@@ -306,15 +289,14 @@ class ModchartMath
       var B:Float = (t + b) / (t - b);
       var C:Float = -1 * (zf + zn) / (zf - zn);
       var D:Float = -1 * (2 * zf * zn) / (zf - zn);
-      var persp:Array<Array<Array<Float>>> = [[[2 * zn / (r - l), 0, 0, 0], [0, -2 * zn / (t - b), 0, 0], [A, B, C, -1], [0, 0, D, 0]], __lookAt(-fVanishPointX +
+      var persp:Array<Matrix3D> = [new Matrix3D(new Vector<Float>([2 * zn / (r - l), 0, 0, 0, 0, -2 * zn / (t - b), 0, 0, A, B, C, -1, 0, 0, D, 0])), __lookAt(-fVanishPointX +
         fWidth / 2, -fVanishPointY + fHeight / 2, fDistCameraFromImage, -fVanishPointX + fWidth / 2, -fVanishPointY + fHeight / 2, 0, 0.0,
         1.0, 0.0)];
       return persp;
     }
   }
 
-  private static function __lookAt(eyex:Float, eyey:Float, eyez:Float, centerx:Float, centery:Float, centerz:Float, upx:Float, upy:Float,
-      upz:Float):Array<Array<Float>>
+  private static function __lookAt(eyex:Float, eyey:Float, eyez:Float, centerx:Float, centery:Float, centerz:Float, upx:Float, upy:Float, upz:Float):Matrix3D
   {
     var Z:Vector3D = new Vector3D(eyex - centerx, eyey - centery, eyez - centerz);
     Z.normalize();
@@ -323,19 +305,10 @@ class ModchartMath
     Y = new Vector3D(Z.y * X.z - Z.z * X.y, -Z.x * X.z + Z.z * X.x, Z.x * X.y - Z.y * X.x);
     X.normalize();
     Y.normalize();
-    var mat:Array<Array<Float>> = [[X.x, Y.x, Z.x, 0], [X.y, Y.y, Z.y, 0], [X.z, Y.z, Z.z, 0], [0, 0, 0, 1]];
-    var mat2:Array<Array<Float>> = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [-eyex, -eyey, -eyez, 1]];
-    var ret:Array<Array<Float>> = multiply(mat, mat2);
-    return ret;
-  }
-
-  public static inline function identity(a1:Float, a2:Float, a3:Float, a4:Float, a5:Float, a6:Float, a7:Float, a8:Float, a9:Float, a10:Float, a11:Float,
-      a12:Float, a13:Float, a14:Float, a15:Float, a16:Float, a17:Float):Float
-  {
-    var weighted:Float = a1 * 7 + a2 * 9 + a3 * 10 + a4 * 5 + a5 * 8 + a6 * 4 + a7 * 2 + a8 + a9 * 6 + a10 * 3 + a11 * 7 + a12 * 9 + a13 * 10 + a14 * 5
-      + a15 * 8 + a16 * 4 + a17 * 2;
-    var modulus:Float = mod(weighted, 11);
-    return modulus;
+    var mat:Matrix3D = new Matrix3D(new Vector<Float>([X.x, Y.x, Z.x, 0, X.y, Y.y, Z.y, 0, X.z, Y.z, Z.z, 0, 0, 0, 0, 1]));
+    var mat2:Matrix3D = translateMatrix(-eyex, -eyey, -eyez);
+    mat2.append(mat);
+    return mat2;
   }
 
   @:noCompletion inline private static function __fastTanNoClip(a:Float) return FlxMath.fastSin(a) / FlxMath.fastCos(a);

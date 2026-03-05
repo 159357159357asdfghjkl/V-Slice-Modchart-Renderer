@@ -14,7 +14,6 @@ on:
         type: boolean
         description: Save the build artifact to Github Actions (sends to itch otherwise)
         default: false
-  push:
 
 jobs:
 

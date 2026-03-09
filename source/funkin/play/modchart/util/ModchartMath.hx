@@ -247,6 +247,30 @@ class ModchartMath
     return new Vector3D(sx * v.x, sy * v.y, sz * v.z, v.w);
   }
 
+  inline public static function weierstrassSin(x:Float):Float
+  {
+    return FlxMath.fastSin(Math.PI * x) + 0.5 * FlxMath.fastSin(Math.PI * 7 * x) + 0.25 * FlxMath.fastSin(Math.PI * 49 * x)
+      + 0.125 * FlxMath.fastSin(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassCos(x:Float):Float
+  {
+    return FlxMath.fastCos(Math.PI * x) + 0.5 * FlxMath.fastCos(Math.PI * 7 * x) + 0.25 * FlxMath.fastCos(Math.PI * 49 * x)
+      + 0.125 * FlxMath.fastCos(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassTan(x:Float):Float
+  {
+    return __fastTanNoClip(Math.PI * x) + 0.5 * __fastTanNoClip(Math.PI * 7 * x) + 0.25 * __fastTanNoClip(Math.PI * 49 * x)
+      + 0.125 * __fastTanNoClip(Math.PI * 343 * x);
+  }
+
+  inline public static function weierstrassCsc(x:Float):Float
+  {
+    return __fastCscNoClip(Math.PI * x) + 0.5 * __fastCscNoClip(Math.PI * 7 * x) + 0.25 * __fastCscNoClip(Math.PI * 49 * x)
+      + 0.125 * __fastCscNoClip(Math.PI * 343 * x);
+  }
+
   public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float
   {
     if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
@@ -254,7 +278,22 @@ class ModchartMath
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
 
-  private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float):Array<Matrix3D>
+  public static function sinSquare(x:Float):Int
+  {
+    var sin:Float = FlxMath.fastSin(x);
+    var sign:Int = FlxMath.signOf(sin);
+    return sign;
+  }
+
+  public static function cosSquare(x:Float):Int
+  {
+    var sin:Float = FlxMath.fastSin(x);
+    var sign:Int = FlxMath.signOf(sin);
+    return sign;
+  }
+
+  @:noCompletion private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,
+      fVanishPointY:Float):Array<Matrix3D>
   {
     if (fovDegrees == 0)
     {
@@ -296,7 +335,8 @@ class ModchartMath
     }
   }
 
-  private static function __lookAt(eyex:Float, eyey:Float, eyez:Float, centerx:Float, centery:Float, centerz:Float, upx:Float, upy:Float, upz:Float):Matrix3D
+  @:noCompletion private static function __lookAt(eyex:Float, eyey:Float, eyez:Float, centerx:Float, centery:Float, centerz:Float, upx:Float, upy:Float,
+      upz:Float):Matrix3D
   {
     var Z:Vector3D = new Vector3D(eyex - centerx, eyey - centery, eyez - centerz);
     Z.normalize();
@@ -314,28 +354,4 @@ class ModchartMath
   @:noCompletion inline private static function __fastTanNoClip(a:Float) return FlxMath.fastSin(a) / FlxMath.fastCos(a);
 
   @:noCompletion inline private static function __fastCscNoClip(a:Float) return 1 / FlxMath.fastSin(a);
-
-  inline public static function weierstrassSin(x:Float):Float
-  {
-    return FlxMath.fastSin(Math.PI * x) + 0.5 * FlxMath.fastSin(Math.PI * 7 * x) + 0.25 * FlxMath.fastSin(Math.PI * 49 * x)
-      + 0.125 * FlxMath.fastSin(Math.PI * 343 * x);
-  }
-
-  inline public static function weierstrassCos(x:Float):Float
-  {
-    return FlxMath.fastCos(Math.PI * x) + 0.5 * FlxMath.fastCos(Math.PI * 7 * x) + 0.25 * FlxMath.fastCos(Math.PI * 49 * x)
-      + 0.125 * FlxMath.fastCos(Math.PI * 343 * x);
-  }
-
-  inline public static function weierstrassTan(x:Float):Float
-  {
-    return __fastTanNoClip(Math.PI * x) + 0.5 * __fastTanNoClip(Math.PI * 7 * x) + 0.25 * __fastTanNoClip(Math.PI * 49 * x)
-      + 0.125 * __fastTanNoClip(Math.PI * 343 * x);
-  }
-
-  inline public static function weierstrassCsc(x:Float):Float
-  {
-    return __fastCscNoClip(Math.PI * x) + 0.5 * __fastCscNoClip(Math.PI * 7 * x) + 0.25 * __fastCscNoClip(Math.PI * 49 * x)
-      + 0.125 * __fastCscNoClip(Math.PI * 343 * x);
-  }
 }

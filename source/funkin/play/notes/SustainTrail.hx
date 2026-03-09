@@ -389,12 +389,12 @@ class SustainTrail extends FlxSprite
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
     var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
-    var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
-    if (none) alpha = splineStealth;
-    alpha *= this.alpha * camera.alpha * parentStrumline.alpha;
-    var glow:Float = mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
+    var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
+    if (none) alpha = splineStealth;
+    alpha *= this.alpha * parentStrumline.alpha;
+    var glow:Float = mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
     var splineGlow:Float = ModchartMath.scale(Math.abs(realSpStealth - 0.5), 0, 0.5, 1.3, 0);
     var diffuses:Vector3D = new Vector3D(mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red'),
       mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green'), mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue'), alpha);
@@ -413,6 +413,7 @@ class SustainTrail extends FlxSprite
 
   public var transforms:Array<ColorTransform> = [];
 
+  // recognize multiple hold parts
   public function updateClippingNew(songTime:Float = 0):Void
   {
     if (graphic == null || parentStrumline == null)
@@ -431,14 +432,16 @@ class SustainTrail extends FlxSprite
     }
     var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');
     var drawsizeback:Float = 1 + parentStrumline.mods.getValue('drawsizeback');
-    var draw_ms_after_targets:Float = -parentStrumline.pathSizeBack * drawsizeback;
+    var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
+    var draw_ms_after_targets:Float = -parentStrumline.pathSizeBack * drawsizeback / scrollSpeed;
     var centered_times_boomerang:Float = parentStrumline.mods.getValue('centered') * parentStrumline.mods.getValue('boomerang');
     draw_ms_after_targets -= Std.int(ModchartMath.scale(centered_times_boomerang, 0.0, 1.0, 0.0, -FlxG.height / 2));
-    var draw_ms_before_targets:Float = parentStrumline.pathSizeFront * drawsize;
+    var draw_ms_before_targets:Float = parentStrumline.pathSizeFront * drawsize / scrollSpeed;
     var draw_scale:Float = 1 + 0.5 * Math.abs(parentStrumline.mods.tilt);
     draw_scale *= 1 + Math.abs(parentStrumline.mods.getValue('mini'));
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
+    if (strumTime - Conductor.instance.getTimeWithDelta() > draw_ms_before_targets) return; // it's too far from screen, do not render it
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
     var roughness:Float = parentStrumline.mods.baseHoldSize;
@@ -462,9 +465,12 @@ class SustainTrail extends FlxSprite
     for (i in 0...length + 1)
     {
       var time:Float = strumTime + (fullSustainLength / length * i);
+      var nextTime:Float = time + fullSustainLength / length;
       var diff:Float = time - Conductor.instance.getTimeWithDelta();
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
-      if (!(draw_ms_after_targets <= diff && diff <= draw_ms_before_targets))
+      var skip:Bool = FlxMath.equal(time - Conductor.instance.getTimeWithDelta(), 0)
+        && FlxMath.equal(nextTime - Conductor.instance.getTimeWithDelta(), 0); // after using this step, my fps changed from 24 to 32
+      if (!(draw_ms_after_targets <= diff && diff <= draw_ms_before_targets) || (skip && hitNote))
       {
         if (i == length) drawTail = false;
         continue;
@@ -495,9 +501,9 @@ class SustainTrail extends FlxSprite
 
       trueIndex++;
     }
+
     var end:Int = (trueIndex - 1) * 2;
     var next:Int = trueIndex * 2;
-    var bottom:Int = (trueIndex + 1) * 2;
     if (drawTail)
     {
       verticesArray[next * 2] = verticesArray[end * 2];
@@ -523,7 +529,9 @@ class SustainTrail extends FlxSprite
       indicesArray.push(next + 1);
       indicesArray.push(next + 3);
       indicesArray.push(next + 2);
+      trueIndex++;
 
+      var bottom:Int = trueIndex * 2;
       var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
       var time:Float = strumTime + fullSustainLength + capHeight;
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();

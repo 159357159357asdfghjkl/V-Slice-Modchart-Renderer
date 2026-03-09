@@ -20,8 +20,6 @@ import funkin.play.modchart.Modchart;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.objects.PolyLine;
 import openfl.geom.Vector3D;
-import openfl.geom.Matrix3D;
-import openfl.Vector;
 import flixel.math.FlxMath;
 import funkin.play.modchart.util.CubicSplineHandler;
 #if mobile
@@ -320,9 +318,10 @@ class Strumline extends FlxSpriteGroup
       child.column = i;
       updateOneStrum(child);
       var arrowpath:PolyLine = new PolyLine();
+      arrowpath.column = i;
+      arrowpath.parentStrumline = this;
       this.arrowpaths.add(arrowpath);
     }
-    updateArrowpath();
 
     this.heldKeys = [];
     for (i in 0...KEY_COUNT)
@@ -438,95 +437,6 @@ class Strumline extends FlxSpriteGroup
       if (target == 0 || target == 1) handler.EvalForBeat(mods.getBeat(), beat, result);
       else if (target == 2) handler.EvalForReceptor(mods.getBeat(), result);
     }
-  }
-
-  // only for arrowpath
-  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float, column:Int):Vector3D
-  {
-    var conductorInUse:Conductor = conductorInUse ?? Conductor.instance;
-    time += conductorInUse.getTimeWithDelta();
-    var speed:Float = scrollSpeed;
-    var pn:Int = modNumber;
-    var ofs = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
-    var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
-    var reversedOff:Float = FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
-    var difference:Vector3D = getDifference();
-    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false),
-      mods.GetYPos(column, yOffset, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, yOffset, pn, xoffArray));
-    var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    if (mods.getValue('fixeffect') != 0)
-    {
-      originVec.incrementBy(pos);
-    }
-    var effect:Float = 1 - (mods.getValue('straightholds'));
-    var noteYOffset:Float = mods.GetYOffset(conductorInUse, conductorInUse.getTimeWithDelta(), speed, column, conductorInUse.getTimeWithDelta()) + ofs;
-    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
-      mods.GetYPos(column, noteYOffset, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, noteYOffset, pn, xoffArray));
-    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, isDownscroll, reversedOff),
-      mods.GetZPos(column, ofs, pn, xoffArray));
-    var timeDiff:Float = mods.baseHoldSize;
-    var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
-    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false),
-      mods.GetYPos(column, yOffset2, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, yOffset2, pn, xoffArray));
-    var diff:Vector3D = pos4.subtract(pos);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
-    var pos2:Vector3D = notePos.clone();
-    var pos3:Vector3D = strumPos.clone();
-    pos2.x *= effect;
-    pos2.z *= effect;
-    pos3.x *= effect;
-    pos3.z *= effect;
-    pos.x *= effect;
-    pos.z *= effect;
-    var offset:Vector3D = new Vector3D(pos2.x - notePos.x, 0, pos2.z - notePos.z);
-    if (yOffset <= 0)
-    {
-      offset.x = pos3.x - strumPos.x;
-      offset.z = pos3.z - strumPos.z;
-    }
-    var noteBeat:Float = Conductor.instance.currentBeatTime;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angOrientX), mods.GetRotationY(column, yOffset, true, angOrientY),
-      (mods.GetRotationZ(column, yOffset, noteBeat, true, ang)));
-    var fullPos:Vector3D = pos;
-    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
-    var scale:Array<Float> = mods.GetScale(column, yOffset, modNumber);
-    var zoom:Float = mods.GetZoom(column, yOffset, modNumber) ?? 1;
-    var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
-    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-    var newZoom:Vector3D = this.zoom.clone();
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
-    mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
-    var spPos:Vector3D = new Vector3D();
-    getSplineAxisPos('pos', column, noteBeat, 0, spPos);
-    var spZoom:Vector3D = new Vector3D();
-    getSplineAxisPos('zoom', column, noteBeat, 0, spZoom);
-    var realSpZoom:Float = 1 - 0.5 * spZoom.x;
-    var spSkew:Vector3D = new Vector3D();
-    getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
-    fullPos.incrementBy(difference);
-    var m:Matrix3D = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
-    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Matrix3D = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
-    var skew:Matrix3D = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, 45, FlxG.width, FlxG.height,
-      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
-    zPos.decrementBy(offset);
-    zPos.x += NOTE_SPACING / 2;
-    zPos.y += NOTE_SPACING / 2 * 1.5;
-    return zPos;
   }
 
   public function getDifference():Vector3D
@@ -939,7 +849,6 @@ class Strumline extends FlxSpriteGroup
       updateOneSplash(splash);
     for (cover in noteHoldCovers)
       updateOneCover(cover);
-    updateArrowpath();
   }
 
   function updateOneNote(note:NoteSprite):Void
@@ -1304,45 +1213,6 @@ class Strumline extends FlxSpriteGroup
 
   public var pathSizeBack:Float = 200;
   public var pathSizeFront:Float = 1000;
-
-  // MY WAAAAAAAAY!
-  function updateArrowpath():Void
-  {
-    var grain = mods.getValue('arrowpathgranulate');
-    if (grain == 0) grain = 4;
-    var roughness:Float = mods.baseHoldSize;
-    var backLength:Float = pathSizeBack;
-    backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
-    var frontLength:Float = pathSizeFront;
-    frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
-    var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
-    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
-    if (subdivisions <= 1) subdivisions = 1;
-
-    for (column in 0...KEY_COUNT)
-    {
-      var line:PolyLine = this.arrowpaths.members[column];
-      line.x = line.y = 0;
-      var alpha = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
-      alpha *= this.alpha;
-      line.alpha = alpha;
-      if (alpha <= 0) continue;
-      var player = modNumber;
-      var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
-      var vertices:Vector<Float> = new Vector<Float>();
-      for (a in 0...subdivisions + 1)
-      {
-        var i:Int = a * 2;
-        var left = getPosWithOffset(-size / 2, 0, (backLength + frontLength) / subdivisions * i - backLength, column);
-        var right = getPosWithOffset(size / 2, 0, (backLength + frontLength) / subdivisions * i - backLength, column);
-        vertices[i * 2] = left.x;
-        vertices[i * 2 + 1] = left.y;
-        vertices[(i + 1) * 2] = right.x;
-        vertices[(i + 1) * 2 + 1] = right.y;
-      }
-      line.vertices = vertices;
-    }
-  }
 
   /**
    * Return notes that are within, or way after, `Constants.HIT_WINDOW` ms of the strumline.

@@ -1150,8 +1150,7 @@ class Strumline extends FlxSpriteGroup
     var col:Int = cover.column;
     var holdCoverAssetPath:Null<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column);
     var parts:Array<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column, true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
-    var source = Paths.image(holdCoverAssetPath, parts[0]);
-    glow.graphic = FlxG.bitmap.add(source);
+    glow.graphic = FlxG.bitmap.add(Paths.image(holdCoverAssetPath, parts[0]));
     glow.fov = fov;
     glow.x = glow.y = 0;
     glow.rotationOrder = rotationOrder;

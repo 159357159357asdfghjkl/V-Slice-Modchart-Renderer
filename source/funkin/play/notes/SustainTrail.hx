@@ -248,18 +248,17 @@ class SustainTrail extends FlxSprite
   }
 
   var previousScrollSpeed:Float = 1;
+  var updatedThisFrame:Bool = false;
 
   override function update(elapsed)
   {
     super.update(elapsed);
+    updatedThisFrame = false;
     if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0))
     {
       triggerRedraw();
     }
-    else
-    {
-      updateClipping();
-    }
+    else if (useNew) updateClipping();
     previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
   }
 
@@ -416,7 +415,7 @@ class SustainTrail extends FlxSprite
   // recognize multiple hold parts
   public function updateClippingNew(songTime:Float = 0):Void
   {
-    if (graphic == null || parentStrumline == null)
+    if (graphic == null || parentStrumline == null || updatedThisFrame)
     {
       return;
     }
@@ -430,6 +429,8 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
+    var bottomHeight:Float = graphic.height * zoom * endOffset;
+    var partHeight:Float = clipHeight - bottomHeight;
     var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');
     var drawsizeback:Float = 1 + parentStrumline.mods.getValue('drawsizeback');
     var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
@@ -442,8 +443,6 @@ class SustainTrail extends FlxSprite
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
     if (strumTime - Conductor.instance.getTimeWithDelta() > draw_ms_before_targets) return; // it's too far from screen, do not render it
-    var bottomHeight:Float = graphic.height * zoom * endOffset;
-    var partHeight:Float = clipHeight - bottomHeight;
     var roughness:Float = parentStrumline.mods.baseHoldSize;
     var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
@@ -455,8 +454,6 @@ class SustainTrail extends FlxSprite
     if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;
     var halfWidth:Float = graphicWidth / 2;
-    var uvIndexArray:Array<Int> = [for (i in 0...length) i];
-    uvIndexArray.reverse();
     var verticesArray:Array<Float> = [];
     var uvtDataArray:Array<Float> = []; // full name: UV Texture
     var indicesArray:Array<Int> = [];
@@ -488,7 +485,7 @@ class SustainTrail extends FlxSprite
 
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
       uvtDataArray[a * 2] = 1 / 4 * (noteDirection % 4);
-      uvtDataArray[a * 2 + 1] = (fullVLength / length * uvIndexArray[i]);
+      uvtDataArray[a * 2 + 1] = (fullVLength / length * i);
       uvtDataArray[(a + 1) * 2] = uvtDataArray[a * 2] + 1 / 8;
       uvtDataArray[(a + 1) * 2 + 1] = uvtDataArray[a * 2 + 1];
 
@@ -555,6 +552,7 @@ class SustainTrail extends FlxSprite
     setVertices(verticesArray);
     setUVTData(uvtDataArray);
     setIndices(indicesArray);
+    updatedThisFrame = true;
   }
 
   function getShader(diffPos:Vector3D, glowPos:Vector3D)

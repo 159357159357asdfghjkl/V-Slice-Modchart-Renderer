@@ -12,7 +12,9 @@ class CubicSpline
 {
   public var points:Array<Array<Float>> = [];
 
-  public function new() {}
+  public function new()
+  {
+  }
 
   function loop_space_difference(a:Float, b:Float, spatial_extent:Float):Float
   {
@@ -252,7 +254,7 @@ class CubicSpline
     }
     else
     {
-      return points[p][1];
+      return diff;
     }
   }
 
@@ -372,7 +374,9 @@ class CubicSpline
 
 class CubicSplineN
 {
-  public function new() {}
+  public function new()
+  {
+  }
 
   public var splines:Array<CubicSpline> = [];
   public var owned_by_actor:Bool = false;
@@ -595,8 +599,7 @@ class CubicSplineN
     return 0;
   }
 
-  public function empty():Bool
-    return splines.length == 0 || splines[0].empty();
+  public function empty():Bool return splines.length == 0 || splines[0].empty();
 
   public function redimension(d:Int):Void
   {
@@ -608,8 +611,7 @@ class CubicSplineN
     dirty = true;
   }
 
-  public function dimension():Int
-    return splines.length;
+  public function dimension():Int return splines.length;
 
   public function set_loop(b:Bool):Void
   {
@@ -617,8 +619,7 @@ class CubicSplineN
     loop = b;
   }
 
-  public function get_loop():Bool
-    return loop;
+  public function get_loop():Bool return loop;
 
   public function set_polygonal(b:Bool):Void
   {
@@ -626,14 +627,11 @@ class CubicSplineN
     polygonal = b;
   }
 
-  public function get_polygonal():Bool
-    return polygonal;
+  public function get_polygonal():Bool return polygonal;
 
-  public function set_dirty(b:Bool):Void
-    dirty = b;
+  public function set_dirty(b:Bool):Void dirty = b;
 
-  public function get_dirty():Bool
-    return dirty;
+  public function get_dirty():Bool return dirty;
 }
 
 class CubicSplineHandler

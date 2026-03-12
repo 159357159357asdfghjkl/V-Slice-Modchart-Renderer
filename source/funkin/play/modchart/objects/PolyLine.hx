@@ -204,12 +204,12 @@ class PolyLine extends FunkinSprite
     var verticesArray:Array<Float> = [];
     var uvtDataArray:Array<Float> = [];
     var indicesArray:Array<Int> = [];
-    x = y = 0;
     for (a in 0...subdivisions + 1)
     {
       var i:Int = a * 2;
-      var left:Vector3D = getPosWithOffset(-size / 2, -size / 2, (backLength + frontLength) / subdivisions * a - backLength);
-      var right:Vector3D = getPosWithOffset(size / 2, size / 2, (backLength + frontLength) / subdivisions * a - backLength);
+      var time:Float = (backLength + frontLength) / subdivisions * a - backLength;
+      var left:Vector3D = getPosWithOffset(-size / 2, 0, time);
+      var right:Vector3D = getPosWithOffset(size / 2, 0, time);
       verticesArray[i * 2] = left.x;
       verticesArray[i * 2 + 1] = left.y;
       verticesArray[(i + 1) * 2] = right.x;
@@ -231,9 +231,10 @@ class PolyLine extends FunkinSprite
     setIndices(indicesArray);
   }
 
-  override public function update(elapsed:Float)
+  override public function update(elapsed:Float):Void
   {
     super.update(elapsed);
+    x = y = 0;
     updateClipping();
   }
 

@@ -442,7 +442,6 @@ class SustainTrail extends FlxSprite
     draw_scale *= 1 + Math.abs(parentStrumline.mods.getValue('mini'));
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
-    if (strumTime - Conductor.instance.getTimeWithDelta() > draw_ms_before_targets) return; // it's too far from screen, do not render it
     var roughness:Float = parentStrumline.mods.baseHoldSize;
     var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
@@ -686,7 +685,7 @@ class SustainTrail extends FlxSprite
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    if (alpha == 0 || graphic == null || vertices == null || !visible) return;
+    if (alpha == 0 || graphic == null || vertices == null || !visible || !alive) return;
 
     for (camera in cameras)
     {

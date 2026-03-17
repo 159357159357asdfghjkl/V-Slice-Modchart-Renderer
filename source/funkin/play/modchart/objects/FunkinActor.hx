@@ -44,6 +44,7 @@ class FunkinActor extends FunkinSprite
   override public function destroy():Void
   {
     SKEW = FlxDestroyUtil.put(SKEW);
+    pos2 = FlxDestroyUtil.put(pos2);
     rotation = null;
     SCALE = null;
     vertices = null;
@@ -54,29 +55,34 @@ class FunkinActor extends FunkinSprite
 
   function getPos(vec:Vector3D):Vector3D
   {
-    var m:Matrix3D = ModchartMath.translateMatrix((pos.x + basePos.x + pos2.x) * baseZoom.x, (pos.y + basePos.y + pos2.y) * baseZoom.y,
-      (pos.z + basePos.z) * baseZoom.z);
-    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x + baseRotation.x, rotation.y + baseRotation.y, rotation.z + baseRotation.z,
-      rotationOrder);
-    var scale:Matrix3D = ModchartMath.scaleMatrix(rotate, SCALE.x * baseScale.x * baseZoom.x, SCALE.y * baseScale.y * baseZoom.y,
-      SCALE.z * baseScale.z * baseZoom.z);
-    var skew:Matrix3D = ModchartMath.skewMatrix(scale, SKEW.x + baseSkew.x, SKEW.y + baseSkew.y);
-    var persp:Vector3D = ModchartMath.initPerspective(vec, skew, fov, FlxG.width, FlxG.height,
-      ModchartMath.scale(_skew, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
-    persp.x += offsetX;
-    persp.y += offsetY;
-    return persp;
+    var fullPos:Vector3D = pos.add(basePos);
+    fullPos.x += pos2.x + offsetX - origin.x;
+    fullPos.y += pos2.y + offsetY - origin.y;
+    fullPos.x *= baseZoom.x;
+    fullPos.y *= baseZoom.y;
+    fullPos.z *= baseZoom.z;
+    var rotation:Vector3D = this.rotation.add(baseRotation);
+    var scalePos:Vector3D = SCALE.clone();
+    scalePos.x *= baseScale.x * baseZoom.x;
+    scalePos.y *= baseScale.y * baseZoom.y;
+    scalePos.z *= baseScale.z * baseZoom.z;
+    var skewPos:Vector3D = new Vector3D(baseSkew.x + SKEW.x, baseSkew.y + SKEW.y);
+    var zPos:Vector3D = ModchartMath.processActor(fullPos, vec, rotation, scalePos, skewPos, originVec, fov, rotationOrder);
+    zPos.x += origin.x;
+    zPos.y += origin.y;
+    return zPos;
   }
 
   @:noCompletion var _blank:Vector<Int> = new Vector<Int>(4, true, [0, 0, 0, 0]);
 
+  @:access(flixel.FlxSprite)
   override public function draw():Void
   {
     if (alpha == 0 || graphic == null || !exists || !visible) return;
     var lowQuality:Bool = Preferences.framerate < 60;
     if (originVec == null) originVec = new Vector3D(FlxG.width / 2, FlxG.height / 2);
-    var w:Float = frame.frame.width;
-    var h:Float = frame.frame.height;
+    var w:Float = _frame.frame.width;
+    var h:Float = _frame.frame.height;
     var topLeft:Vector3D = new Vector3D(-w / 2, -h / 2, 0, 1);
     var topRight:Vector3D = new Vector3D(w / 2, -h / 2, 0, 1);
     var bottomLeft:Vector3D = new Vector3D(-w / 2, h / 2, 0, 1);
@@ -85,11 +91,7 @@ class FunkinActor extends FunkinSprite
     topRight = getPos(topRight);
     bottomLeft = getPos(bottomLeft);
     bottomRight = getPos(bottomRight);
-    var w:Float = width;
-    var h:Float = height;
-    vertices = new Vector<Float>(8, false,
-      [w / 2 + topLeft.x, h / 2 + topLeft.y, w / 2 + topRight.x, h / 2 + topRight.y, w / 2 + bottomLeft.x, h / 2 + bottomLeft.y, w / 2 + bottomRight.x, h / 2
-        + bottomRight.y]);
+    vertices = new Vector<Float>(8, false, [topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y]);
     uvtData = new Vector<Float>(8, false,
       [frame.uv.left, frame.uv.top, frame.uv.right, frame.uv.top, frame.uv.left, frame.uv.bottom, frame.uv.right, frame.uv.bottom]);
     indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
@@ -99,7 +101,8 @@ class FunkinActor extends FunkinSprite
       if (camera.exists && camera != null)
       {
         if (!camera.visible || camera.alpha == 0) continue;
-        getScreenPosition(_point, camera);
+        getScreenPosition(_point, camera).subtract(offset);
+        _point.add(origin.x, origin.y);
         var colorTransform = new ColorTransform();
         colorTransform.redMultiplier = diffuse.x * baseDiffuse.x * this.colorTransform.redMultiplier;
         colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y * this.colorTransform.greenMultiplier;

@@ -164,11 +164,12 @@ class TitleState extends MusicBeatState
    */
   function moveToAttract():Void
   {
-    FlxG.sound.music.fadeOut(2.0, 0);
-    FlxG.camera.fade(FlxColor.BLACK, 2.0, false, function()
-    {
-      FlxG.switchState(() -> new AttractState());
-    });
+    // i hate attract state
+    /*FlxG.sound.music.fadeOut(2.0, 0);
+      FlxG.camera.fade(FlxColor.BLACK, 2.0, false, function()
+      {
+        FlxG.switchState(() -> new AttractState());
+    });*/
   }
 
   function playMenuMusic():Void

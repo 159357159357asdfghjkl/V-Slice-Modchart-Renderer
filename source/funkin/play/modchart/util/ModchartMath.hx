@@ -28,7 +28,7 @@ class ModchartMath
 
   public static final MAX_NOTE_ROW:Int = 1 << 30;
 
-  private static var next:Int = 1;
+  private static var next:Int = 159357;
   public static inline var randMax:Int = 32767;
 
   public static inline function srand(seed:Int):Void next = seed & 0xFFFFFFFF;
@@ -102,6 +102,27 @@ class ModchartMath
     }
   }
 
+  public static function getDirectionsBetweenTwoVectors(pos:Vector3D, pos2:Vector3D):Vector3D
+  {
+    var diff:Vector3D = pos2.subtract(pos);
+    var angX:Float = Math.atan2(diff.y, diff.z);
+    var angY:Float = Math.atan2(diff.z, diff.x);
+    var angZ:Float = Math.atan2(diff.y, diff.x);
+    return new Vector3D(angX, angY, angZ);
+  }
+
+  public static function processActor(fullPos:Vector3D, realPos:Vector3D, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
+      fov:Float, rotationOrder = 'zyx'):Vector3D
+  {
+    var m:Matrix3D = translateMatrix(fullPos.x, fullPos.y, fullPos.z);
+    rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
+    scaleMatrix(m, scalePos.x, scalePos.y, scalePos.z);
+    skewMatrix(m, skewPos.x, skewPos.y);
+    var pos:Vector3D = initPerspective(realPos, m, fov, FlxG.width, FlxG.height, ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2),
+      originVec.y);
+    return pos;
+  }
+
   public static function initPerspective(vec:Vector3D, m:Matrix3D, fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float)
   {
     var matrix:Array<Matrix3D> = __loadPerspective(fovDegrees, fWidth, fHeight, fVanishPointX, fVanishPointY);
@@ -149,7 +170,7 @@ class ModchartMath
     return clamp(__fastTanNoClip(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
-  public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Matrix3D
+  public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Void
   {
     rX *= Math.PI / 180;
     rY *= Math.PI / 180;
@@ -189,8 +210,7 @@ class ModchartMath
           + cZ * -sX, 0,
           -sY, cY * sX, cY * cX, 0, 0, 0, 0, 1];
     }));
-    mat.append(a);
-    return mat;
+    a.prepend(mat);
   }
 
   public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
@@ -222,13 +242,12 @@ class ModchartMath
     return mat;
   }
 
-  public static function skewMatrix(a:Matrix3D, sx:Float, sy:Float):Matrix3D
+  public static function skewMatrix(a:Matrix3D, sx:Float, sy:Float):Void
   {
     var mat:Matrix3D = new Matrix3D();
     mat.rawData[4] = sx;
     mat.rawData[1] = sy;
-    mat.append(a);
-    return mat;
+    a.prepend(mat);
   }
 
   public static function skewVec3(v:Vector3D, sx:Float, sy:Float):Vector3D
@@ -236,10 +255,9 @@ class ModchartMath
     return new Vector3D(v.x + v.y * sx, v.y + v.x * sy, v.z, v.w);
   }
 
-  public static function scaleMatrix(a:Matrix3D, sx:Float, sy:Float, sz:Float):Matrix3D
+  public static function scaleMatrix(a:Matrix3D, sx:Float, sy:Float, sz:Float):Void
   {
     a.prependScale(sx, sy, sz);
-    return a;
   }
 
   public static function scaleVec3(v:Vector3D, sx:Float, sy:Float, sz:Float):Vector3D
@@ -276,20 +294,6 @@ class ModchartMath
     if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
       return 0;
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
-  }
-
-  public static function sinSquare(x:Float):Int
-  {
-    var sin:Float = FlxMath.fastSin(x);
-    var sign:Int = FlxMath.signOf(sin);
-    return sign;
-  }
-
-  public static function cosSquare(x:Float):Int
-  {
-    var sin:Float = FlxMath.fastSin(x);
-    var sign:Int = FlxMath.signOf(sin);
-    return sign;
   }
 
   @:noCompletion private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,

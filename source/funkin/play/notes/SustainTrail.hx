@@ -8,7 +8,6 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxMath;
 import openfl.geom.Vector3D;
-import openfl.geom.Matrix3D;
 import openfl.geom.ColorTransform;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.Modchart;
@@ -258,7 +257,8 @@ class SustainTrail extends FlxSprite
     {
       triggerRedraw();
     }
-    else if (useNew) updateClipping();
+    else
+      updateClipping();
     previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
   }
 
@@ -329,10 +329,7 @@ class SustainTrail extends FlxSprite
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
     var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
       mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
-    var diff:Vector3D = pos4.subtract(pos);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;
@@ -348,8 +345,8 @@ class SustainTrail extends FlxSprite
       offset.z = pos3.z - strumPos.z;
     }
     var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angOrientX), mods.GetRotationY(column, yOffset, true, angOrientY),
-      mods.GetRotationZ(column, yOffset, noteBeat, true, ang, true));
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
+      mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
     var fullPos:Vector3D = pos.clone();
     var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
@@ -371,20 +368,18 @@ class SustainTrail extends FlxSprite
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     var spiralHolds:Float = mods.getValue('spiralholds');
-    if (spiralHolds != 0) rotation.z += ang * ModchartMath.deg - 90;
-    parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 0, spPos);
-    parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 0, spZoom);
+    if (spiralHolds != 0) rotation.z += angles.z * ModchartMath.deg - 90;
+    parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 1, spPos);
+    parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 1, spZoom);
     realSpZoom = 1 - 0.5 * spZoom.x;
-    parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 0, spStealth);
+    parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 1, spStealth);
     realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
-    parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 0, spSkew);
+    parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 1, spSkew);
+    fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
-    var m:Matrix3D = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
-    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Matrix3D = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
-    var skew:Matrix3D = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, fov, FlxG.width, FlxG.height,
-      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
+    scalePos.scaleBy(realSpZoom);
+    skewPos.x += spSkew.x;
+    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
     zPos.decrementBy(offset);
     zPos.incrementBy(new Vector3D(offsetX, offsetY));
     var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
@@ -680,6 +675,8 @@ class SustainTrail extends FlxSprite
     // Bottom right
     uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
     uvtData[7 * 2 + 1] = uvtData[6 * 2 + 1]; // bottom bound
+
+    updatedThisFrame = true;
   }
 
   @:access(flixel.FlxCamera)

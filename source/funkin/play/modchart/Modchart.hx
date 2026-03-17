@@ -645,7 +645,6 @@ class Modchart
   {
     var curTime:Float = getTime();
     var distanceToTime:Float = SCREEN_HEIGHT / scrollSpeed / Constants.PIXELS_PER_MS;
-    // var noteSV:Float = getCurrentSVMultiplier(time);
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
     var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, true, conductor) * -1;

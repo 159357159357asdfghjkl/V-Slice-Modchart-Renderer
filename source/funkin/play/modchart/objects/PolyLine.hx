@@ -14,7 +14,6 @@ import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.ColorTransform;
 import funkin.play.notes.Strumline;
 import funkin.play.modchart.Modchart;
-import openfl.geom.Matrix3D;
 
 /**
   a class to simulate notitg's arrowpath
@@ -26,11 +25,29 @@ class PolyLine extends FunkinSprite
   public var uvtData:Vector<Float> = new Vector<Float>();
   public var indices:Vector<Int> = new Vector<Int>();
   public var column:Int = 0;
-  public var parentStrumline:Strumline;
+  public var parent(get, set):Strumline;
 
-  public function new(?x:Float, ?y:Float)
+  // constants
+  var mods:Modchart;
+  var xoffArray:Array<Float>;
+  var pn:Int;
+  var parentStrumline:Strumline;
+
+  function set_parent(a:Strumline):Strumline
+  {
+    this.parentStrumline = a;
+    this.mods = a.mods;
+    this.pn = a.modNumber;
+    this.xoffArray = a.xoffArray;
+    return a;
+  }
+
+  function get_parent():Strumline return parentStrumline;
+
+  public function new(?x:Float, ?y:Float, ?parent:Strumline)
   {
     super(0, 0);
+    this.parent = parent;
     this.makeGraphic(1, 1, 0xFFFFFFFF);
     this.antialiasing = true;
   }
@@ -88,16 +105,14 @@ class PolyLine extends FunkinSprite
     }
   }
 
+  // btw, i use vec3 as points
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Vector3D
   {
     var conductorInUse:Conductor = parentStrumline.conductorInUse;
     time += conductorInUse.getTimeWithDelta();
     var speed:Float = parentStrumline.scrollSpeed;
     var isDownscroll:Bool = parentStrumline.isDownscroll;
-    var pn:Int = parentStrumline.modNumber;
-    var mods:Modchart = parentStrumline.mods;
     var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
-    var xoffArray:Array<Float> = parentStrumline.xoffArray;
     var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var difference:Vector3D = parentStrumline.getDifference();
@@ -120,10 +135,7 @@ class PolyLine extends FunkinSprite
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
     var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false),
       mods.GetYPos(column, yOffset2, pn, xoffArray, isDownscroll, reversedOff), mods.GetZPos(column, yOffset2, pn, xoffArray));
-    var diff:Vector3D = pos4.subtract(pos);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
     pos2.x *= effect;
@@ -139,8 +151,8 @@ class PolyLine extends FunkinSprite
       offset.z = pos3.z - strumPos.z;
     }
     var noteBeat:Float = Conductor.instance.currentBeatTime;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angOrientX), mods.GetRotationY(column, yOffset, true, angOrientY),
-      (mods.GetRotationZ(column, yOffset, noteBeat, true, ang)));
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
+      (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
     var fullPos:Vector3D = pos;
     var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
@@ -153,6 +165,8 @@ class PolyLine extends FunkinSprite
     newZoom.x *= zoom2.x;
     newZoom.y *= zoom2.y;
     newZoom.z *= zoom2.z;
+    var spiralHolds:Float = mods.getValue('spiralholds');
+    if (spiralHolds != 0) rotation.z += angles.z * ModchartMath.deg - 90;
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     var spPos:Vector3D = new Vector3D();
@@ -162,7 +176,10 @@ class PolyLine extends FunkinSprite
     var realSpZoom:Float = 1 - 0.5 * spZoom.x;
     var spSkew:Vector3D = new Vector3D();
     parentStrumline.getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
+    fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
+    scalePos.scaleBy(realSpZoom);
+    skewPos.x += spSkew.x;
     var order:Int = Std.int(mods.getValue('rotationorder'));
     var rotationOrder:String = 'zyx';
     if (order == 0) rotationOrder = 'zyx';
@@ -171,12 +188,7 @@ class PolyLine extends FunkinSprite
     else if (order == 3) rotationOrder = 'yxz';
     else if (order == 4) rotationOrder = 'xyz';
     else if (order == 5) rotationOrder = 'xzy';
-    var m:Matrix3D = ModchartMath.translateMatrix(fullPos.x + spPos.x, fullPos.y + spPos.y, fullPos.z + spPos.z);
-    var rotate:Matrix3D = ModchartMath.rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
-    var scaleMat:Matrix3D = ModchartMath.scaleMatrix(rotate, scalePos.x * realSpZoom, scalePos.y * realSpZoom, scalePos.z * realSpZoom);
-    var skew:Matrix3D = ModchartMath.skewMatrix(scaleMat, skewPos.x + spSkew.x, skewPos.y);
-    var zPos:Vector3D = ModchartMath.initPerspective(realPos, skew, parentStrumline.fov, FlxG.width, FlxG.height,
-      ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2), originVec.y);
+    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
     zPos.decrementBy(offset);
     zPos.x += Strumline.NOTE_SPACING / 2 - 1;
     zPos.y += Strumline.NOTE_SPACING * 0.75 - 1;
@@ -185,7 +197,6 @@ class PolyLine extends FunkinSprite
 
   function updateClipping():Void
   {
-    var mods:Modchart = parentStrumline.mods;
     var alpha:Float = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
     alpha = ModchartMath.clamp(alpha, 0, 1) * this.alpha * parentStrumline.alpha;
     this.colorTransform.alphaMultiplier = alpha;
@@ -240,7 +251,7 @@ class PolyLine extends FunkinSprite
 
   override public function draw():Void
   {
-    if (alpha == 0 || graphic == null || !visible || vertices == null || parentStrumline == null) return;
+    if (alpha == 0 || graphic == null || !visible || vertices == null || parentStrumline == null || !alive) return;
 
     for (camera in cameras)
     {
@@ -248,7 +259,7 @@ class PolyLine extends FunkinSprite
       {
         if (!camera.visible || camera.alpha == 0) continue;
 
-        getScreenPosition(_point, camera).subtractPoint(offset);
+        getScreenPosition(_point, camera).subtract(offset);
         #if !flash
         camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, false, antialiasing, colorTransform, shader);
         #else

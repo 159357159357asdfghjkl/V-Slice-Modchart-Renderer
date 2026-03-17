@@ -312,14 +312,13 @@ class Strumline extends FlxSpriteGroup
     {
       var child:StrumlineNote = new StrumlineNote(noteStyle, isPlayer, DIRECTIONS[i]);
       child.x = getXPos(DIRECTIONS[i]);
-      child.offsetX += INITIAL_OFFSET;
+      child.offsetX = INITIAL_OFFSET;
       child.y = 0;
       this.strumlineNotes.add(child);
       child.column = i;
       updateOneStrum(child);
-      var arrowpath:PolyLine = new PolyLine();
+      var arrowpath:PolyLine = new PolyLine(0, 0, this);
       arrowpath.column = i;
-      arrowpath.parentStrumline = this;
       this.arrowpaths.add(arrowpath);
     }
 
@@ -386,19 +385,19 @@ class Strumline extends FlxSpriteGroup
   {
     if (enableSpline)
     {
-      var axis:Array<String> = ['x', 'y', 'z'];
+      var axes:Array<String> = ['x', 'y', 'z'];
       switch (group)
       {
         case 'rotation':
-          axis = ['rotx', 'roty', 'rotz'];
+          axes = ['rotx', 'roty', 'rotz'];
         case 'skew':
-          axis = ['skew'];
+          axes = ['skew'];
         case 'zoom':
-          axis = ['zoom'];
+          axes = ['zoom'];
         case 'stealth':
-          axis = ['stealth'];
+          axes = ['stealth'];
       }
-      var handler = this.cubicHandler.get('$group$column');
+      var handler:CubicSplineHandler = this.cubicHandler.get('$group$column');
 
       for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
       {
@@ -406,7 +405,7 @@ class Strumline extends FlxSpriteGroup
         var pointArray:Array<Float> = [];
         var offsetArray:Array<Float> = [];
         var typeArray:Array<Float> = [];
-        for (index => axis in axis)
+        for (index => axis in axes)
         {
           var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
           var position:Float = mods.getValue('spline$column${axis}offset$point') + mods.getValue('spline${axis}offset$point');
@@ -419,7 +418,7 @@ class Strumline extends FlxSpriteGroup
             stop++;
           }
         }
-        if (stop >= axis.length) break;
+        if (stop >= axes.length) break;
         if (pointArray.length < 3)
         {
           for (i in pointArray.length...3)
@@ -888,15 +887,12 @@ class Strumline extends FlxSpriteGroup
     var realofs2 = mods.GetYOffset(conductorInUse, note.strumTime + timeDiff, scrollSpeed, col, note.strumTime + timeDiff) + c2;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
       mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-    var diff:Vector3D = pos2.subtract(pos);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
     var noteBeat:Float = Conductor.instance.getTimeInSteps(note.strumTime) / Constants.STEPS_PER_BEAT;
     var scalePos:Vector3D = new Vector3D(note.scale.x * scale[0] * zoom, note.scale.y * scale[1] * zoom, scale[4] * zoom);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null, angOrientX),
-      mods.GetRotationY(col, realofs, note.holdNoteSprite != null, angOrientY), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, ang));
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null, angles.x),
+      mods.GetRotationY(col, realofs, note.holdNoteSprite != null, angles.y), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, angles.z));
     mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
     var spPos:Vector3D = new Vector3D();
     getSplineAxisPos('pos', col, noteBeat, 0, spPos);
@@ -1013,20 +1009,13 @@ class Strumline extends FlxSpriteGroup
     }
     else
       strumNote.originVec = zOrigin;
-    var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
-    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-    var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
-    var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-    var diff:Vector3D = pos2.subtract(pos3);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
+      mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
     var scalePos:Vector3D = new Vector3D(strumNote.scale.x * scale[0] * zoom, strumNote.scale.y * scale[1] * zoom, scale[4] * zoom);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
-      mods.ReceptorGetRotationZ(col, ang));
+    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
+      mods.ReceptorGetRotationZ(col, angles.z));
     mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
     var spPos:Vector3D = new Vector3D();
     getSplineAxisPos('pos', col, 0, 2, spPos);
@@ -1089,20 +1078,13 @@ class Strumline extends FlxSpriteGroup
     }
     else
       splash.originVec = zOrigin;
-    var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
-    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-    var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
-    var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-    var diff:Vector3D = pos2.subtract(pos3);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
+      mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
     var scalePos:Vector3D = new Vector3D(splash.scale.x * scale[0] * zoom, splash.scale.y * scale[1] * zoom, scale[4] * zoom);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
-      mods.ReceptorGetRotationZ(col, ang));
+    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
+      mods.ReceptorGetRotationZ(col, angles.z));
     mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
     var spPos:Vector3D = new Vector3D();
     getSplineAxisPos('pos', col, 0, 2, spPos);
@@ -1170,20 +1152,13 @@ class Strumline extends FlxSpriteGroup
     }
     else
       glow.originVec = zOrigin;
-    var realofs2 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta() + timeDiff, scrollSpeed, false) + c2;
-    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs2, modNumber, xoffArray));
-    var realofs3 = GRhythmUtil.getNoteY(Conductor.instance.getTimeWithDelta(), scrollSpeed, false) + c2;
-    var pos3:Vector3D = new Vector3D(mods.GetXPos(col, realofs3, modNumber, xoffArray, true),
-      mods.GetYPos(col, realofs3, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, realofs3, modNumber, xoffArray));
-    var diff:Vector3D = pos2.subtract(pos3);
-    var ang:Float = Math.atan2(diff.y, diff.x);
-    var angOrientX:Float = Math.atan2(diff.y, diff.z);
-    var angOrientY:Float = Math.atan2(diff.z, diff.x);
+    var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
+      mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll, reversedOff), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
     var scalePos:Vector3D = new Vector3D(glow.scale.x * scale[0] * zoom, glow.scale.x * scale[1] * zoom, scale[4] * zoom);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angOrientX), mods.ReceptorGetRotationY(col, angOrientY),
-      mods.ReceptorGetRotationZ(col, ang));
+    var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
+      mods.ReceptorGetRotationZ(col, angles.z));
     mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
     var spPos:Vector3D = new Vector3D();
     getSplineAxisPos('pos', col, 0, 2, spPos);
@@ -1529,8 +1504,8 @@ class Strumline extends FlxSpriteGroup
 
       splash.x = this.x;
       splash.x += getXPos(direction);
-      splash.offsetX = noteStyle.getSplashOffsets()[0] - splash.offset.x;
-      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] - splash.offset.y;
+      splash.offsetX = INITIAL_OFFSET + noteStyle.getSplashOffsets()[0] * splash.SCALE.x;
+      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] * splash.SCALE.y;
 
       splash.y = this.y;
       splash.column = direction;
@@ -1562,8 +1537,8 @@ class Strumline extends FlxSpriteGroup
       cover.y = this.y;
       if (cover.glow != null)
       {
-        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
-        cover.glow.offsetY = INITIAL_OFFSET - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
+        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x - 12;
+        cover.glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y - 96;
       }
       cover.column = holdNote.noteData.getDirection();
       updateOneCover(cover);
@@ -1605,8 +1580,7 @@ class Strumline extends FlxSpriteGroup
       noteSprite.noteData = note;
       noteSprite.x = this.x;
       noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
-      // noteSprite.offsetX -= (noteSprite.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
-      noteSprite.offsetX = -NUDGE;
+      noteSprite.offsetX = -(noteSprite.width - Strumline.STRUMLINE_SIZE) / 2 - NUDGE;
       noteSprite.y = -9999;
       updateOneNote(noteSprite);
 

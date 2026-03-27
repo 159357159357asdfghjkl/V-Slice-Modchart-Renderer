@@ -15,8 +15,7 @@ class Modchart
 {
   // 写在这，提醒一下我自己：更新游戏版本时不要忘记调用这里的update，！！！
   var modList:Map<String, Float> = [];
-  var preModList:Map<String, Float> = [];
-  var speedList:Map<String, Float> = [];
+  var preModList:Map<String, Array<Float>> = [];
   var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   final SCREEN_HEIGHT = FlxG.height;
@@ -92,7 +91,7 @@ class Modchart
 
   function initDefaultMods()
   {
-    var ZERO:Array<String> = ['boost', 'brake', 'wave', 'waveoffset', 'waveperiod', 'boomerang', 'expand', 'expandperiod', 'drunk', 'drunkspeed', 'drunkoffset', 'drunkperiod', 'drunkspacing', 'tandrunk', 'tandrunkspeed', 'tandrunkoffset', 'tandrunkperiod', 'tandrunkspacing', 'drunkz', 'drunkzspeed', 'drunkzoffset', 'drunkzperiod', 'drunkzspacing', 'tandrunkz', 'tandrunkzspeed', 'tandrunkzoffset', 'tandrunkzperiod', 'tandrunkzspacing', 'tanexpand', 'tanexpandperiod', 'tipsy', 'tipsyspeed', 'tipsyoffset', 'tipsyspacing', 'tantipsy', 'tantipsyspeed', 'tantipsyoffset', 'tantipsyspacing', 'tornado', 'tornadooffset', 'tornadoperiod', 'tantornado', 'tantornadooffset', 'tantornadoperiod', 'tornadoz', 'tornadozoffset', 'tornadozperiod', 'tantornadoz', 'tantornadozoffset', 'tantornadozperiod', 'movex', 'movey', 'movez', 'movexoffset', 'moveyoffset', 'movezoffset', 'movexoffset1', 'moveyoffset1', 'movezoffset1', 'randomspeed', 'reverse', 'split', 'divide', 'alternate', 'cross', 'centered', 'swap', 'attenuatex', 'attenuatexoffset', 'attenuatey', 'attenuateyoffset', 'attenuatez', 'attenuatezoffset', 'beat', 'beatoffset', 'beatmult', 'beatperiod', 'beaty', 'beatyoffset', 'beatymult', 'beatyperiod', 'beatz', 'beatzoffset', 'beatzmult', 'beatzperiod', 'bumpyx', 'bumpyxoffset', 'bumpyxperiod', 'tanbumpyx', 'tanbumpyxoffset', 'tanbumpyxperiod', 'bumpyy', 'bumpyyoffset', 'bumpyyperiod', 'tanbumpyy', 'tanbumpyyoffset', 'tanbumpyyperiod', 'bumpy', 'bumpyoffset', 'bumpyperiod', 'tanbumpy', 'tanbumpyoffset', 'tanbumpyperiod', 'flip', 'invert', 'zigzag', 'zigzagoffset', 'zigzagperiod', 'zigzagz', 'zigzagzoffset', 'zigzagzperiod', 'sawtooth', 'sawtoothoffset', 'sawtoothperiod', 'sawtoothz', 'sawtoothzoffset', 'sawtoothzperiod', 'parabolax', 'parabolaxoffset', 'parabolay', 'parabolayoffset', 'parabolaz', 'parabolazoffset', 'digital', 'digitalsteps', 'digitaloffset', 'digitalperiod', 'tandigital', 'tandigitalsteps', 'tandigitaloffset', 'tandigitalperiod', 'digitalz', 'digitalzsteps', 'digitalzoffset', 'digitalzperiod', 'tandigitalz', 'tandigitalzsteps', 'tandigitalzoffset', 'tandigitalzperiod', 'square', 'squareoffset', 'squareperiod', 'squarez', 'squarezoffset', 'squarezperiod', 'bounce', 'bounceoffset', 'bounceperiod', 'bouncez', 'bouncezoffset', 'bouncezperiod', 'xmode', 'xmode2', 'tiny', 'tipsyx', 'tipsyxspeed', 'tipsyxoffset', 'tipsyxspacing', 'tantipsyx', 'tantipsyxspeed', 'tantipsyxoffset', 'tantipsyxspacing', 'tipsyz', 'tipsyzspeed', 'tipsyzoffset', 'tipsyzspacing', 'tantipsyz', 'tantipsyzspeed', 'tantipsyzoffset', 'tantipsyzspacing', 'drunky', 'drunkyspeed', 'drunkyoffset', 'drunkyperiod', 'drunkyspacing', 'tandrunky', 'tandrunkyspeed', 'tandrunkyoffset', 'tandrunkyperiod', 'tandrunkyspacing', 'vibratex', 'vibratey', 'vibratez', 'pulse', 'pulseinner', 'pulseouter', 'pulseoffset', 'pulseperiod', 'shrinkmult', 'shrinklinear', 'noteskewx', 'noteskewy', 'noteskew', 'tinyx', 'tinyy', 'tinyz', 'confusionx', 'confusionxoffset', 'confusiony', 'confusionyoffset', 'confusion', 'confusionoffset', 'dizzy', 'twirl', 'roll', 'stealth', 'hidden', 'hiddenoffset', 'sudden', 'suddenoffset', 'blink', 'vanish', 'dark', 'cosecant', 'dizzyholds', 'rotationx', 'rotationy', 'vanishoffset', 'vanishsize', 'rotationz', 'skewx', 'skewy', 'spiralx', 'spiralxoffset', 'spiralxperiod', 'spiraly', 'spiralyoffset', 'spiralyperiod', 'spiralz', 'spiralzoffset', 'spiralzperiod', 'granulate', 'straightholds', 'arrowpath', 'arrowpathgranulate', 'arrowpathsize', 'arrowpathdrawsize', 'arrowpathdrawsizeback', 'mini', 'drawsize', 'drawsizeback', 'holdtinyx', 'tanpulse', 'tanpulseinner', 'tanpulseouter', 'tanpulseoffset', 'tanpulseperiod', 'shrinklinearx', 'shrinklineary', 'shrinklinearz', 'shrinkmultx', 'shrinkmulty', 'shrinkmultz', 'tapstealth', 'holdstealth', 'orient', 'orientoffset', 'noreorient', 'orienty', 'orientyoffset', 'noreorienty', 'orientx', 'orientxoffset', 'noreorientx', 'variableboomerang', 'reversetype', 'holdheadstealth', 'asymptote', 'asymptotescale', 'asymptoteoffset', 'cubicx', 'cubicxoffset', 'cubicy', 'cubicyoffset', 'cubicz', 'cubiczoffset', 'x', 'y', 'z', 'noteskewtype', 'longholds', 'spiralholds', 'sinclip', 'cosclip', 'tanclip', 'digitalperiod2', 'digitalyperiod2', 'digitalzperiod2', 'tandigitalperiod2', 'tandigitalyperiod2', 'tandigitalzperiod2', 'squareperiod2', 'squarezperiod2', 'overhead', 'incoming', 'space', 'hallway', 'distant', 'mmod', 'stealthred', 'stealthgreen', 'stealthblue', 'suddenred', 'suddengreen', 'suddenblue', 'suddenredoffset', 'suddengreenoffset', 'suddenblueoffset', 'hiddenred', 'hiddengreen', 'hiddenblue', 'hiddenredoffset', 'hiddengreenoffset', 'hiddenblueoffset', 'blinkred', 'blinkgreen', 'blinkblue', 'centeredpath', 'zbuffer', 'modtimermult', 'modtimeroffset', 'fixeffect', 'rotationorder', 'elasticdrunk', 'elasticdrunkoffset', 'elasticdrunkspeed', 'elasticdrunkperiod', 'elasticdrunkspacing', 'tanelasticdrunk', 'tanelasticdrunkoffset', 'tanelasticdrunkspeed', 'tanelasticdrunkperiod', 'tanelasticdrunkspacing', 'elasticbumpyx', 'elasticbumpyxoffset', 'elasticbumpyxperiod', 'tanelasticbumpyx', 'tanelasticbumpyxoffset', 'tanelasticbumpyxperiod', 'elasticbumpyy', 'elasticbumpyyoffset', 'elasticbumpyyperiod', 'tanelasticbumpyy', 'tanelasticbumpyyoffset', 'tanelasticbumpyyperiod', 'elasticbumpy', 'elasticbumpyoffset', 'elasticbumpyperiod', 'tanelasticbumpy', 'tanelasticbumpyoffset', 'tanelasticbumpyperiod', 'elasticspiralx', 'elasticspiralxoffset', 'elasticspiralxperiod', 'elasticspiraly', 'elasticspiralyoffset', 'elasticspiralyperiod', 'elasticspiralz', 'elasticspiralzoffset', 'elasticspiralzperiod', 'elastictornado', 'elastictornadooffset', 'elastictornadoperiod', 'tanelastictornado', 'tanelastictornadooffset', 'tanelastictornadoperiod'];
+    var ZERO:Array<String> = ['boost', 'brake', 'wave', 'waveoffset', 'waveperiod', 'boomerang', 'expand', 'expandperiod', 'drunk', 'drunkspeed', 'drunkoffset', 'drunkperiod', 'drunkspacing', 'tandrunk', 'tandrunkspeed', 'tandrunkoffset', 'tandrunkperiod', 'tandrunkspacing', 'drunkz', 'drunkzspeed', 'drunkzoffset', 'drunkzperiod', 'drunkzspacing', 'tandrunkz', 'tandrunkzspeed', 'tandrunkzoffset', 'tandrunkzperiod', 'tandrunkzspacing', 'tanexpand', 'tanexpandperiod', 'tipsy', 'tipsyspeed', 'tipsyoffset', 'tipsyspacing', 'tantipsy', 'tantipsyspeed', 'tantipsyoffset', 'tantipsyspacing', 'tornado', 'tornadooffset', 'tornadoperiod', 'tantornado', 'tantornadooffset', 'tantornadoperiod', 'tornadoz', 'tornadozoffset', 'tornadozperiod', 'tantornadoz', 'tantornadozoffset', 'tantornadozperiod', 'movex', 'movey', 'movez', 'randomspeed', 'reverse', 'split', 'divide', 'alternate', 'cross', 'centered', 'swap', 'attenuatex', 'attenuatexoffset', 'attenuatey', 'attenuateyoffset', 'attenuatez', 'attenuatezoffset', 'beat', 'beatoffset', 'beatmult', 'beatperiod', 'beaty', 'beatyoffset', 'beatymult', 'beatyperiod', 'beatz', 'beatzoffset', 'beatzmult', 'beatzperiod', 'bumpyx', 'bumpyxoffset', 'bumpyxperiod', 'tanbumpyx', 'tanbumpyxoffset', 'tanbumpyxperiod', 'bumpyy', 'bumpyyoffset', 'bumpyyperiod', 'tanbumpyy', 'tanbumpyyoffset', 'tanbumpyyperiod', 'bumpy', 'bumpyoffset', 'bumpyperiod', 'tanbumpy', 'tanbumpyoffset', 'tanbumpyperiod', 'flip', 'invert', 'zigzag', 'zigzagoffset', 'zigzagperiod', 'zigzagz', 'zigzagzoffset', 'zigzagzperiod', 'sawtooth', 'sawtoothoffset', 'sawtoothperiod', 'sawtoothz', 'sawtoothzoffset', 'sawtoothzperiod', 'parabolax', 'parabolaxoffset', 'parabolay', 'parabolayoffset', 'parabolaz', 'parabolazoffset', 'digital', 'digitalsteps', 'digitaloffset', 'digitalperiod', 'tandigital', 'tandigitalsteps', 'tandigitaloffset', 'tandigitalperiod', 'digitalz', 'digitalzsteps', 'digitalzoffset', 'digitalzperiod', 'tandigitalz', 'tandigitalzsteps', 'tandigitalzoffset', 'tandigitalzperiod', 'square', 'squareoffset', 'squareperiod', 'squarez', 'squarezoffset', 'squarezperiod', 'bounce', 'bounceoffset', 'bounceperiod', 'bouncez', 'bouncezoffset', 'bouncezperiod', 'xmode', 'xmode2', 'tiny', 'tipsyx', 'tipsyxspeed', 'tipsyxoffset', 'tipsyxspacing', 'tantipsyx', 'tantipsyxspeed', 'tantipsyxoffset', 'tantipsyxspacing', 'tipsyz', 'tipsyzspeed', 'tipsyzoffset', 'tipsyzspacing', 'tantipsyz', 'tantipsyzspeed', 'tantipsyzoffset', 'tantipsyzspacing', 'drunky', 'drunkyspeed', 'drunkyoffset', 'drunkyperiod', 'drunkyspacing', 'tandrunky', 'tandrunkyspeed', 'tandrunkyoffset', 'tandrunkyperiod', 'tandrunkyspacing', 'vibratex', 'vibratey', 'vibratez', 'pulse', 'pulseinner', 'pulseouter', 'pulseoffset', 'pulseperiod', 'shrinkmult', 'shrinklinear', 'noteskewx', 'noteskewy', 'noteskew', 'tinyx', 'tinyy', 'tinyz', 'confusionx', 'confusionxoffset', 'confusiony', 'confusionyoffset', 'confusion', 'confusionoffset', 'dizzy', 'twirl', 'roll', 'stealth', 'hidden', 'hiddenoffset', 'sudden', 'suddenoffset', 'blink', 'vanish', 'dark', 'cosecant', 'dizzyholds', 'rotationx', 'rotationy', 'vanishoffset', 'vanishsize', 'rotationz', 'skewx', 'skewy', 'spiralx', 'spiralxoffset', 'spiralxperiod', 'spiraly', 'spiralyoffset', 'spiralyperiod', 'spiralz', 'spiralzoffset', 'spiralzperiod', 'granulate', 'straightholds', 'arrowpath', 'arrowpathgranulate', 'arrowpathsize', 'arrowpathdrawsize', 'arrowpathdrawsizeback', 'mini', 'drawsize', 'drawsizeback', 'holdtinyx', 'tanpulse', 'tanpulseinner', 'tanpulseouter', 'tanpulseoffset', 'tanpulseperiod', 'shrinklinearx', 'shrinklineary', 'shrinklinearz', 'shrinkmultx', 'shrinkmulty', 'shrinkmultz', 'tapstealth', 'holdstealth', 'orient', 'orientoffset', 'noreorient', 'orienty', 'orientyoffset', 'noreorienty', 'orientx', 'orientxoffset', 'noreorientx', 'variableboomerang', 'reversetype', 'holdheadstealth', 'asymptote', 'asymptotescale', 'asymptoteoffset', 'cubicx', 'cubicxoffset', 'cubicy', 'cubicyoffset', 'cubicz', 'cubiczoffset', 'x', 'y', 'z', 'noteskewtype', 'longholds', 'spiralholds', 'sinclip', 'cosclip', 'tanclip', 'digitalperiod2', 'digitalyperiod2', 'digitalzperiod2', 'tandigitalperiod2', 'tandigitalyperiod2', 'tandigitalzperiod2', 'squareperiod2', 'squarezperiod2', 'overhead', 'incoming', 'space', 'hallway', 'distant', 'mmod', 'stealthred', 'stealthgreen', 'stealthblue', 'suddenred', 'suddengreen', 'suddenblue', 'suddenredoffset', 'suddengreenoffset', 'suddenblueoffset', 'hiddenred', 'hiddengreen', 'hiddenblue', 'hiddenredoffset', 'hiddengreenoffset', 'hiddenblueoffset', 'blinkred', 'blinkgreen', 'blinkblue', 'centeredpath', 'zbuffer', 'modtimermult', 'modtimeroffset', 'fixeffect', 'rotationorder', 'elasticdrunk', 'elasticdrunkoffset', 'elasticdrunkspeed', 'elasticdrunkperiod', 'elasticdrunkspacing', 'tanelasticdrunk', 'tanelasticdrunkoffset', 'tanelasticdrunkspeed', 'tanelasticdrunkperiod', 'tanelasticdrunkspacing', 'elasticbumpyx', 'elasticbumpyxoffset', 'elasticbumpyxperiod', 'tanelasticbumpyx', 'tanelasticbumpyxoffset', 'tanelasticbumpyxperiod', 'elasticbumpyy', 'elasticbumpyyoffset', 'elasticbumpyyperiod', 'tanelasticbumpyy', 'tanelasticbumpyyoffset', 'tanelasticbumpyyperiod', 'elasticbumpy', 'elasticbumpyoffset', 'elasticbumpyperiod', 'tanelasticbumpy', 'tanelasticbumpyoffset', 'tanelasticbumpyperiod', 'elasticspiralx', 'elasticspiralxoffset', 'elasticspiralxperiod', 'elasticspiraly', 'elasticspiralyoffset', 'elasticspiralyperiod', 'elasticspiralz', 'elasticspiralzoffset', 'elasticspiralzperiod', 'elastictornado', 'elastictornadooffset', 'elastictornadoperiod', 'tanelastictornado', 'tanelastictornadooffset', 'tanelastictornadoperiod'];
     var ONE:Array<String> = ['xmod', 'zoom', 'zoomx', 'zoomy', 'zoomz', 'stealthtype', 'stealthpastreceptors', 'scale', 'scalex', 'scaley', 'scalez', 'scrollspeedmult', 'stealthglowred', 'stealthglowgreen', 'stealthglowblue', 'modtimer'];
 
     var axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth'];
@@ -124,12 +123,6 @@ class Modchart
       ZERO.push('movex$i');
       ZERO.push('movey$i');
       ZERO.push('movez$i');
-      ZERO.push('movexoffset$i');
-      ZERO.push('moveyoffset$i');
-      ZERO.push('movezoffset$i');
-      ZERO.push('movexoffset1$i');
-      ZERO.push('moveyoffset1$i');
-      ZERO.push('movezoffset1$i');
       ZERO.push('tiny$i');
       ZERO.push('holdtinyx$i');
       ZERO.push('bumpy$i');
@@ -314,17 +307,17 @@ class Modchart
     for (mod in ZERO)
     {
       modList.set(mod, 0);
-      speedList.set(mod, 0);
+      preModList.set(mod, [0, 0]);
     }
 
     for (mod in ONE)
     {
       modList.set(mod, 1);
-      speedList.set(mod, 0);
+      preModList.set(mod, [1, 0]);
     }
 
     modList.set('cmod', CMOD_DEFAULT); // give a normal speed at fnf
-    speedList.set('cmod', 0);
+    preModList.set('cmod', [0, 0]);
 
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
@@ -575,8 +568,7 @@ class Modchart
       }
       if (modList.exists(name))
       {
-        preModList.set(name, level);
-        speedList.set(name, speed);
+        preModList.set(name, [level, speed]);
       }
     }
   }
@@ -611,11 +603,12 @@ class Modchart
     totalElapsed += FlxG.elapsed;
     for (name => level in preModList)
     {
-      var speed:Float = speedList.get(name);
+      var state:Array<Float> = preModList.get(name);
+      var level:Float = state[0];
+      var speed:Float = state[1];
       var current:Float = getValue(name);
       if (level == current)
       {
-        preModList.remove(name);
         continue;
       }
       if (speed < 0)
@@ -644,23 +637,21 @@ class Modchart
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
     var curTime:Float = getTime();
-    var distanceToTime:Float = SCREEN_HEIGHT / scrollSpeed / Constants.PIXELS_PER_MS;
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;
+    scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
     var fYOffset:Float = GRhythmUtil.getNoteY(time, speed, true, conductor) * -1;
     if (getValue('cmod') > 0) fYOffset *= getValue('cmod') / 60 / 1000 * ARROW_SIZE;
-    scrollSpeed *= getValue('scrollspeedmult') * getValue('scrollspeedmult$iCol');
-    var fYAdjust:Float = 0;
     if (fYOffset < 0)
     {
       return fYOffset * scrollSpeed;
     }
+    var fYAdjust:Float = 0;
     if (getValue('boost') != 0)
     {
       var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost') * (fNewYOffset - fYOffset);
-
       fAccelYAdjust = ModchartMath.clamp(fAccelYAdjust, -400, 400);
       fYAdjust += fAccelYAdjust;
     }
@@ -685,7 +676,7 @@ class Modchart
     if (getValue('brake$iCol') != 0)
     {
       var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
-      var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.); // i know, it's normalized y offset
+      var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake$iCol') * (fNewYOffset - fYOffset);
       fBrakeYAdjust = ModchartMath.clamp(fBrakeYAdjust, -400, 400);
@@ -767,9 +758,7 @@ class Modchart
   {
     var time:Float = getTime();
     var f:Float = 0;
-    f += ARROW_SIZE * getValue('movex${iCol}') + getValue('movexoffset$iCol') + getValue('movexoffset1$iCol');
-
-    f += ARROW_SIZE * getValue('movex') + getValue('movexoffset') + getValue('movexoffset1');
+    f += ARROW_SIZE * (getValue('movex') + getValue('movex${iCol}'));
 
     if (getValue('drunk') != 0) f += getValue('drunk') * ModchartMath.fastCos(CalculateDrunkAngle(time, getValue('drunkspeed'), iCol,
       getValue('drunkspacing'), 0.2, fYOffset, getValue('drunkperiod'), 10, getValue('drunkoffset')),
@@ -1170,9 +1159,7 @@ class Modchart
       f += fShift;
     }
 
-    f += ARROW_SIZE * getValue('movey$iCol') + getValue('moveyoffset$iCol') + getValue('moveyoffset1$iCol');
-
-    f += ARROW_SIZE * getValue('movey') + getValue('moveyoffset') + getValue('moveyoffset1');
+    f += ARROW_SIZE * (getValue('movey') + getValue('movey${iCol}'));
 
     if (getValue('attenuatey') != 0) f += getValue('attenuatey') * ((fYOffset + 100 * getValue('attenuateyoffset')) / ARROW_SIZE) * ((fYOffset
       + 100 * getValue('attenuateyoffset')) / ARROW_SIZE) * (xOffset[iCol] / ARROW_SIZE);
@@ -1324,9 +1311,7 @@ class Modchart
   {
     var f:Float = 0;
     var time:Float = getTime();
-    f += ARROW_SIZE * getValue('movez$iCol') + getValue('movezoffset$iCol') + getValue('movezoffset1$iCol');
-
-    f += ARROW_SIZE * getValue('movez') + getValue('movezoffset') + getValue('movezoffset1');
+    f += ARROW_SIZE * (getValue('movez') + getValue('movez${iCol}'));
 
     if (getValue('tornadoz') != 0)
     {

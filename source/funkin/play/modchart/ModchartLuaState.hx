@@ -31,7 +31,7 @@ class ModchartLuaState
       return;
     }
     setOrUpdateVariables();
-    Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, pn:Int)
+    Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int)
     {
       PlayState.instance.ApplyModifiers(str, pn);
     });

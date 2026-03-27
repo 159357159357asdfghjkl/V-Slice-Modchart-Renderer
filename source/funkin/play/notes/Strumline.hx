@@ -12,7 +12,6 @@ import flixel.util.FlxSort;
 import funkin.graphics.FunkinSprite;
 import funkin.data.song.SongData.SongNoteData;
 import funkin.util.SortUtil;
-import funkin.util.GRhythmUtil;
 import funkin.play.notes.notekind.NoteKind;
 import funkin.play.notes.notekind.NoteKindManager;
 import flixel.math.FlxPoint;
@@ -313,6 +312,7 @@ class Strumline extends FlxSpriteGroup
       var child:StrumlineNote = new StrumlineNote(noteStyle, isPlayer, DIRECTIONS[i]);
       child.x = getXPos(DIRECTIONS[i]);
       child.offsetX = INITIAL_OFFSET;
+      noteStyle.applyStrumlineOffsets(child);
       child.y = 0;
       this.strumlineNotes.add(child);
       child.column = i;
@@ -856,14 +856,6 @@ class Strumline extends FlxSpriteGroup
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
     var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     var col:Int = note.noteData.getDirection();
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
     var realofs = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, col, note.strumTime) + c2;
@@ -912,10 +904,7 @@ class Strumline extends FlxSpriteGroup
     note.SKEW.x = skewPos.x + spSkew.x;
     note.SKEW.y = skewPos.y;
     note.x = note.y = 0;
-    var newZoom:Vector3D = this.zoom.clone();
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
+    var newZoom:Vector3D = new Vector3D(this.zoom.x * zoom2.x, this.zoom.y * zoom2.y, this.zoom.z * zoom2.z);
     mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
     pos.incrementBy(spPos);
     note.pos.copyFrom(pos.add(difference));
@@ -935,23 +924,12 @@ class Strumline extends FlxSpriteGroup
     if (note.holdNoteSprite == null) rotation.incrementBy(spRot);
     note.rotation.copyFrom(rotation);
     note.fov = fov;
-    note.rotationOrder = rotationOrder;
   }
 
   function updateOneHold(holdNote:SustainTrail):Void
   {
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     holdNote.x = holdNote.y = 0;
     holdNote.fov = fov;
-    holdNote.rotationOrder = rotationOrder;
-
     final magicNumberIGuess:Float = 8;
     var renderWindowEnd:Float = holdNote.strumTime
       + holdNote.fullSustainLength
@@ -981,19 +959,10 @@ class Strumline extends FlxSpriteGroup
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
     var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     strumNote.fov = fov;
     var col:Int = strumNote.column;
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
     strumNote.x = strumNote.y = 0;
-    strumNote.rotationOrder = rotationOrder;
     var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
     var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll, reversedOff);
@@ -1031,10 +1000,7 @@ class Strumline extends FlxSpriteGroup
     strumNote.SCALE.z = scalePos.z * realSpZoom;
     strumNote.SKEW.x = skewPos.x + spSkew.x;
     strumNote.SKEW.y = skewPos.y;
-    var newZoom:Vector3D = this.zoom.clone();
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
+    var newZoom:Vector3D = new Vector3D(this.zoom.x * zoom2.x, this.zoom.y * zoom2.y, this.zoom.z * zoom2.z);
     mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
     pos.incrementBy(spPos);
     strumNote.pos.copyFrom(pos.add(difference));
@@ -1050,18 +1016,9 @@ class Strumline extends FlxSpriteGroup
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
     var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     splash.fov = fov;
     var col:Int = splash.column;
     splash.x = splash.y = 0;
-    splash.rotationOrder = rotationOrder;
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
     var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
@@ -1100,10 +1057,7 @@ class Strumline extends FlxSpriteGroup
     splash.SCALE.z = scalePos.z * realSpZoom;
     splash.SKEW.x = skewPos.x + spSkew.x;
     splash.SKEW.y = skewPos.y;
-    var newZoom:Vector3D = this.zoom.clone();
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
+    var newZoom:Vector3D = new Vector3D(this.zoom.x * zoom2.x, this.zoom.y * zoom2.y, this.zoom.z * zoom2.z);
     mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
     pos.incrementBy(spPos);
     splash.pos.copyFrom(pos.add(difference));
@@ -1121,21 +1075,12 @@ class Strumline extends FlxSpriteGroup
     var timeDiff:Float = mods.baseHoldSize;
     var reversedOff:Float = FlxG.height - defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
     var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     var col:Int = cover.column;
-    var holdCoverAssetPath:Null<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column);
-    var parts:Array<String> = noteStyle.getHoldCoverDirectionAssetPath(cover.column, true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+    var holdCoverAssetPath:Null<String> = noteStyle.getHoldCoverDirectionAssetPath(col);
+    var parts:Array<String> = noteStyle.getHoldCoverDirectionAssetPath(col, true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
     glow.graphic = FlxG.bitmap.add(Paths.image(holdCoverAssetPath, parts[0]));
     glow.fov = fov;
     glow.x = glow.y = 0;
-    glow.rotationOrder = rotationOrder;
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
     var zpos = mods.GetZPos(col, c2, modNumber, xoffArray);
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
@@ -1173,10 +1118,7 @@ class Strumline extends FlxSpriteGroup
     glow.SCALE.z = scalePos.z * realSpZoom;
     glow.SKEW.x = skewPos.x + spSkew.x;
     glow.SKEW.y = skewPos.y;
-    var newZoom:Vector3D = this.zoom.clone();
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
+    var newZoom:Vector3D = new Vector3D(this.zoom.x * zoom2.x, this.zoom.y * zoom2.y, this.zoom.z * zoom2.z);
     mods.modifyPosByValue(pos, scalePos, rotation, skewPos, col, this.rotation.add(this.rotation2), this.skew.add(this.skew2), newZoom);
     pos.incrementBy(spPos);
     glow.pos.copyFrom(pos.add(difference));
@@ -1537,8 +1479,8 @@ class Strumline extends FlxSpriteGroup
       cover.y = this.y;
       if (cover.glow != null)
       {
-        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x - 12;
-        cover.glow.offsetY = INITIAL_OFFSET + STRUMLINE_SIZE / 2 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y - 96;
+        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
+        cover.glow.offsetY = INITIAL_OFFSET - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
       }
       cover.column = holdNote.noteData.getDirection();
       updateOneCover(cover);
@@ -1580,7 +1522,7 @@ class Strumline extends FlxSpriteGroup
       noteSprite.noteData = note;
       noteSprite.x = this.x;
       noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
-      noteSprite.offsetX = -(noteSprite.width - Strumline.STRUMLINE_SIZE) / 2 - NUDGE;
+      noteSprite.offsetX = -NUDGE;
       noteSprite.y = -9999;
       updateOneNote(noteSprite);
 

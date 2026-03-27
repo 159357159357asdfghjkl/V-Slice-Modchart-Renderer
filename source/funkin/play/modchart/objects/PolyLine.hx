@@ -25,7 +25,6 @@ class PolyLine extends FunkinSprite
   public var uvtData:Vector<Float> = new Vector<Float>();
   public var indices:Vector<Int> = new Vector<Int>();
   public var column:Int = 0;
-  public var parent(get, set):Strumline;
 
   // constants
   var mods:Modchart;
@@ -33,21 +32,13 @@ class PolyLine extends FunkinSprite
   var pn:Int;
   var parentStrumline:Strumline;
 
-  function set_parent(a:Strumline):Strumline
-  {
-    this.parentStrumline = a;
-    this.mods = a.mods;
-    this.pn = a.modNumber;
-    this.xoffArray = a.xoffArray;
-    return a;
-  }
-
-  function get_parent():Strumline return parentStrumline;
-
   public function new(?x:Float, ?y:Float, ?parent:Strumline)
   {
     super(0, 0);
-    this.parent = parent;
+    this.parentStrumline = parent;
+    this.mods = parentStrumline?.mods ?? null;
+    this.xoffArray = parentStrumline?.xoffArray ?? [];
+    this.pn = parentStrumline?.modNumber ?? -1;
     this.makeGraphic(1, 1, 0xFFFFFFFF);
     this.antialiasing = true;
   }
@@ -105,6 +96,12 @@ class PolyLine extends FunkinSprite
     }
   }
 
+  public var rotationOrder:String = 'zyx';
+
+  var spPos:Vector3D = new Vector3D();
+  var spZoom:Vector3D = new Vector3D();
+  var spSkew:Vector3D = new Vector3D();
+
   // btw, i use vec3 as points
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Vector3D
   {
@@ -160,34 +157,20 @@ class PolyLine extends FunkinSprite
     var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-    var newZoom:Vector3D = parentStrumline.zoom.clone();
     var zoom2:Vector3D = parentStrumline.zoom2;
-    newZoom.x *= zoom2.x;
-    newZoom.y *= zoom2.y;
-    newZoom.z *= zoom2.z;
-    var spiralHolds:Float = mods.getValue('spiralholds');
-    if (spiralHolds != 0) rotation.z += angles.z * ModchartMath.deg - 90;
+    var zoom1:Vector3D = parentStrumline.zoom;
+    var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
+    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-    var spPos:Vector3D = new Vector3D();
     parentStrumline.getSplineAxisPos('pos', column, noteBeat, 0, spPos);
-    var spZoom:Vector3D = new Vector3D();
     parentStrumline.getSplineAxisPos('zoom', column, noteBeat, 0, spZoom);
     var realSpZoom:Float = 1 - 0.5 * spZoom.x;
-    var spSkew:Vector3D = new Vector3D();
     parentStrumline.getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
     fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);
     skewPos.x += spSkew.x;
-    var order:Int = Std.int(mods.getValue('rotationorder'));
-    var rotationOrder:String = 'zyx';
-    if (order == 0) rotationOrder = 'zyx';
-    else if (order == 1) rotationOrder = 'zxy';
-    else if (order == 2) rotationOrder = 'yzx';
-    else if (order == 3) rotationOrder = 'yxz';
-    else if (order == 4) rotationOrder = 'xyz';
-    else if (order == 5) rotationOrder = 'xzy';
     var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
     zPos.decrementBy(offset);
     zPos.x += Strumline.NOTE_SPACING / 2 - 1;
@@ -197,6 +180,7 @@ class PolyLine extends FunkinSprite
 
   function updateClipping():Void
   {
+    if (parentStrumline == null) return;
     var alpha:Float = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
     alpha = ModchartMath.clamp(alpha, 0, 1) * this.alpha * parentStrumline.alpha;
     this.colorTransform.alphaMultiplier = alpha;

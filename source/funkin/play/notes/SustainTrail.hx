@@ -297,6 +297,13 @@ class SustainTrail extends FlxSprite
     origin.set(width * 0.5, height * 0.5);
   }
 
+  var spPos:Vector3D = new Vector3D();
+  var spZoom:Vector3D = new Vector3D();
+  var spSkew:Vector3D = new Vector3D();
+  var spStealth:Vector3D = new Vector3D();
+  var realSpZoom:Float = 1;
+  var realSpStealth:Float = 0;
+
   function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
   {
     var mods:Modchart = parentStrumline.mods;
@@ -354,21 +361,13 @@ class SustainTrail extends FlxSprite
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
-    var spPos:Vector3D = new Vector3D();
-    var spZoom:Vector3D = new Vector3D();
-    var spSkew:Vector3D = new Vector3D();
-    var spStealth:Vector3D = new Vector3D();
-    var realSpZoom:Float = 1;
-    var realSpStealth:Float = 0;
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-    var newZoom:Vector3D = parentStrumline.zoom.clone();
-    newZoom.x *= parentStrumline.zoom2.x;
-    newZoom.y *= parentStrumline.zoom2.y;
-    newZoom.z *= parentStrumline.zoom2.z;
+    var zoom2:Vector3D = parentStrumline.zoom2;
+    var zoom1:Vector3D = parentStrumline.zoom;
+    var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-    var spiralHolds:Float = mods.getValue('spiralholds');
-    if (spiralHolds != 0) rotation.z += angles.z * ModchartMath.deg - 90;
+    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
     parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 1, spPos);
     parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 1, spZoom);
     realSpZoom = 1 - 0.5 * spZoom.x;

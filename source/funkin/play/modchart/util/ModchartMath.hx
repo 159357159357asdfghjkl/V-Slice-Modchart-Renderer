@@ -80,7 +80,7 @@ class ModchartMath
     return fAngle >= Math.PI ? -1.0 : 1.0;
   }
 
-  public static function triangle(angle:Float)
+  public static inline function triangle(angle:Float)
   {
     var fAngle:Float = mod(angle, Math.PI * 2.0);
     if (fAngle < 0.0)
@@ -102,7 +102,7 @@ class ModchartMath
     }
   }
 
-  public static function getDirectionsBetweenTwoVectors(pos:Vector3D, pos2:Vector3D):Vector3D
+  public static inline function getDirectionsBetweenTwoVectors(pos:Vector3D, pos2:Vector3D):Vector3D
   {
     var diff:Vector3D = pos2.subtract(pos);
     var angX:Float = Math.atan2(diff.y, diff.z);
@@ -112,7 +112,7 @@ class ModchartMath
   }
 
   public static function processActor(fullPos:Vector3D, realPos:Vector3D, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
-      fov:Float, rotationOrder = 'zyx'):Vector3D
+      fov:Float, rotationOrder:String = 'zyx'):Vector3D
   {
     var m:Matrix3D = translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);

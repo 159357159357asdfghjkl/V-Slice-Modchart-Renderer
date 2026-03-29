@@ -257,8 +257,7 @@ class SustainTrail extends FlxSprite
     {
       triggerRedraw();
     }
-    else
-      updateClipping();
+    if (!updatedThisFrame) updateClipping();
     previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
   }
 

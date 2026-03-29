@@ -121,6 +121,10 @@ class PreferencesMenu extends Page<OptionsState.OptionsMenuPageName>
     },
       Preferences.downscroll, #if mobile ControlsHandler.hasExternalInputDevice
       || Preferences.controlsScheme != FunkinHitboxControlSchemes.Arrows #end);
+    createPrefItemCheckbox('Modchart', 'When enabled, notes can have their modifiers.', function(value:Bool):Void
+    {
+      Preferences.modchart = value;
+    }, Preferences.modchart);
     createPrefItemPercentage('Strumline Background', 'Show a semi-transparent background behind the strumline.', function(value:Int):Void
     {
       Preferences.strumlineBackgroundOpacity = value;

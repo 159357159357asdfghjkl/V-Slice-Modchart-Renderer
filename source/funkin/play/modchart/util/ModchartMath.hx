@@ -18,9 +18,6 @@ class ModchartMath
   public static final rad:Float = Math.PI / 180.0;
   public static final deg:Float = 180.0 / Math.PI;
 
-  public static final FLT_MAX_x32:Float = 3.4028234663852886e+38;
-  public static final FLT_MIN_x32:Float = 1.1754943508222875e-38;
-
   public static final ROWS_PER_BEAT:Int = 48;
   public static final BEATS_PER_MEASURE:Int = 4;
 

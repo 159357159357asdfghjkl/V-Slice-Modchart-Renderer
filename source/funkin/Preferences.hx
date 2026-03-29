@@ -97,6 +97,21 @@ class Preferences
     return value;
   }
 
+  public static var modchart(get, set):Bool;
+
+  static function get_modchart():Bool
+  {
+    return Save?.instance?.options?.modchart #if mobile ?? false #else ?? true #end;
+  }
+
+  static function set_modchart(value:Bool):Bool
+  {
+    var save:Save = Save.instance;
+    save.options.modchart = value;
+    Save.system.flush();
+    return value;
+  }
+
   /**
    * If disabled, flashing lights in the main menu and other areas will be less intense.
    * @default `true`

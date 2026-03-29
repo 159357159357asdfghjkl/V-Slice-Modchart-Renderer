@@ -306,13 +306,13 @@ class CubicSpline
 
   public function set_point(i:Int, v:Float):Void
   {
-    if (i < points.length == false) throw "CubicSpline::set_point requires the index to be less than the number of points.";
+    if (i >= points.length) throw "CubicSpline::set_point requires the index to be less than the number of points.";
     points[i][0] = v;
   }
 
   public function set_coefficients(i:Int, b:Float, c:Float, d:Float):Void
   {
-    if (i < points.length == false) throw "CubicSpline: point index must be less than the number of points.";
+    if (i >= points.length) throw "CubicSpline: point index must be less than the number of points.";
     points[i][1] = b;
     points[i][2] = c;
     points[i][3] = d;
@@ -320,13 +320,13 @@ class CubicSpline
 
   public function add_point(i:Int, v:Float):Void
   {
-    if (i < points.length == false) throw "CubicSpline::add_point requires the index to be less than the number of points.";
+    if (i >= points.length) throw "CubicSpline::add_point requires the index to be less than the number of points.";
     points[i][0] += v;
   }
 
   public function add_coefficients(i:Int, b:Float, c:Float, d:Float):Void
   {
-    if (i < points.length == false) throw "CubicSpline: point index must be less than the number of points.";
+    if (i >= points.length) throw "CubicSpline: point index must be less than the number of points.";
     points[i][1] += b;
     points[i][2] += c;
     points[i][3] += d;
@@ -334,7 +334,7 @@ class CubicSpline
 
   public function get_coefficients(i:Int):Array<Float>
   {
-    if (i < points.length == false) throw "CubicSpline: point index must be less than the number of points.";
+    if (i >= points.length) throw "CubicSpline: point index must be less than the number of points.";
     return [points[i][1], points[i][2], points[i][3]];
   }
 
@@ -387,7 +387,7 @@ class CubicSplineN
 
   public function weighted_average(out:CubicSplineN, from:CubicSplineN, to:CubicSplineN, between:Float):Void
   {
-    if ((out.dimension() == from.dimension() && to.dimension() == from.dimension()) == false) throw "Cannot tween splines of different dimensions.";
+    if (!(out.dimension() == from.dimension() && to.dimension() == from.dimension())) throw "Cannot tween splines of different dimensions.";
     if (between >= 0.5)
     {
       out.set_loop(to.get_loop());
@@ -536,7 +536,7 @@ class CubicSplineN
 
   public function set_coefficients(i:Int, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
   {
-    if ((b.length == c.length && c.length == d.length && d.length == splines.length) == false)
+    if (!(b.length == c.length && c.length == d.length && d.length == splines.length))
       throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
     for (n in 0...splines.length)
       splines[n].set_coefficients(i, b[n], c[n], d[n]);
@@ -553,7 +553,7 @@ class CubicSplineN
 
   public function add_coefficients(i:Int, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
   {
-    if ((b.length == c.length && c.length == d.length && d.length == splines.length) == false)
+    if (!(b.length == c.length && c.length == d.length && d.length == splines.length))
       throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
     for (n in 0...splines.length)
       splines[n].add_coefficients(i, b[n], c[n], d[n]);
@@ -562,7 +562,7 @@ class CubicSplineN
 
   public function get_coefficients(i, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
   {
-    if ((b.length == c.length && c.length == d.length && d.length == splines.length) == false)
+    if (!(b.length == c.length && c.length == d.length && d.length == splines.length))
       throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
     for (n in 0...splines.length)
     {

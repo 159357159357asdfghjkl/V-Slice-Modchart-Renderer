@@ -312,6 +312,7 @@ class Strumline extends FlxSpriteGroup
       var child:StrumlineNote = new StrumlineNote(noteStyle, isPlayer, DIRECTIONS[i]);
       child.x = getXPos(DIRECTIONS[i]);
       child.offsetX = INITIAL_OFFSET;
+      child.offsetY = 0;
       noteStyle.applyStrumlineOffsets(child);
       child.y = 0;
       this.strumlineNotes.add(child);
@@ -1446,8 +1447,8 @@ class Strumline extends FlxSpriteGroup
 
       splash.x = this.x;
       splash.x += getXPos(direction);
-      splash.offsetX = INITIAL_OFFSET + noteStyle.getSplashOffsets()[0] * splash.SCALE.x;
-      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] * splash.SCALE.y;
+      splash.offsetX = INITIAL_OFFSET + noteStyle.getSplashOffsets()[0] * splash.scale.x;
+      splash.offsetY = -INITIAL_OFFSET + noteStyle.getSplashOffsets()[1] * splash.scale.y;
 
       splash.y = this.y;
       splash.column = direction;
@@ -1523,7 +1524,9 @@ class Strumline extends FlxSpriteGroup
       noteSprite.x = this.x;
       noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
       noteSprite.offsetX = -NUDGE;
+      noteSprite.offsetY = 10;
       noteSprite.y = -9999;
+
       updateOneNote(noteSprite);
 
       if (noteKind != null) noteSprite.scoreable = noteKind.scoreable;

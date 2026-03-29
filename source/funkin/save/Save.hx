@@ -99,6 +99,7 @@ class Save implements ConsoleClass
       favoriteSongs: [],
       options: {
         // Reasonable defaults.
+        modchart: true,
         framerate: #if mobile refreshRate #else 60 #end,
         naughtyness: true,
         downscroll: false,
@@ -1141,6 +1142,8 @@ typedef SaveDataOptions =
    * @default `false`
    */
   var downscroll:Bool;
+
+  var modchart:Bool;
 
   /**
    * If disabled, flashing lights in the main menu and other areas will be less intense.

@@ -56,8 +56,8 @@ class FunkinActor extends FunkinSprite
   function getPos(vec:Vector3D):Vector3D
   {
     var fullPos:Vector3D = pos.add(basePos);
-    fullPos.x += pos2.x + offsetX - origin.x;
-    fullPos.y += pos2.y + offsetY - origin.y;
+    fullPos.x += pos2.x - origin.x;
+    fullPos.y += pos2.y - origin.y;
     fullPos.x *= baseZoom.x;
     fullPos.y *= baseZoom.y;
     fullPos.z *= baseZoom.z;
@@ -70,6 +70,8 @@ class FunkinActor extends FunkinSprite
     var zPos:Vector3D = ModchartMath.processActor(fullPos, vec, rotation, scalePos, skewPos, originVec, fov, rotationOrder);
     zPos.x += origin.x;
     zPos.y += origin.y;
+    zPos.x += offsetX;
+    zPos.y += offsetY;
     return zPos;
   }
 

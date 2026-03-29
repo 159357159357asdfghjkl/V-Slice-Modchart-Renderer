@@ -456,6 +456,7 @@ class Modchart
   // example: fromString('*-1 100 drunk, *3 200 bumpy');
   public function fromString(mod:String):Void
   {
+    if (!Preferences.modchart) return;
     var a:Array<String> = mod.split(',');
     for (sOneMod in a)
     {
@@ -1022,8 +1023,8 @@ class Modchart
 
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1120,8 +1121,8 @@ class Modchart
 
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1321,8 +1322,8 @@ class Modchart
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
 
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {
@@ -1594,8 +1595,8 @@ class Modchart
 
       iStartCol = ModchartMath.iClamp(iStartCol, 0, 3);
       iEndCol = ModchartMath.iClamp(iEndCol, 0, 3);
-      var fMinX:Float = ModchartMath.FLT_MAX_x32;
-      var fMaxX:Float = ModchartMath.FLT_MIN_x32;
+      var fMinX:Float = FlxMath.MAX_VALUE_FLOAT;
+      var fMaxX:Float = FlxMath.MIN_VALUE_FLOAT;
 
       for (i in iStartCol...iEndCol + 1)
       {

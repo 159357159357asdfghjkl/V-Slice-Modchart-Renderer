@@ -257,7 +257,7 @@ class SustainTrail extends FlxSprite
     {
       triggerRedraw();
     }
-    if (!updatedThisFrame) updateClipping();
+    if (!updatedThisFrame && useNew) updateClipping();
     previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
   }
 
@@ -377,9 +377,9 @@ class SustainTrail extends FlxSprite
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);
     skewPos.x += spSkew.x;
-    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
+      offsetY);
     zPos.decrementBy(offset);
-    zPos.incrementBy(new Vector3D(offsetX, offsetY));
     var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;

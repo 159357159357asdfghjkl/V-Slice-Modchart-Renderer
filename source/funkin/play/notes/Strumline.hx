@@ -1480,7 +1480,7 @@ class Strumline extends FlxSpriteGroup
       cover.y = this.y;
       if (cover.glow != null)
       {
-        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
+        cover.glow.offsetX = STRUMLINE_SIZE / 2 - cover.width / 2 + noteStyle.getHoldCoverOffsets()[0] * cover.scale.x - 12;
         cover.glow.offsetY = INITIAL_OFFSET - 96 + noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
       }
       cover.column = holdNote.noteData.getDirection();
@@ -1523,8 +1523,7 @@ class Strumline extends FlxSpriteGroup
       noteSprite.noteData = note;
       noteSprite.x = this.x;
       noteSprite.x += getXPos(DIRECTIONS[note.getDirection() % KEY_COUNT]);
-      noteSprite.offsetX = -NUDGE;
-      noteSprite.offsetY = 10;
+      noteSprite.offsetX = -NUDGE; //-(noteSprite.width + STRUMLINE_SIZE) / 2 - NUDGE;
       noteSprite.y = -9999;
 
       updateOneNote(noteSprite);

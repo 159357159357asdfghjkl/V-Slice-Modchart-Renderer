@@ -109,12 +109,13 @@ class ModchartMath
   }
 
   public static function processActor(fullPos:Vector3D, realPos:Vector3D, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
-      fov:Float, rotationOrder:String = 'zyx'):Vector3D
+      fov:Float, rotationOrder:String = 'zyx', offx:Float = 0, offy:Float = 0):Vector3D
   {
     var m:Matrix3D = translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     scaleMatrix(m, scalePos.x, scalePos.y, scalePos.z);
     skewMatrix(m, skewPos.x, skewPos.y);
+    m.appendTranslation(offx, offy, 0);
     var pos:Vector3D = initPerspective(realPos, m, fov, FlxG.width, FlxG.height, ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2),
       originVec.y);
     return pos;
@@ -292,6 +293,8 @@ class ModchartMath
       return 0;
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
+
+  public static inline function sigmoid(x:Float):Float return 1.0 / (1.0 + Math.exp(-x));
 
   @:noCompletion private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,
       fVanishPointY:Float):Array<Matrix3D>

@@ -67,11 +67,12 @@ class FunkinActor extends FunkinSprite
     scalePos.y *= baseScale.y * baseZoom.y;
     scalePos.z *= baseScale.z * baseZoom.z;
     var skewPos:Vector3D = new Vector3D(baseSkew.x + SKEW.x, baseSkew.y + SKEW.y);
-    var zPos:Vector3D = ModchartMath.processActor(fullPos, vec, rotation, scalePos, skewPos, originVec, fov, rotationOrder);
-    zPos.x += origin.x;
-    zPos.y += origin.y;
-    zPos.x += offsetX;
-    zPos.y += offsetY;
+    var zPos:Vector3D = ModchartMath.processActor(fullPos, vec, rotation, scalePos, skewPos, originVec, fov, rotationOrder, origin.x * 2
+      - offset.x
+      + offsetX,
+      origin.y * 2
+      - offset.y
+      + offsetY);
     return zPos;
   }
 
@@ -103,8 +104,7 @@ class FunkinActor extends FunkinSprite
       if (camera.exists && camera != null)
       {
         if (!camera.visible || camera.alpha == 0) continue;
-        getScreenPosition(_point, camera).subtract(offset);
-        _point.add(origin.x, origin.y);
+        getScreenPosition(_point, camera);
         var colorTransform = new ColorTransform();
         colorTransform.redMultiplier = diffuse.x * baseDiffuse.x * this.colorTransform.redMultiplier;
         colorTransform.greenMultiplier = diffuse.y * baseDiffuse.y * this.colorTransform.greenMultiplier;

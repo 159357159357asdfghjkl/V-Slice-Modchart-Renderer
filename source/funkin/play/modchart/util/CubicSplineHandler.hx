@@ -11,6 +11,7 @@ import funkin.play.notes.Strumline;
 class CubicSpline
 {
   public var points:Array<Array<Float>> = [];
+  public var offsets:Array<Float> = [];
 
   public function new()
   {
@@ -40,8 +41,6 @@ class CubicSpline
    *  (1, +inf) Cubic
   **/
   public var splineMode:Float = 0;
-
-  public var splineOffset:Float = 0;
 
   public var spatial_extent:Float = 0.0;
 
@@ -177,7 +176,6 @@ class CubicSpline
   {
     var p:Int = 0;
     var tfrac:Float = 0;
-    var t:Float = t + splineOffset;
     if (loop)
     {
       var max_t:Float = points.length;
@@ -194,14 +192,14 @@ class CubicSpline
         p = 0;
         tfrac = 0;
       }
-      else if (Std.int(flort) >= points.length - 1)
+      else if (flort >= points.length - 1)
       {
         p = points.length - 1;
         tfrac = 0;
       }
       else
       {
-        p = Std.int(flort);
+        p = flort;
         tfrac = t - p;
       }
     }
@@ -248,7 +246,6 @@ class CubicSpline
     }
     else if (splineMode > 0 && splineMode <= 1)
     {
-      var current:Float = points[p][0];
       var sinFactor:Float = (Math.PI * FlxMath.fastSin(tfrac * Math.PI)) / 2.0;
       return diff * sinFactor;
     }
@@ -310,26 +307,18 @@ class CubicSpline
     points[i][0] = v;
   }
 
+  public function set_offset(i:Int, v:Float):Void
+  {
+    if (i >= offsets.length) throw "CubicSpline::set_offset requires the index to be less than the number of points.";
+    offsets[i] = v;
+  }
+
   public function set_coefficients(i:Int, b:Float, c:Float, d:Float):Void
   {
     if (i >= points.length) throw "CubicSpline: point index must be less than the number of points.";
     points[i][1] = b;
     points[i][2] = c;
     points[i][3] = d;
-  }
-
-  public function add_point(i:Int, v:Float):Void
-  {
-    if (i >= points.length) throw "CubicSpline::add_point requires the index to be less than the number of points.";
-    points[i][0] += v;
-  }
-
-  public function add_coefficients(i:Int, b:Float, c:Float, d:Float):Void
-  {
-    if (i >= points.length) throw "CubicSpline: point index must be less than the number of points.";
-    points[i][1] += b;
-    points[i][2] += c;
-    points[i][3] += d;
   }
 
   public function get_coefficients(i:Int):Array<Float>
@@ -355,9 +344,11 @@ class CubicSpline
   {
     var oldSize:Int = points.length;
     points.resize(s);
+    offsets.resize(s);
     for (i in oldSize...s)
     {
       points[i] = [0.0, 0.0, 0.0, 0.0];
+      offsets[i] = 0.0;
     }
   }
 
@@ -518,19 +509,19 @@ class CubicSplineN
     dirty = true;
   }
 
-  public function set_type(i:Int, v:Array<Float>):Void
-  {
-    if (v.length != splines.length) throw "CubicSplineN::set_type requires the passed point to be the same dimension as the spline.";
-    for (n in 0...splines.length)
-      splines[n].splineMode = v[n];
-    dirty = true;
-  }
-
   public function set_offset(i:Int, v:Array<Float>):Void
   {
     if (v.length != splines.length) throw "CubicSplineN::set_offset requires the passed point to be the same dimension as the spline.";
     for (n in 0...splines.length)
-      splines[n].splineOffset = v[n];
+      splines[n].set_offset(i, v[n]);
+    dirty = true;
+  }
+
+  public function set_type(v:Array<Float>):Void
+  {
+    if (v.length != splines.length) throw "CubicSplineN::set_type requires the passed point to be the same dimension as the spline.";
+    for (n in 0...splines.length)
+      splines[n].splineMode = v[n];
     dirty = true;
   }
 
@@ -540,23 +531,6 @@ class CubicSplineN
       throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
     for (n in 0...splines.length)
       splines[n].set_coefficients(i, b[n], c[n], d[n]);
-    dirty = true;
-  }
-
-  public function add_point(i:Int, v:Array<Float>):Void
-  {
-    if (v.length != splines.length) throw "CubicSplineN::add_point requires the passed point to be the same dimension as the spline.";
-    for (n in 0...splines.length)
-      splines[n].add_point(i, v[n]);
-    dirty = true;
-  }
-
-  public function add_coefficients(i:Int, b:Array<Float>, c:Array<Float>, d:Array<Float>):Void
-  {
-    if (!(b.length == c.length && c.length == d.length && d.length == splines.length))
-      throw "CubicSplineN: coefficient vectors must be the same dimension as the spline.";
-    for (n in 0...splines.length)
-      splines[n].add_coefficients(i, b[n], c[n], d[n]);
     dirty = true;
   }
 

@@ -375,7 +375,7 @@ class Strumline extends FlxSpriteGroup
 
     mods.update();
     updateNotes();
-    updatePositions();
+    updateStrumPositions();
     #if FEATURE_GHOST_TAPPING
     updateGhostTapTimer(elapsed);
     #end
@@ -406,6 +406,7 @@ class Strumline extends FlxSpriteGroup
         var pointArray:Array<Float> = [];
         var offsetArray:Array<Float> = [];
         var typeArray:Array<Float> = [];
+        var lastPos:Float = 0.0;
         for (index => axis in axes)
         {
           var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
@@ -413,11 +414,12 @@ class Strumline extends FlxSpriteGroup
           typeArray[index] = mods.getValue('spline${axis}type');
           offsetArray[index] = position * NOTE_SPACING;
           pointArray[index] = magnitude * NOTE_SPACING;
-          if (point > 0 && FlxMath.equal(position, 0))
+          if (point > 0 && position <= lastPos)
           {
             pointArray[index] = 0;
             stop++;
           }
+          lastPos = position;
         }
         if (stop >= axes.length) break;
         if (pointArray.length < 3)
@@ -430,7 +432,7 @@ class Strumline extends FlxSpriteGroup
           }
         }
         handler.spline.set_point(point, pointArray);
-        handler.spline.set_type(point, typeArray);
+        handler.spline.set_type(typeArray);
         handler.spline.set_offset(point, offsetArray);
       }
       handler.spline.solve();
@@ -841,7 +843,7 @@ class Strumline extends FlxSpriteGroup
     }
   }
 
-  function updatePositions()
+  function updateStrumPositions()
   {
     for (strumNote in strumlineNotes.members)
       updateOneStrum(strumNote);

@@ -302,8 +302,8 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
   public function applyStrumlineOffsets(target:StrumlineNote):Void
   {
     var offsets = getStrumlineOffsets();
-    target.offsetX += offsets[0];
-    target.offsetY += offsets[1];
+    target.x += offsets[0];
+    target.y += offsets[1];
   }
 
   public function getStrumlineScale():Float

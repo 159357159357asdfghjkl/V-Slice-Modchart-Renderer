@@ -2128,7 +2128,6 @@ class Modchart
   // it's like Player.cpp
   public var tilt:Float = 0;
 
-  @:nullSafety
   public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float, iCol:Int):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
@@ -2230,7 +2229,6 @@ class Modchart
   // for field scripting
   // in NotITG, it's like "P[1]:zoomx(0.8)"
 
-  @:nullSafety
   public function modifyPosByValue(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, iCol:Int, inputRotation:Vector3D, inputSkew:Vector3D,
       inputZoom:Vector3D):Void
   {

@@ -311,9 +311,9 @@ class Strumline extends FlxSpriteGroup
     {
       var child:StrumlineNote = new StrumlineNote(noteStyle, isPlayer, DIRECTIONS[i]);
       child.x = getXPos(DIRECTIONS[i]);
-      child.offsetX = INITIAL_OFFSET;
-      child.offsetY = 0;
-      noteStyle.applyStrumlineOffsets(child);
+      var offsets = noteStyle.getStrumlineOffsets();
+      child.offsetX = INITIAL_OFFSET + offsets[0];
+      child.offsetY = offsets[1];
       child.y = 0;
       this.strumlineNotes.add(child);
       child.column = i;
@@ -382,7 +382,7 @@ class Strumline extends FlxSpriteGroup
   }
 
   // credit me
-  public function getSplineAxisPos(group:String, column:Int, beat:Float, target:Int, result:Vector3D)
+  public function getSplineAxisPos(group:String, column:Int, yOffset:Float, target:Int, result:Vector3D)
   {
     if (enableSpline)
     {
@@ -436,8 +436,10 @@ class Strumline extends FlxSpriteGroup
         handler.spline.set_offset(point, offsetArray);
       }
       handler.spline.solve();
-      if (target == 0 || target == 1) handler.EvalForBeat(mods.getBeat(), beat, result);
-      else if (target == 2) handler.EvalForReceptor(mods.getBeat(), result);
+      var songSeconds:Float = conductorInUse.getTimeWithDelta();
+      var a:Float = mods.GetYOffset(conductorInUse, songSeconds, scrollSpeed, column, songSeconds);
+      if (target == 0 || target == 1) handler.EvalForBeat(a, yOffset, result);
+      else if (target == 2) handler.EvalForReceptor(a, result);
     }
   }
 
@@ -890,17 +892,17 @@ class Strumline extends FlxSpriteGroup
       mods.GetRotationY(col, realofs, note.holdNoteSprite != null, angles.y), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, angles.z));
     mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, col);
     var spPos:Vector3D = new Vector3D();
-    getSplineAxisPos('pos', col, noteBeat, 0, spPos);
+    getSplineAxisPos('pos', col, realofs, 0, spPos);
     var spRot:Vector3D = new Vector3D();
-    getSplineAxisPos('rotation', col, noteBeat, 0, spRot);
+    getSplineAxisPos('rotation', col, realofs, 0, spRot);
     var spZoom:Vector3D = new Vector3D();
-    getSplineAxisPos('zoom', col, noteBeat, 0, spZoom);
+    getSplineAxisPos('zoom', col, realofs, 0, spZoom);
     var realSpZoom:Float = 1 - 0.5 * spZoom.x;
     var spStealth:Vector3D = new Vector3D();
-    getSplineAxisPos('stealth', col, noteBeat, 0, spStealth);
+    getSplineAxisPos('stealth', col, realofs, 0, spStealth);
     var realSpStealth:Float = ModchartMath.clamp(1 - spStealth.x, 0, 1);
     var spSkew:Vector3D = new Vector3D();
-    getSplineAxisPos('skew', col, noteBeat, 0, spSkew);
+    getSplineAxisPos('skew', col, realofs, 0, spSkew);
     note.SCALE.x = scalePos.x * realSpZoom;
     note.SCALE.y = scalePos.y * realSpZoom;
     note.SCALE.z = scalePos.z * realSpZoom;

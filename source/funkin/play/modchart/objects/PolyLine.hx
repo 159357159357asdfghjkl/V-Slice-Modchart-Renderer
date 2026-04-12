@@ -163,10 +163,10 @@ class PolyLine extends FunkinSprite
     if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-    parentStrumline.getSplineAxisPos('pos', column, noteBeat, 0, spPos);
-    parentStrumline.getSplineAxisPos('zoom', column, noteBeat, 0, spZoom);
+    parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);
+    parentStrumline.getSplineAxisPos('zoom', column, yOffset, 0, spZoom);
     var realSpZoom:Float = 1 - 0.5 * spZoom.x;
-    parentStrumline.getSplineAxisPos('skew', column, noteBeat, 0, spSkew);
+    parentStrumline.getSplineAxisPos('skew', column, yOffset, 0, spSkew);
     fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);

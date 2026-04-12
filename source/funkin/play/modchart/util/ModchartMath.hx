@@ -142,16 +142,16 @@ class ModchartMath
 
   inline public static function fastSin(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue < 0) return FlxMath.fastSin(x);
+    if (clipValue < 0) return __fastSinNoClip(x);
     if (clipValue > 1) return -clipValue;
-    return clamp(FlxMath.fastSin(x), -(1 - clipValue), 1 - clipValue);
+    return clamp(__fastSinNoClip(x), -(1 - clipValue), 1 - clipValue);
   }
 
   inline public static function fastCos(x:Float, clipValue:Float = 1):Float
   {
-    if (clipValue < 0) return FlxMath.fastCos(x);
+    if (clipValue < 0) return __fastCosNoClip(x);
     if (clipValue > 1) return -clipValue;
-    return clamp(FlxMath.fastCos(x), -(1 - clipValue), 1 - clipValue);
+    return clamp(__fastCosNoClip(x), -(1 - clipValue), 1 - clipValue);
   }
 
   inline public static function fastCsc(x:Float, clipValue:Float = 1):Float
@@ -174,12 +174,12 @@ class ModchartMath
     rY *= Math.PI / 180;
     rZ *= Math.PI / 180;
 
-    var cX:Float = FlxMath.fastCos(rX);
-    var sX:Float = FlxMath.fastSin(rX);
-    var cY:Float = FlxMath.fastCos(rY);
-    var sY:Float = FlxMath.fastSin(rY);
-    var cZ:Float = FlxMath.fastCos(rZ);
-    var sZ:Float = FlxMath.fastSin(rZ);
+    var cX:Float = __fastCosNoClip(rX);
+    var sX:Float = __fastSinNoClip(rX);
+    var cY:Float = __fastCosNoClip(rY);
+    var sY:Float = __fastSinNoClip(rY);
+    var cZ:Float = __fastCosNoClip(rZ);
+    var sZ:Float = __fastSinNoClip(rZ);
 
     var mat:Matrix3D = new Matrix3D(new Vector<Float>( switch (order)
     {
@@ -217,12 +217,12 @@ class ModchartMath
     rY *= Math.PI / 180;
     rZ *= Math.PI / 180;
 
-    var cX:Float = FlxMath.fastCos(rX);
-    var sX:Float = FlxMath.fastSin(rX);
-    var cY:Float = FlxMath.fastCos(rY);
-    var sY:Float = FlxMath.fastSin(rY);
-    var cZ:Float = FlxMath.fastCos(rZ);
-    var sZ:Float = FlxMath.fastSin(rZ);
+    var cX:Float = __fastCosNoClip(rX);
+    var sX:Float = __fastSinNoClip(rX);
+    var cY:Float = __fastCosNoClip(rY);
+    var sY:Float = __fastSinNoClip(rY);
+    var cZ:Float = __fastCosNoClip(rZ);
+    var sZ:Float = __fastSinNoClip(rZ);
 
     return new Vector3D(cZ * cY * v.x
       + -sZ * cY * v.y + -sY * v.z, (cZ * sY * sX + sZ * cX) * v.x
@@ -265,26 +265,23 @@ class ModchartMath
 
   inline public static function weierstrassSin(x:Float):Float
   {
-    return FlxMath.fastSin(Math.PI * x) + 0.5 * FlxMath.fastSin(Math.PI * 7 * x) + 0.25 * FlxMath.fastSin(Math.PI * 49 * x)
-      + 0.125 * FlxMath.fastSin(Math.PI * 343 * x);
+    return __fastSinNoClip(Math.PI * x) + 0.5 * __fastSinNoClip(Math.PI * 7 * x) + 0.25 * __fastSinNoClip(Math.PI * 49 * x)
+      + 0.125 * __fastSinNoClip(Math.PI * 343 * x);
   }
 
   inline public static function weierstrassCos(x:Float):Float
   {
-    return FlxMath.fastCos(Math.PI * x) + 0.5 * FlxMath.fastCos(Math.PI * 7 * x) + 0.25 * FlxMath.fastCos(Math.PI * 49 * x)
-      + 0.125 * FlxMath.fastCos(Math.PI * 343 * x);
+    return weierstrassSin(x + Math.PI / 2);
   }
 
   inline public static function weierstrassTan(x:Float):Float
   {
-    return __fastTanNoClip(Math.PI * x) + 0.5 * __fastTanNoClip(Math.PI * 7 * x) + 0.25 * __fastTanNoClip(Math.PI * 49 * x)
-      + 0.125 * __fastTanNoClip(Math.PI * 343 * x);
+    return weierstrassSin(x) / weierstrassCos(x);
   }
 
   inline public static function weierstrassCsc(x:Float):Float
   {
-    return __fastCscNoClip(Math.PI * x) + 0.5 * __fastCscNoClip(Math.PI * 7 * x) + 0.25 * __fastCscNoClip(Math.PI * 49 * x)
-      + 0.125 * __fastCscNoClip(Math.PI * 343 * x);
+    return 1 / weierstrassSin(x);
   }
 
   public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float
@@ -355,7 +352,11 @@ class ModchartMath
     return mat2;
   }
 
-  @:noCompletion inline private static function __fastTanNoClip(a:Float) return FlxMath.fastSin(a) / FlxMath.fastCos(a);
+  @:noCompletion inline private static function __fastSinNoClip(a:Float) return FlxMath.fastSin(a);
 
-  @:noCompletion inline private static function __fastCscNoClip(a:Float) return 1 / FlxMath.fastSin(a);
+  @:noCompletion inline private static function __fastCosNoClip(a:Float) return __fastSinNoClip(a + Math.PI * 0.5);
+
+  @:noCompletion inline private static function __fastTanNoClip(a:Float) return __fastSinNoClip(a) / __fastCosNoClip(a);
+
+  @:noCompletion inline private static function __fastCscNoClip(a:Float) return 1 / __fastSinNoClip(a);
 }

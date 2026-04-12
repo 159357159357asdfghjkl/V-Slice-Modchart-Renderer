@@ -8,6 +8,7 @@ import funkin.play.notes.Strumline;
 // from stepmania
 // it's hard to port this
 // expansion: linear/cosine interpolation
+// this is notitg's path modifier
 class CubicSpline
 {
   public var points:Array<Array<Float>> = [];
@@ -172,38 +173,28 @@ class CubicSpline
     }
   }
 
+  // rewrite this shit
   public function p_and_tfrac_from_t(t:Float, loop:Bool):Array<Float>
   {
-    var p:Int = 0;
-    var tfrac:Float = 0;
+    var len:Int = points.length;
+    if (len == 0) return [0, 0];
     if (loop)
     {
-      var max_t:Float = points.length;
-      t = ModchartMath.mod(t, max_t);
-      if (t < 0.0) t += max_t;
-      p = Std.int(t);
-      tfrac = t - p;
+      var total:Float = offsets[len - 1];
+      if (total <= 0) return [0, 0];
+      t = ((t % total) + total) % total;
     }
-    else
+    if (t <= offsets[0]) return [0, 0];
+    for (i in 0...len - 1)
     {
-      var flort:Int = Std.int(t);
-      if (flort < 0)
+      if (t >= offsets[i] && t <= offsets[i + 1])
       {
-        p = 0;
-        tfrac = 0;
-      }
-      else if (flort >= points.length - 1)
-      {
-        p = points.length - 1;
-        tfrac = 0;
-      }
-      else
-      {
-        p = flort;
-        tfrac = t - p;
+        var segLen:Float = offsets[i + 1] - offsets[i];
+        var frac:Float = segLen == 0 ? 0 : (t - offsets[i]) / segLen;
+        return [i, frac];
       }
     }
-    return [p, tfrac];
+    return [len - 1, 0];
   }
 
   public function evaluate(t:Float, loop:Bool):Float

@@ -359,7 +359,6 @@ class SustainTrail extends FlxSprite
     var zoom:Float = mods.GetZoom(column, yOffset, pn);
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    var noteBeat2:Float = Conductor.instance.getTimeInSteps(time) / Constants.STEPS_PER_BEAT;
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
     var zoom2:Vector3D = parentStrumline.zoom2;
     var zoom1:Vector3D = parentStrumline.zoom;
@@ -367,12 +366,12 @@ class SustainTrail extends FlxSprite
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
-    parentStrumline.getSplineAxisPos('pos', column, noteBeat2, 1, spPos);
-    parentStrumline.getSplineAxisPos('zoom', column, noteBeat2, 1, spZoom);
+    parentStrumline.getSplineAxisPos('pos', column, yOffset, 1, spPos);
+    parentStrumline.getSplineAxisPos('zoom', column, yOffset, 1, spZoom);
     realSpZoom = 1 - 0.5 * spZoom.x;
-    parentStrumline.getSplineAxisPos('stealth', column, noteBeat2, 1, spStealth);
+    parentStrumline.getSplineAxisPos('stealth', column, yOffset, 1, spStealth);
     realSpStealth = ModchartMath.clamp(1 - spStealth.x, 0, 1);
-    parentStrumline.getSplineAxisPos('skew', column, noteBeat2, 1, spSkew);
+    parentStrumline.getSplineAxisPos('skew', column, yOffset, 1, spSkew);
     fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);

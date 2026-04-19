@@ -213,7 +213,7 @@ class CubicSpline
     }
     else if (splineMode > 0 && splineMode <= 1)
     {
-      var cosFactor:Float = (1.0 - Math.cos(tfrac * Math.PI)) / 2.0;
+      var cosFactor:Float = (1.0 - FlxMath.fastCos(tfrac * Math.PI)) / 2.0;
       return points[p][0] + diff * cosFactor;
     }
     else

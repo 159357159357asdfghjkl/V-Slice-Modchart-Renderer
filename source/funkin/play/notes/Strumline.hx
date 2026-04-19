@@ -399,14 +399,13 @@ class Strumline extends FlxSpriteGroup
           axes = ['stealth'];
       }
       var handler:CubicSplineHandler = this.cubicHandler.get('$group$column');
-
+      var lastPos:Array<Float> = [for (i in 0...axes.length) -9.0];
       for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
       {
         var stop:Int = 0;
         var pointArray:Array<Float> = [];
         var offsetArray:Array<Float> = [];
         var typeArray:Array<Float> = [];
-        var lastPos:Float = 0.0;
         for (index => axis in axes)
         {
           var magnitude:Float = mods.getValue('spline$column$axis$point') + mods.getValue('spline$axis$point');
@@ -414,12 +413,13 @@ class Strumline extends FlxSpriteGroup
           typeArray[index] = mods.getValue('spline${axis}type');
           offsetArray[index] = position * NOTE_SPACING;
           pointArray[index] = magnitude * NOTE_SPACING;
-          if (point > 0 && position <= lastPos)
+          if (position <= lastPos[index])
           {
             pointArray[index] = 0;
             stop++;
           }
-          lastPos = position;
+          else
+            lastPos[index] = position;
         }
         if (stop >= axes.length) break;
         if (pointArray.length < 3)
@@ -436,8 +436,8 @@ class Strumline extends FlxSpriteGroup
         handler.spline.set_offset(point, offsetArray);
       }
       handler.spline.solve();
-      var songSeconds:Float = conductorInUse.getTimeWithDelta();
-      var a:Float = mods.GetYOffset(conductorInUse, songSeconds, scrollSpeed, column, songSeconds);
+      var songMs:Float = conductorInUse.getTimeWithDelta();
+      var a:Float = mods.GetYOffset(conductorInUse, songMs, scrollSpeed, column, songMs);
       if (target == 0 || target == 1) handler.EvalForBeat(a, yOffset, result);
       else if (target == 2) handler.EvalForReceptor(a, result);
     }

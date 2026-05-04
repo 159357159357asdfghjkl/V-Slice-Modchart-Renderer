@@ -405,6 +405,10 @@ class SustainTrail extends FlxSprite
   public var transforms:Array<ColorTransform> = [];
 
   // recognize multiple hold parts
+  var verticesArray:Array<Float> = [];
+  var uvtDataArray:Array<Float> = [];
+  var indicesArray:Array<Int> = [];
+
   public function updateClippingNew(songTime:Float = 0):Void
   {
     if (graphic == null || parentStrumline == null || updatedThisFrame)
@@ -445,17 +449,18 @@ class SustainTrail extends FlxSprite
     if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;
     var halfWidth:Float = graphicWidth / 2;
-    var verticesArray:Array<Float> = [];
-    var uvtDataArray:Array<Float> = []; // full name: UV Texture
-    var indicesArray:Array<Int> = [];
     var drawTail:Bool = true;
     var trueIndex:Int = 0;
+    verticesArray.resize(0);
+    uvtDataArray.resize(0);
+    indicesArray.resize(0);
     for (i in 0...length + 1)
     {
       var time:Float = strumTime + (fullSustainLength / length * i);
       var nextTime:Float = time + fullSustainLength / length;
       var diff:Float = time - Conductor.instance.getTimeWithDelta();
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
+      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= nextTime) nextTime = Conductor.instance.getTimeWithDelta();
       var skip:Bool = FlxMath.equal(time - Conductor.instance.getTimeWithDelta(), 0)
         && FlxMath.equal(nextTime - Conductor.instance.getTimeWithDelta(), 0); // after using this step, my fps changed from 24 to 32
       if (!(draw_ms_after_targets <= diff && diff <= draw_ms_before_targets) || (skip && hitNote))

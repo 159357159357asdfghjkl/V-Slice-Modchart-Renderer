@@ -227,7 +227,7 @@ class Strumline extends FlxSpriteGroup
   public var defaultHeight:Float = 0.0;
   public var xoffArray:Array<Float> = [-NOTE_SPACING * 1.5, -NOTE_SPACING / 2, NOTE_SPACING / 2, NOTE_SPACING * 1.5];
   public var arrowpaths:FlxTypedSpriteGroup<PolyLine>;
-  public var enableSpline:Bool = true; // this spline system is too lag, i should create a method to close it
+  public var enableSpline:Bool = false; // this spline system is too lag, i should create a method to close it
 
   public function new(noteStyle:NoteStyle, isPlayer:Bool, ?scrollSpeed:Float)
   {
@@ -399,7 +399,7 @@ class Strumline extends FlxSpriteGroup
           axes = ['stealth'];
       }
       var handler:CubicSplineHandler = this.cubicHandler.get('$group$column');
-      var lastPos:Array<Float> = [for (i in 0...axes.length) -9.0];
+      var lastPos:Array<Float> = [0, 0, 0];
       for (point in 0...Modchart.MAX_SPLINE_POINT_COUNT)
       {
         var stop:Int = 0;
@@ -413,7 +413,7 @@ class Strumline extends FlxSpriteGroup
           typeArray[index] = mods.getValue('spline${axis}type');
           offsetArray[index] = position * NOTE_SPACING;
           pointArray[index] = magnitude * NOTE_SPACING;
-          if (position <= lastPos[index])
+          if (point > 0 && position <= lastPos[index])
           {
             pointArray[index] = 0;
             stop++;

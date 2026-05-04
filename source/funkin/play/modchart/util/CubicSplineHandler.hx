@@ -9,6 +9,13 @@ import funkin.play.notes.Strumline;
 // it's hard to port this
 // expansion: linear/cosine interpolation
 // this is notitg's path modifier
+
+typedef TimePoint =
+{
+  p:Int,
+  tfrac:Float
+}
+
 class CubicSpline
 {
   public var points:Array<Array<Float>> = [];
@@ -174,35 +181,34 @@ class CubicSpline
   }
 
   // rewrite this shit
-  public function p_and_tfrac_from_t(t:Float, loop:Bool):Array<Float>
+  public function p_and_tfrac_from_t(t:Float, loop:Bool):TimePoint
   {
     var len:Int = points.length;
-    if (len == 0) return [0, 0];
     if (loop)
     {
       var total:Float = offsets[len - 1];
-      if (total <= 0) return [0, 0];
+      if (total <= 0) return {p: 0, tfrac: 0};
       t = ((t % total) + total) % total;
     }
-    if (t <= offsets[0]) return [0, 0];
+    if (t <= offsets[0]) return {p: 0, tfrac: 0};
     for (i in 0...len - 1)
     {
       if (t >= offsets[i] && t <= offsets[i + 1])
       {
         var segLen:Float = offsets[i + 1] - offsets[i];
         var frac:Float = segLen == 0 ? 0 : (t - offsets[i]) / segLen;
-        return [i, frac];
+        return {p: i, tfrac: frac};
       }
     }
-    return [len - 1, 0];
+    return {p: len - 1, tfrac: 0};
   }
 
   public function evaluate(t:Float, loop:Bool):Float
   {
     if (points.length == 0) return 0.0;
-    var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
-    var p:Int = Std.int(p_tfrac[0]);
-    var tfrac:Float = p_tfrac[1];
+    var p_tfrac:TimePoint = p_and_tfrac_from_t(t, loop);
+    var p:Int = p_tfrac.p;
+    var tfrac:Float = p_tfrac.tfrac;
     var next:Float = points[(p + 1) % points.length][0];
     var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
     if (splineMode > 1)
@@ -225,9 +231,9 @@ class CubicSpline
   public function evaluate_derivative(t:Float, loop:Bool):Float
   {
     if (points.length == 0) return 0.0;
-    var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
-    var p:Int = Std.int(p_tfrac[0]);
-    var tfrac:Float = p_tfrac[1];
+    var p_tfrac:TimePoint = p_and_tfrac_from_t(t, loop);
+    var p:Int = p_tfrac.p;
+    var tfrac:Float = p_tfrac.tfrac;
     var next:Float = points[(p + 1) % points.length][0];
     var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
     if (splineMode > 1)
@@ -249,9 +255,9 @@ class CubicSpline
   public function evaluate_second_derivative(t:Float, loop:Bool):Float
   {
     if (points.length == 0) return 0.0;
-    var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
-    var p:Int = Std.int(p_tfrac[0]);
-    var tfrac:Float = p_tfrac[1];
+    var p_tfrac:TimePoint = p_and_tfrac_from_t(t, loop);
+    var p:Int = p_tfrac.p;
+    var tfrac:Float = p_tfrac.tfrac;
     var next:Float = points[(p + 1) % points.length][0];
     var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
     if (splineMode > 1)
@@ -272,9 +278,9 @@ class CubicSpline
   public function evaluate_third_derivative(t:Float, loop:Bool):Float
   {
     if (points.length == 0) return 0.0;
-    var p_tfrac:Array<Float> = p_and_tfrac_from_t(t, loop);
-    var p:Int = Std.int(p_tfrac[0]);
-    var tfrac:Float = p_tfrac[1];
+    var p_tfrac:TimePoint = p_and_tfrac_from_t(t, loop);
+    var p:Int = p_tfrac.p;
+    var tfrac:Float = p_tfrac.tfrac;
     var next:Float = points[(p + 1) % points.length][0];
     var diff:Float = loop_space_difference(next, points[p][0], spatial_extent);
     if (splineMode > 1)

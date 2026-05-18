@@ -27,7 +27,9 @@ class FunkinActor extends FunkinSprite
   public var baseScale:Vector3D = new Vector3D(1, 1, 1); // for scripting
   public var baseZoom:Vector3D = new Vector3D(1, 1, 1); // for scripting
   public var baseDiffuse:Vector3D = new Vector3D(1, 1, 1, 1); // for scripting
-  public var pos2:FlxPoint = FlxPoint.get(); // for strum fade in / out, don't change
+
+  var pos2:FlxPoint = FlxPoint.get(); // for strum fade in / out, don't change
+
   public var fov:Float = 45;
   public var offsetX:Float = 0;
   public var offsetY:Float = 0;

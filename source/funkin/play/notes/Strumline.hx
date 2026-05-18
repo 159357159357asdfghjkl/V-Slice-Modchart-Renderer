@@ -1725,6 +1725,7 @@ class Strumline extends FlxSpriteGroup
    * @param arrow The arrow to animate.
    * @param index The index of the arrow in the strumline.
    */
+  @:access(funkin.play.modchart.objects.FunkinActor)
   function fadeInArrow(index:Int, arrow:StrumlineNote):Void
   {
     arrow.pos2.y -= 10;
@@ -1740,6 +1741,7 @@ class Strumline extends FlxSpriteGroup
    * @param index The index of the arrow in the strumline.
    * @param arrow The arrow to animate.
    */
+  @:access(funkin.play.modchart.objects.FunkinActor)
   public function fadeOutArrow(index:Int, arrow:StrumlineNote):Void
   {
     FlxTween.tween(arrow.pos2, {y: arrow.pos2.y - 10}, 0.5, {ease: FlxEase.circIn});

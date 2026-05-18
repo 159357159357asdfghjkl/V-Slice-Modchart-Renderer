@@ -459,10 +459,10 @@ class SustainTrail extends FlxSprite
       var time:Float = strumTime + (fullSustainLength / length * i);
       var nextTime:Float = time + fullSustainLength / length;
       var diff:Float = time - Conductor.instance.getTimeWithDelta();
-      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
-      if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= nextTime) nextTime = Conductor.instance.getTimeWithDelta();
-      var skip:Bool = FlxMath.equal(time - Conductor.instance.getTimeWithDelta(), 0)
-        && FlxMath.equal(nextTime - Conductor.instance.getTimeWithDelta(), 0); // after using this step, my fps changed from 24 to 32
+      var isHitting:Bool = hitNote && !missedNote;
+      if (isHitting && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
+      if (isHitting && Conductor.instance.getTimeWithDelta() >= nextTime) nextTime = Conductor.instance.getTimeWithDelta();
+      var skip:Bool = FlxMath.equal(time - nextTime, 0);
       if (!(draw_ms_after_targets <= diff && diff <= draw_ms_before_targets) || (skip && hitNote))
       {
         if (i == length) drawTail = false;

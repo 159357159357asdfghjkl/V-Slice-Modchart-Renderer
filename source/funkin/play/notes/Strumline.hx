@@ -863,13 +863,11 @@ class Strumline extends FlxSpriteGroup
     var zOrigin:Vector3D = new Vector3D(difference.x, FlxG.height / 2); // in stepmania it's screen center
     var col:Int = note.noteData.getDirection();
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
-    var realofs = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, col, note.strumTime) + c2;
-    var zpos = mods.GetZPos(col, realofs, modNumber, xoffArray);
-    var xpos = mods.GetXPos(col, realofs, modNumber, xoffArray, true);
-    var ypos = mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff) + note.yOffset;
+    var realofs:Float = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, col, note.strumTime) + c2;
     var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, false, true);
     var zoom:Float = mods.GetZoom(col, realofs, modNumber);
-    var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
+    var pos:Vector3D = new Vector3D(mods.GetXPos(col, realofs, modNumber, xoffArray, true),
+      mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll, reversedOff) + note.yOffset, mods.GetZPos(col, realofs, modNumber, xoffArray));
     if (mods.getValue('fixeffect') != 0)
     {
       var strumPos:Vector3D = new Vector3D(mods.GetXPos(col, c2, modNumber, xoffArray, false),

@@ -1670,7 +1670,7 @@ class Modchart
     if (getValue('orient') != 0 && !isHoldBody) // orient: use two points to get theta
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientoffset')) - 90 * (getValue('noreorient') == 0 ? reorient : 1));
       fRotation += value * getValue('orient');
     }
     return fRotation;
@@ -1708,7 +1708,7 @@ class Modchart
     if (getValue('orientx') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientxoffset')) - 90 * (getValue('noreorientx') == 0 ? reorient : 1));
       fRotation += value * getValue('orientx');
     }
     return fRotation;
@@ -1746,7 +1746,7 @@ class Modchart
     if (getValue('orienty') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientyoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
       fRotation += value * getValue('orienty');
     }
     return fRotation;
@@ -1773,7 +1773,7 @@ class Modchart
     if (getValue('orient') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorient') == 0 ? reorient : 1) - 55 * getValue('orientoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientoffset')) - 90 * (getValue('noreorient') == 0 ? reorient : 1));
       fRotation += value * getValue('orient');
     }
     return fRotation;
@@ -1800,7 +1800,7 @@ class Modchart
     if (getValue('orientx') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorientx') == 0 ? reorient : 1) - 55 * getValue('orientxoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientoffset')) - 90 * (getValue('noreorientx') == 0 ? reorient : 1));
       fRotation += value * getValue('orientx');
     }
     return fRotation;
@@ -1827,7 +1827,7 @@ class Modchart
     if (getValue('orienty') != 0)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * travelDir - 90 * (getValue('noreorienty') == 0 ? reorient : 1) - 55 * getValue('orientyoffset'));
+      var value:Float = (ModchartMath.deg * (travelDir + getValue('orientoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
       fRotation += value * getValue('orienty');
     }
     return fRotation;

@@ -395,6 +395,51 @@ class SustainTrail extends FlxSprite
     return [zPos, diffuses, glowColor];
   }
 
+  function getPosWithOffsetShortcut(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
+  {
+    var mods:Modchart = parentStrumline.mods;
+    var conductorInUse:Conductor = parentStrumline.conductorInUse;
+    var speed:Float = parentStrumline.scrollSpeed;
+    var down:Bool = parentStrumline.isDownscroll;
+    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+    var pn:Int = parentStrumline.modNumber;
+    var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
+    var xoffArray:Array<Float> = parentStrumline.xoffArray;
+    var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
+    var timeDiff:Float = mods.baseHoldSize;
+    var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
+    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
+      mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
+    var difference:Vector3D = parentStrumline.getDifference();
+    var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
+    var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
+    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
+      mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
+    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
+    var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
+      mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
+    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
+    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
+    var zoom:Float = mods.GetZoom(column, yOffset, pn);
+    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
+    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+    mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
+    pos.incrementBy(difference);
+    var zPos:Vector3D = ModchartMath.processActor(pos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX, offsetY);
+    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
+    var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
+    alpha *= this.alpha * parentStrumline.alpha;
+    var glow:Float = mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
+    var diffuses:Vector3D = new Vector3D(mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red'),
+      mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green'), mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue'), alpha);
+    var glowColor:Vector3D = new Vector3D(mods.getValue('stealthglowred') * mods.getValue('stealthglowred$column'),
+      mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$column'),
+      mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$column'), glow);
+    return [zPos, diffuses, glowColor];
+  }
+
   public function updateClipping(songTime:Float = 0)
   {
     if (useNew) updateClippingNew(songTime);
@@ -425,6 +470,7 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
+    var getPosWithOffset = this.getPosWithOffsetShortcut;
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
     var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');

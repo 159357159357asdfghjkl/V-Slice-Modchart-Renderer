@@ -1050,8 +1050,8 @@ class Modchart
 
     if (getValue('asymptote') != 0)
     {
-      var fAsymptoteEffect:Float = (xOffset[iCol] * (1 + getValue('asymptote') * 500) - xOffset[iCol]) * Math.exp(-Math.abs(fYOffset
-        + getValue('asymptoteoffset') * 100) * (1 + getValue('asymptotescale')));
+      var fAsymptoteEffect:Float = (xOffset[iCol] * getValue('asymptote') * 500) * Math.exp(-Math.abs(fYOffset + getValue('asymptoteoffset') * 100) * (1
+        + getValue('asymptotescale')));
       f += fAsymptoteEffect;
     }
 

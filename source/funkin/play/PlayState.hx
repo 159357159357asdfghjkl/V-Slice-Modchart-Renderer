@@ -746,10 +746,6 @@ class PlayState extends MusicBeatSubState
 
   public var strumlines:Array<Strumline> = [];
 
-  public static var stageSeed:Int = 1;
-
-  var luaArray:Array<ModchartLuaState> = [];
-
   /**
    * Instantiate a new PlayState.
    * @param params The parameters used to initialize the PlayState.
@@ -758,7 +754,6 @@ class PlayState extends MusicBeatSubState
   public function new(?params:PlayStateParams)
   {
     super();
-    stageSeed = ModchartMath.rand();
     // Validate parameters.
     var params:PlayStateParams = params ?? {
       trace('WARNING: PlayState constructor called with no parameters. Reusing previous parameters.');
@@ -1005,8 +1000,8 @@ class PlayState extends MusicBeatSubState
 
   function initLuaSystem()
   {
+    ModchartLuaState.create();
     var folders:Array<String> = [];
-    luaArray = [];
     folders.push('assets/scripts/songs/');
     for (mod in PolymodHandler.loadedModIds)
       folders.push('mods/' + mod + '/scripts/songs/');
@@ -1021,7 +1016,7 @@ class PlayState extends MusicBeatSubState
           if (name == defaultstr) continue;
           if (file.toLowerCase() == '${name.toLowerCase()}.lua')
           {
-            luaArray.push(new ModchartLuaState(folder + file));
+            ModchartLuaState.run(folder + file);
           }
         }
       }
@@ -1126,10 +1121,7 @@ class PlayState extends MusicBeatSubState
     if (criticalFailure) return;
 
     super.update(elapsed);
-    for (lua in luaArray)
-    {
-      lua.setOrUpdateVariables();
-    }
+    ModchartLuaState.setOrUpdateVariables();
     ModchartLuaState.call('onUpdate', []);
     updateHealthBar();
     updateScoreText();
@@ -1233,10 +1225,7 @@ class PlayState extends MusicBeatSubState
       // Reset the health icons.
       currentStage?.getBoyfriend()?.initHealthIcon(false);
       currentStage?.getDad()?.initHealthIcon(true);
-      for (lua in luaArray)
-      {
-        if (lua != null) lua.stop();
-      }
+      ModchartLuaState.stop();
       initLuaSystem();
       needsReset = false;
     }
@@ -3958,15 +3947,7 @@ class PlayState extends MusicBeatSubState
       currentConversation.kill();
     }
 
-    for (lua in luaArray)
-    {
-      if (lua != null)
-      {
-        lua.stop();
-      }
-    }
-
-    luaArray = [];
+    ModchartLuaState.stop();
 
     if (currentChart != null)
     {

@@ -43,7 +43,7 @@ typedef ArrowData =
 
 class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
 {
-  static final BPM:Int = 100;
+  static final BPM:Int = 122;
 
   // Page<OptionsState.OptionsMenuPageName> stuff
   var offsetItem:NumberPreferenceItem;
@@ -170,7 +170,7 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
     super();
 
     localConductor = new Conductor();
-    localConductor.forceBPM(100);
+    localConductor.forceBPM(BPM);
 
     menuCamera = new FunkinCamera('prefMenu');
     FlxG.cameras.add(menuCamera, false);
@@ -274,10 +274,6 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
 
       calibrating = true;
       MenuTypedList.pauseInput = true;
-      OptionsState.instance.drumsBG.pause();
-      OptionsState.instance.drumsBG.time = FlxG.sound.music.time;
-      OptionsState.instance.drumsBG.resume();
-      OptionsState.instance.drumsBG.fadeIn(1, 0, 1);
       canExit = false;
       differences = [];
       offsetLerp = 0;
@@ -304,9 +300,6 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
       testStrumline.noteData = [];
       testStrumline.nextNoteIndex = 0;
 
-      OptionsState.instance.drumsBG.pause();
-      OptionsState.instance.drumsBG.time = FlxG.sound.music.time;
-      OptionsState.instance.drumsBG.resume();
       localConductor.update(FlxG.sound.music.time, true);
 
       var floored = Math.floor(localConductor.currentBeatTime);
@@ -358,7 +351,6 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
       }
       #end
       MenuTypedList.pauseInput = true;
-      OptionsState.instance.drumsBG.fadeIn(1, 0, 1);
       canExit = false;
       differences = [];
 
@@ -427,7 +419,6 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
     else
       FunkinSound.playOnce(Paths.sound('confirmMenu'));
     offsetItem.currentValue = Preferences.globalOffset;
-    OptionsState.instance.drumsBG.fadeOut(1, 0);
   }
 
   // Handles the exit for mobile devices.
@@ -540,16 +531,10 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
 
     // Resync logic
     var diff:Float = Math.abs((FlxG.sound.music.time + localConductor.combinedOffset) - localConductor.songPosition);
-    var diffBg:Float = Math.abs(FlxG.sound.music.time - OptionsState.instance.drumsBG.time);
-    if (diff > 50 || diffBg > 50)
+    if (diff > 50)
     {
-      trace('Resyncing conductor: ' + (diff > diffBg ? diff : diffBg) + 'ms difference');
-
       // If the difference is greater than 50ms, we resync the conductor.
       localConductor.update(FlxG.sound.music.time, true);
-      OptionsState.instance.drumsBG.pause();
-      OptionsState.instance.drumsBG.time = FlxG.sound.music.time;
-      OptionsState.instance.drumsBG.resume();
       b = localConductor.currentBeatTime;
       _lastBeat = b;
     }

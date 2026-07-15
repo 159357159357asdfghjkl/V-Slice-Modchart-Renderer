@@ -101,9 +101,11 @@ class PolyLine extends FunkinSprite
   var spPos:Vector3D = new Vector3D();
   var spZoom:Vector3D = new Vector3D();
   var spSkew:Vector3D = new Vector3D();
+  var left:Vector3D = new Vector3D(1, 0, 0, 1);
+  var right:Vector3D = new Vector3D(1, 0, 0, 1);
+  var globalOffset:Vector3D = new Vector3D(Strumline.NOTE_SPACING / 2 - 1, Strumline.NOTE_SPACING * 0.75 - 1);
 
-  // btw, i use vec3 as points
-  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Vector3D
+  function getPos(width:Float, time:Float):Array<Vector3D>
   {
     var conductorInUse:Conductor = parentStrumline.conductorInUse;
     time += conductorInUse.getTimeWithDelta();
@@ -151,7 +153,6 @@ class PolyLine extends FunkinSprite
     var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
       (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
     var fullPos:Vector3D = pos;
-    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
     var zoom:Float = mods.GetZoom(column, yOffset, pn);
     var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
@@ -171,11 +172,15 @@ class PolyLine extends FunkinSprite
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);
     skewPos.x += spSkew.x;
-    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
-    zPos.decrementBy(offset);
-    zPos.x += Strumline.NOTE_SPACING / 2 - 1;
-    zPos.y += Strumline.NOTE_SPACING * 0.75 - 1;
-    return zPos;
+    left.x = -width / 2;
+    right.x = -left.x;
+    var zPosLeft:Vector3D = ModchartMath.processActor(fullPos, left, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    zPosLeft.decrementBy(offset);
+    zPosLeft.incrementBy(globalOffset);
+    var zPosRight:Vector3D = ModchartMath.processActor(fullPos, right, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    zPosRight.decrementBy(offset);
+    zPosRight.incrementBy(globalOffset);
+    return [zPosLeft, zPosRight];
   }
 
   function updateClipping():Void
@@ -203,12 +208,11 @@ class PolyLine extends FunkinSprite
     {
       var i:Int = a * 2;
       var time:Float = (backLength + frontLength) / subdivisions * a - backLength;
-      var left:Vector3D = getPosWithOffset(-size / 2, 0, time);
-      var right:Vector3D = getPosWithOffset(size / 2, 0, time);
-      verticesArray[i * 2] = left.x;
-      verticesArray[i * 2 + 1] = left.y;
-      verticesArray[(i + 1) * 2] = right.x;
-      verticesArray[(i + 1) * 2 + 1] = right.y;
+      var pos:Array<Vector3D> = getPos(size, time);
+      verticesArray[i * 2] = pos[0].x;
+      verticesArray[i * 2 + 1] = pos[0].y;
+      verticesArray[(i + 1) * 2] = pos[1].x;
+      verticesArray[(i + 1) * 2 + 1] = pos[1].y;
       uvtDataArray[i * 2] = 0;
       uvtDataArray[i * 2 + 1] = 1;
       uvtDataArray[(i + 1) * 2] = 1;

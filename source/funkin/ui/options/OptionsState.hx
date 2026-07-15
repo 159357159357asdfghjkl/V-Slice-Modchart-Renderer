@@ -45,8 +45,6 @@ class OptionsState extends MusicBeatState
 
   var optionsCodex:Codex<OptionsMenuPageName>;
 
-  public var drumsBG:FunkinSound;
-
   public static var rememberedSelectedIndex:Int = 0;
 
   override function create():Void
@@ -54,8 +52,6 @@ class OptionsState extends MusicBeatState
     instance = this;
 
     persistentUpdate = true;
-
-    drumsBG = FunkinSound.load(Paths.music('offsetsLoop/drumsLoop'), 0, true, false, false, false);
 
     var menuBG = new FlxSprite().loadGraphic(Paths.image('menuBG'));
     var hsv = new HSVShader(-0.6, 0.9, 3.6);
@@ -111,10 +107,6 @@ class OptionsState extends MusicBeatState
 
   function exitOffsets():Void
   {
-    if (drumsBG.volume > 0)
-    {
-      drumsBG.fadeOut(0.5, 0);
-    }
     FlxG.sound.music.fadeOut(0.5, 0, function(tw)
     {
       FunkinSound.playMusic('freakyMenu', {
@@ -189,7 +181,6 @@ class OptionsMenu extends Page<OptionsMenuPageName>
           restartTrack: true,
           loop: true
         });
-        OptionsState.instance.drumsBG.play(true);
         FlxG.sound.music.fadeIn(1, 1);
       });
 

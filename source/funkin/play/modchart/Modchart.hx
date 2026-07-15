@@ -18,7 +18,6 @@ class Modchart
   var preModList:Map<String, Array<Float>> = [];
   var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
-  final SCREEN_HEIGHT = FlxG.height;
 
   function selectTanType(angle:Float, is_cosec:Float)
   {
@@ -44,7 +43,7 @@ class Modchart
     return (time
       + real_offset * 100) * (1 + speed)
       + col * ((offset * col_frequency) + col_frequency)
-      + y_offset * ((period * offset_frequency) + offset_frequency) / SCREEN_HEIGHT;
+      + y_offset * ((period * offset_frequency) + offset_frequency) / FlxG.height;
   }
 
   function CalculateBumpyAngle(y_offset:Float, offset:Float, period:Float):Float
@@ -650,7 +649,7 @@ class Modchart
     var fYAdjust:Float = 0;
     if (getValue('boost') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
+      var fEffectHeight:Float = FlxG.height + Math.abs(tilt) * 200;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost') * (fNewYOffset - fYOffset);
       fAccelYAdjust = ModchartMath.clamp(fAccelYAdjust, -400, 400);
@@ -658,7 +657,7 @@ class Modchart
     }
     if (getValue('brake') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
+      var fEffectHeight:Float = FlxG.height + Math.abs(tilt) * 200;
       var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake') * (fNewYOffset - fYOffset);
@@ -667,7 +666,7 @@ class Modchart
     }
     if (getValue('boost$iCol') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
+      var fEffectHeight:Float = FlxG.height + Math.abs(tilt) * 200;
       var fNewYOffset:Float = fYOffset * 1.5 / ((fYOffset + fEffectHeight / 1.2) / fEffectHeight);
       var fAccelYAdjust:Float = getValue('boost$iCol') * (fNewYOffset - fYOffset);
 
@@ -676,7 +675,7 @@ class Modchart
     }
     if (getValue('brake$iCol') != 0)
     {
-      var fEffectHeight:Float = SCREEN_HEIGHT + Math.abs(tilt) * 200;
+      var fEffectHeight:Float = FlxG.height + Math.abs(tilt) * 200;
       var fScale:Float = ModchartMath.scale(fYOffset, 0., fEffectHeight, 0, 1.);
       var fNewYOffset:Float = fYOffset * fScale;
       var fBrakeYAdjust:Float = getValue('brake$iCol') * (fNewYOffset - fYOffset);
@@ -700,7 +699,7 @@ class Modchart
 
     if (getValue('boomerang') != 0)
     {
-      fYOffset = ((-1 * fYOffset * fYOffset / SCREEN_HEIGHT) + 1.5 * fYOffset) * (getValue('variableboomerang') != 0 ? getValue('boomerang') : 1);
+      fYOffset = ((-1 * fYOffset * fYOffset / FlxG.height) + 1.5 * fYOffset) * (getValue('variableboomerang') != 0 ? getValue('boomerang') : 1);
     }
 
     if (getValue('expand') != 0)
@@ -721,7 +720,7 @@ class Modchart
     }
     if (getValue('randomspeed') > 0)
     {
-      var noteBeat:Float = PlayState.stageSeed + Conductor.instance.getTimeInSteps(parentTime) / Constants.STEPS_PER_BEAT;
+      var noteBeat:Float = Conductor.instance.getTimeInSteps(parentTime) / Constants.STEPS_PER_BEAT;
       var seed:Int = (ModchartMath.BeatToNoteRow(noteBeat) << 8) + (iCol * 100);
 
       for (i in 0...3)
@@ -1008,7 +1007,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadooffset') * 100) * ((6 * getValue('tornadoperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tornadooffset') * 100) * ((6 * getValue('tornadoperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
         fMaxX * notefieldZoom);
 
@@ -1035,7 +1034,7 @@ class Modchart
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
 
-      fRads += (fYOffset + getValue('tantornadooffset') * 100) * ((6 * getValue('tantornadoperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tantornadooffset') * 100) * ((6 * getValue('tantornadoperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tantornado');
     }
@@ -1112,7 +1111,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('elastictornadooffset') * 100) * ((6 * getValue('elastictornadoperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('elastictornadooffset') * 100) * ((6 * getValue('elastictornadoperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.weierstrassCos(fRads), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('elastictornado');
@@ -1138,7 +1137,7 @@ class Modchart
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
 
-      fRads += (fYOffset + getValue('tanelastictornadooffset') * 100) * ((6 * getValue('tanelastictornadoperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tanelastictornadooffset') * 100) * ((6 * getValue('tanelastictornadoperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectETanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tanelastictornado');
     }
@@ -1344,7 +1343,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tornadozoffset') * 100) * ((6 * getValue('tornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tornadozoffset') * 100) * ((6 * getValue('tornadozperiod')) + 6) / FlxG.height;
 
       var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.fastCos(fRads, getValue('cosclip')), -1, 1, fMinX * notefieldZoom,
         fMaxX * notefieldZoom);
@@ -1372,7 +1371,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('tantornadozoffset') * 100) * ((6 * getValue('tantornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tantornadozoffset') * 100) * ((6 * getValue('tantornadozperiod')) + 6) / FlxG.height;
 
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectTanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
 
@@ -1596,7 +1595,7 @@ class Modchart
       var fRealPixelOffset:Float = xOffset[iCol] * notefieldZoom;
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
-      fRads += (fYOffset + getValue('elastictornadozoffset') * 100) * ((6 * getValue('elastictornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('elastictornadozoffset') * 100) * ((6 * getValue('elastictornadozperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(ModchartMath.weierstrassCos(fRads), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
 
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('elastictornadoz');
@@ -1622,7 +1621,7 @@ class Modchart
       var fPositionBetween:Float = ModchartMath.scale(fRealPixelOffset, fMinX * notefieldZoom, fMaxX * notefieldZoom, -1, 1);
       var fRads:Float = Math.acos(fPositionBetween);
 
-      fRads += (fYOffset + getValue('tanelastictornadozoffset') * 100) * ((6 * getValue('tanelastictornadozperiod')) + 6) / SCREEN_HEIGHT;
+      fRads += (fYOffset + getValue('tanelastictornadozoffset') * 100) * ((6 * getValue('tanelastictornadozperiod')) + 6) / FlxG.height;
       var fAdjustedPixelOffset:Float = ModchartMath.scale(selectETanType(fRads, getValue('cosecant')), -1, 1, fMinX * notefieldZoom, fMaxX * notefieldZoom);
       f += (fAdjustedPixelOffset - fRealPixelOffset) * getValue('tanelastictornadoz');
     }
@@ -1837,25 +1836,25 @@ class Modchart
 
   function GetHiddenSudden():Float return getValue('hidden') * getValue('sudden');
 
-  function GetHiddenEndLine():Float return SCREEN_HEIGHT / 2
+  function GetHiddenEndLine():Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -1.0, -1.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hiddenoffset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('hiddenoffset');
 
-  function GetHiddenStartLine():Float return SCREEN_HEIGHT / 2
+  function GetHiddenStartLine():Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 0.0, -0.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hiddenoffset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('hiddenoffset');
 
-  function GetSuddenEndLine():Float return SCREEN_HEIGHT / 2
+  function GetSuddenEndLine():Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., -0.0, 0.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('suddenoffset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('suddenoffset');
 
-  function GetSuddenStartLine():Float return SCREEN_HEIGHT / 2
+  function GetSuddenStartLine():Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden(), 0., 1., 1.0, 1.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('suddenoffset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('suddenoffset');
 
   public function ArrowGetPercentVisible(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
-    var fDistFromCenterLine:Float = fYPosWithoutReverse - SCREEN_HEIGHT * 0.5 / (1 - getValue('mini') * 0.5);
+    var fDistFromCenterLine:Float = fYPosWithoutReverse - FlxG.height * 0.5 / (1 - getValue('mini') * 0.5);
 
     var fYPos:Float;
     if (getValue('stealthtype') != 0) fYPos = fYOffset;
@@ -1912,21 +1911,21 @@ class Modchart
 
   function GetHiddenSudden2(s:String):Float return getValue('hidden$s') * getValue('sudden$s');
 
-  function GetHiddenEndLine2(s:String):Float return SCREEN_HEIGHT / 2
+  function GetHiddenEndLine2(s:String):Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., -1.0, -1.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
 
-  function GetHiddenStartLine2(s:String):Float return SCREEN_HEIGHT / 2
+  function GetHiddenStartLine2(s:String):Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., 0.0, -0.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('hidden${s}offset');
 
-  function GetSuddenEndLine2(s:String):Float return SCREEN_HEIGHT / 2
+  function GetSuddenEndLine2(s:String):Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., -0.0, 0.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
 
-  function GetSuddenStartLine2(s:String):Float return SCREEN_HEIGHT / 2
+  function GetSuddenStartLine2(s:String):Float return FlxG.height / 2
     + FADE_DIST_Y * ModchartMath.scale(GetHiddenSudden2(s), 0., 1., 1.0, 1.25)
-    + SCREEN_HEIGHT / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
+    + FlxG.height / 2 / (1 - getValue('mini') * 0.5) * getValue('sudden${s}offset');
 
   public function ArrowGetPercentRGB(iCol:Int, fYOffset:Float, fYPosWithoutReverse:Float, color:String):Float
   {
@@ -1965,7 +1964,7 @@ class Modchart
   public function GetAlpha(fYPosWithoutReverse:Float, iCol:Int, fYOffset:Float, isHoldHead:Bool, isHoldBody:Bool):Float
   {
     var fPercentVisible:Float = ArrowGetPercentVisible(fYPosWithoutReverse, iCol, fYOffset, isHoldHead, isHoldBody);
-    var fDrawDistanceBeforeTargetsPixels:Float = SCREEN_HEIGHT;
+    var fDrawDistanceBeforeTargetsPixels:Float = FlxG.height;
     var fFullAlphaY:Float = fDrawDistanceBeforeTargetsPixels;
     if (fYPosWithoutReverse > fFullAlphaY)
     {

@@ -7,6 +7,7 @@ import llua.Convert;
 import funkin.play.modchart.objects.FunkinActor;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
+import funkin.play.notes.Strumline;
 
 using StringTools;
 
@@ -14,23 +15,11 @@ class ModchartLuaState
 {
   public static var L:State = null;
 
-  public function new(script:String)
+  public static function create()
   {
     L = LuaL.newstate();
-
     LuaL.openlibs(L);
     Lua.init_callbacks(L);
-    var result:Dynamic = LuaL.dofile(L, script);
-    var resultStr:String = Lua.tostring(L, result);
-    if (resultStr != null && result != 0)
-    {
-      #if windows
-      lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
-      #end
-      L = null;
-      return;
-    }
-    setOrUpdateVariables();
     Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int)
     {
       PlayState.instance.ApplyModifiers(str, pn);
@@ -91,6 +80,24 @@ class ModchartLuaState
           .split("/")[0].trim();
       return '';
     });
+    setOrUpdateVariables();
+    setVar('ARROW_SIZE', Strumline.NOTE_SPACING);
+    final cutoutSize:Float = funkin.ui.FullScreenScaleMode.gameCutoutSize.x / 2.5;
+    setVar('playerX', (FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET) + (cutoutSize / 2.0));
+    setVar('opponentX', Constants.STRUMLINE_X_OFFSET + cutoutSize);
+    #if windows
+    setVar('system', 'windows');
+    #elseif linux
+    setVar('system', 'linux');
+    #elseif mac
+    setVar('system', 'mac');
+    #elseif html5
+    setVar('system', 'html5');
+    #elseif android
+    setVar('system', 'android');
+    #else
+    setVar('system', '');
+    #end
   }
 
   public static function setVar(variable:String, data:Dynamic)
@@ -102,6 +109,26 @@ class ModchartLuaState
 
     Convert.toLua(L, data);
     Lua.setglobal(L, variable);
+  }
+
+  public static function run(script:String)
+  {
+    if (L != null)
+    {
+      var result:Int = LuaL.dofile(L, script);
+      if (result != 0)
+      {
+        var resultStr:String = Lua.tostring(L, result);
+        Lua.pop(L, 1);
+        #if windows
+        lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
+        #end
+        Lua.close(L);
+        L = null;
+        return;
+      }
+    }
+    Lua.gc(L, Lua.LUA_GCCOLLECT, 0);
   }
 
   static var classes:Array<String> = [];
@@ -119,8 +146,6 @@ class ModchartLuaState
     }
     classes.push(name);
   }
-
-  public var closed:Bool = false;
 
   public static function call(func:String, args:Array<Dynamic>):Dynamic
   {
@@ -204,7 +229,7 @@ class ModchartLuaState
     return pRet;
   }
 
-  public function setOrUpdateVariables():Void
+  public static function setOrUpdateVariables():Void
   {
     setVar('screenWidth', FlxG.width);
     setVar('screenHeight', FlxG.height);
@@ -213,27 +238,10 @@ class ModchartLuaState
     setVar('bpm', Conductor.instance.bpm);
     setVar('curBeat', Conductor.instance.currentBeatTime);
     setVar('curStep', Conductor.instance.currentStepTime);
-    final cutoutSize:Float = funkin.ui.FullScreenScaleMode.gameCutoutSize.x / 2.5;
-    setVar('playerX', (FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET) + (cutoutSize / 2.0));
-    setVar('opponentX', Constants.STRUMLINE_X_OFFSET + cutoutSize);
-    #if windows
-    setVar('system', 'windows');
-    #elseif linux
-    setVar('system', 'linux');
-    #elseif mac
-    setVar('system', 'mac');
-    #elseif html5
-    setVar('system', 'html5');
-    #elseif android
-    setVar('system', 'android');
-    #else
-    setVar('system', '');
-    #end
   }
 
-  public function stop()
+  public static function stop()
   {
-    closed = true;
     if (L == null)
     {
       return;

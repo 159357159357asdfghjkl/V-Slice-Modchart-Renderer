@@ -302,8 +302,10 @@ class SustainTrail extends FlxSprite
   var spStealth:Vector3D = new Vector3D();
   var realSpZoom:Float = 1;
   var realSpStealth:Float = 0;
+  var left:Vector3D = new Vector3D(1, 0, 0, 1);
+  var right:Vector3D = new Vector3D(1, 0, 0, 1);
 
-  function getPosWithOffset(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
+  function getPos(width:Float, time:Float):Array<Vector3D>
   {
     var mods:Modchart = parentStrumline.mods;
     var conductorInUse:Conductor = parentStrumline.conductorInUse;
@@ -354,7 +356,6 @@ class SustainTrail extends FlxSprite
     var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
       mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
     var fullPos:Vector3D = pos.clone();
-    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
     var zoom:Float = mods.GetZoom(column, yOffset, pn);
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
@@ -376,9 +377,14 @@ class SustainTrail extends FlxSprite
     fullPos.incrementBy(difference);
     scalePos.scaleBy(realSpZoom);
     skewPos.x += spSkew.x;
-    var zPos:Vector3D = ModchartMath.processActor(fullPos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
+    left.x = -width / 2;
+    right.x = -left.x;
+    var zPosLeft:Vector3D = ModchartMath.processActor(fullPos, left, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
       offsetY);
-    zPos.decrementBy(offset);
+    zPosLeft.decrementBy(offset);
+    var zPosRight:Vector3D = ModchartMath.processActor(fullPos, right, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
+      offsetY);
+    zPosRight.decrementBy(offset);
     var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
@@ -392,52 +398,7 @@ class SustainTrail extends FlxSprite
     var glowColor:Vector3D = new Vector3D(mods.getValue('stealthglowred') * mods.getValue('stealthglowred$column'),
       mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$column'),
       mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$column'), none ? splineGlow : glow);
-    return [zPos, diffuses, glowColor];
-  }
-
-  function getPosWithOffsetShortcut(xoff:Float = 0, yoff:Float = 0, time:Float):Array<Vector3D>
-  {
-    var mods:Modchart = parentStrumline.mods;
-    var conductorInUse:Conductor = parentStrumline.conductorInUse;
-    var speed:Float = parentStrumline.scrollSpeed;
-    var down:Bool = parentStrumline.isDownscroll;
-    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
-    var pn:Int = parentStrumline.modNumber;
-    var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
-    var xoffArray:Array<Float> = parentStrumline.xoffArray;
-    var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
-    var timeDiff:Float = mods.baseHoldSize;
-    var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
-    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
-    var difference:Vector3D = parentStrumline.getDifference();
-    var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
-    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
-    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
-    var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
-      mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
-    var realPos:Vector3D = new Vector3D(xoff, yoff, 0, 1);
-    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
-    var zoom:Float = mods.GetZoom(column, yOffset, pn);
-    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
-    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    mods.modifyPos(pos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
-    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
-    pos.incrementBy(difference);
-    var zPos:Vector3D = ModchartMath.processActor(pos, realPos, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX, offsetY);
-    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
-    var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);
-    alpha *= this.alpha * parentStrumline.alpha;
-    var glow:Float = mods.GetGlow(yposWithoutReverse, column, yOffset, false, true);
-    var diffuses:Vector3D = new Vector3D(mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'red'),
-      mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'green'), mods.ArrowGetPercentRGB(column, yOffset, yposWithoutReverse, 'blue'), alpha);
-    var glowColor:Vector3D = new Vector3D(mods.getValue('stealthglowred') * mods.getValue('stealthglowred$column'),
-      mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$column'),
-      mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$column'), glow);
-    return [zPos, diffuses, glowColor];
+    return [zPosLeft, zPosRight, diffuses, glowColor];
   }
 
   public function updateClipping(songTime:Float = 0)
@@ -470,7 +431,6 @@ class SustainTrail extends FlxSprite
     {
       visible = true;
     }
-    var getPosWithOffset = this.getPosWithOffsetShortcut;
     var bottomHeight:Float = graphic.height * zoom * endOffset;
     var partHeight:Float = clipHeight - bottomHeight;
     var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');
@@ -494,7 +454,6 @@ class SustainTrail extends FlxSprite
     var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
     if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;
-    var halfWidth:Float = graphicWidth / 2;
     var drawTail:Bool = true;
     var trueIndex:Int = 0;
     verticesArray.resize(0);
@@ -515,15 +474,14 @@ class SustainTrail extends FlxSprite
         continue;
       }
       var a:Int = trueIndex * 2;
-      var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
-      var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      verticesArray[a * 2] = pos1[0].x + halfWidth;
-      verticesArray[a * 2 + 1] = pos1[0].y * (i == 0 ? 1 : longHolds);
-      verticesArray[(a + 1) * 2] = pos2[0].x + halfWidth;
-      verticesArray[(a + 1) * 2 + 1] = pos2[0].y * (i == 0 ? 1 : longHolds);
+      var pos:Array<Vector3D> = getPos(graphicWidth, time);
+      verticesArray[a * 2] = pos[0].x + graphicWidth / 2;
+      verticesArray[a * 2 + 1] = pos[0].y * (i == 0 ? 1 : longHolds);
+      verticesArray[(a + 1) * 2] = pos[1].x + graphicWidth / 2;
+      verticesArray[(a + 1) * 2 + 1] = pos[1].y * (i == 0 ? 1 : longHolds);
 
-      transforms[trueIndex * 2] = getShader(pos1[1], pos1[2]);
-      transforms[trueIndex * 2 + 1] = getShader(pos2[1], pos2[2]);
+      transforms[trueIndex * 2] = getShader(pos[2], pos[3]);
+      transforms[trueIndex * 2 + 1] = getShader(pos[2], pos[3]);
 
       var fullVLength:Float = (-partHeight) / graphic.height / zoom;
       uvtDataArray[a * 2] = 1 / 4 * (noteDirection % 4);
@@ -574,14 +532,13 @@ class SustainTrail extends FlxSprite
       var capHeight:Float = graphic.height * (bottomClip - endOffset) * zoom;
       var time:Float = strumTime + fullSustainLength + capHeight;
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
-      var pos1:Array<Vector3D> = getPosWithOffset(-halfWidth, 0, time);
-      var pos2:Array<Vector3D> = getPosWithOffset(halfWidth, 0, time);
-      verticesArray[bottom * 2] = pos1[0].x + halfWidth;
-      verticesArray[bottom * 2 + 1] = pos1[0].y;
-      verticesArray[(bottom + 1) * 2] = pos2[0].x + halfWidth;
-      verticesArray[(bottom + 1) * 2 + 1] = pos2[0].y;
-      transforms[bottom] = getShader(pos1[1], pos1[2]);
-      transforms[bottom + 1] = getShader(pos2[1], pos2[2]);
+      var pos:Array<Vector3D> = getPos(graphicWidth, time);
+      verticesArray[bottom * 2] = pos[0].x + graphicWidth / 2;
+      verticesArray[bottom * 2 + 1] = pos[0].y;
+      verticesArray[(bottom + 1) * 2] = pos[1].x + graphicWidth / 2;
+      verticesArray[(bottom + 1) * 2 + 1] = pos[1].y;
+      transforms[bottom] = getShader(pos[2], pos[3]);
+      transforms[bottom + 1] = getShader(pos[2], pos[3]);
       uvtDataArray[bottom * 2] = uvtDataArray[next * 2];
       uvtDataArray[bottom * 2 + 1] = bottomClip;
       uvtDataArray[(bottom + 1) * 2] = uvtDataArray[(next + 1) * 2];

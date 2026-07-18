@@ -489,12 +489,12 @@ class SustainTrail extends FlxSprite
       uvtDataArray[(a + 1) * 2] = uvtDataArray[a * 2] + 1 / 8;
       uvtDataArray[(a + 1) * 2 + 1] = uvtDataArray[a * 2 + 1];
 
-      indicesArray.push(a + 1);
-      indicesArray.push(a + 2);
-      indicesArray.push(a + 0);
-      indicesArray.push(a + 1);
-      indicesArray.push(a + 3);
-      indicesArray.push(a + 2);
+      indicesArray[trueIndex * 6 + 0] = a + 1;
+      indicesArray[trueIndex * 6 + 1] = a + 2;
+      indicesArray[trueIndex * 6 + 2] = a + 0;
+      indicesArray[trueIndex * 6 + 3] = a + 1;
+      indicesArray[trueIndex * 6 + 4] = a + 3;
+      indicesArray[trueIndex * 6 + 5] = a + 2;
 
       trueIndex++;
     }
@@ -520,12 +520,12 @@ class SustainTrail extends FlxSprite
       uvtDataArray[(next + 1) * 2 + 1] = uvtDataArray[next * 2 + 1];
       transforms[next] = transforms[end];
       transforms[next + 1] = transforms[end + 1];
-      indicesArray.push(next + 1);
-      indicesArray.push(next + 2);
-      indicesArray.push(next + 0);
-      indicesArray.push(next + 1);
-      indicesArray.push(next + 3);
-      indicesArray.push(next + 2);
+      indicesArray[trueIndex * 6 + 0] = next + 1;
+      indicesArray[trueIndex * 6 + 1] = next + 2;
+      indicesArray[trueIndex * 6 + 2] = next + 0;
+      indicesArray[trueIndex * 6 + 3] = next + 1;
+      indicesArray[trueIndex * 6 + 4] = next + 3;
+      indicesArray[trueIndex * 6 + 5] = next + 2;
       trueIndex++;
 
       var bottom:Int = trueIndex * 2;

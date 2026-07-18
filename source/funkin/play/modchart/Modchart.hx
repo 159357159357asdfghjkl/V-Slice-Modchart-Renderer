@@ -2166,6 +2166,7 @@ class Modchart
     {
       scale.z *= getValue('zoomz');
       // pos.z *= getValue('zoomz');
+      // it will be unlocked when the note has 3d model
     }
     if (getValue('zoom') != 0)
     {

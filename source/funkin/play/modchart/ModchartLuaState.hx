@@ -3,6 +3,7 @@ package funkin.play.modchart;
 import llua.Lua;
 import llua.LuaL;
 import llua.State;
+import llua.Lua.LuaCFunction;
 import llua.Convert;
 import funkin.play.modchart.objects.FunkinActor;
 import flixel.text.FlxText;
@@ -133,18 +134,20 @@ class ModchartLuaState
 
   static var classes:Array<String> = [];
 
-  public static function createClass(name:String, methods:Map<String, cpp.Callable<StatePointer->Int>>)
+  public static function createClass(L:State, className:String, methods:Map<String, LuaCFunction>):Void
   {
-    var L:State = getLuaState();
-    Lua.newtable(L);
-    Lua.pushstring(L, name);
-    Lua.settable(L, Lua.LUA_GLOBALSINDEX);
-    for (funcname => func in methods)
+    if (L == null) return;
+    LuaL.newmetatable(L, className);
+    Lua.pushvalue(L, -1);
+    Lua.setfield(L, -2, "__index");
+    for (name in methods.keys())
     {
-      Lua.pushcfunction(L, func);
-      Lua.setfield(L, Lua.gettop(L), funcname);
+      var func:LuaCFunction = methods.get(name);
+      Lua.pushcclosure(L, func, 0);
+      Lua.setfield(L, -2, name);
     }
-    classes.push(name);
+    Lua.setglobal(L, className);
+    classes.push(className);
   }
 
   public static function call(func:String, args:Array<Dynamic>):Dynamic

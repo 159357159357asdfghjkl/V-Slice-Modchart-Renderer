@@ -1,3 +1,0 @@
-hxcpp_api_level=430
-hxcpp_smart_strings=1
-hxcpp=F:\V-Slice-Modchart-Stuff-Unfinished\.haxelib\hxcpp/git/

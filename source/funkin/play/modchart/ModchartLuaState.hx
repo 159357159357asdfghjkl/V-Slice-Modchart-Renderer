@@ -261,9 +261,8 @@ class ModchartLuaState
     Lua.close(L);
     L = null;
   }
-}
+} // from psych engine
 
-// from psych engine
 class DebugLuaText extends FlxText
 {
   public var disableTime:Float = 6;

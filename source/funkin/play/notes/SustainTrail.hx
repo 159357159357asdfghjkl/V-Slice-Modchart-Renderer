@@ -305,6 +305,11 @@ class SustainTrail extends FlxSprite
   var left:Vector3D = new Vector3D(1, 0, 0, 1);
   var right:Vector3D = new Vector3D(1, 0, 0, 1);
 
+  function clearout():Void
+  {
+    spZoom = spSkew = spStealth = left = right = null;
+  }
+
   function getPos(width:Float, time:Float):Array<Vector3D>
   {
     var mods:Modchart = parentStrumline.mods;
@@ -379,12 +384,10 @@ class SustainTrail extends FlxSprite
     skewPos.x += spSkew.x;
     left.x = -width / 2;
     right.x = -left.x;
-    var zPosLeft:Vector3D = ModchartMath.processActor(fullPos, left, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
-      offsetY);
-    zPosLeft.decrementBy(offset);
-    var zPosRight:Vector3D = ModchartMath.processActor(fullPos, right, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder, offsetX,
-      offsetY);
-    zPosRight.decrementBy(offset);
+    var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder,
+      offsetX, offsetY);
+    zPos[0].decrementBy(offset);
+    zPos[1].decrementBy(offset);
     var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
@@ -398,7 +401,9 @@ class SustainTrail extends FlxSprite
     var glowColor:Vector3D = new Vector3D(mods.getValue('stealthglowred') * mods.getValue('stealthglowred$column'),
       mods.getValue('stealthglowgreen') * mods.getValue('stealthglowgreen$column'),
       mods.getValue('stealthglowblue') * mods.getValue('stealthglowblue$column'), none ? splineGlow : glow);
-    return [zPosLeft, zPosRight, diffuses, glowColor];
+    zPos.push(diffuses);
+    zPos.push(glowColor);
+    return zPos;
   }
 
   public function updateClipping(songTime:Float = 0)
@@ -748,6 +753,7 @@ class SustainTrail extends FlxSprite
     indices = null;
     uvtData = null;
     transforms.splice(0, transforms.length);
+    clearout();
     super.destroy();
   }
 }

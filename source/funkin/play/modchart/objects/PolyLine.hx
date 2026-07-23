@@ -174,13 +174,12 @@ class PolyLine extends FunkinSprite
     skewPos.x += spSkew.x;
     left.x = -width / 2;
     right.x = -left.x;
-    var zPosLeft:Vector3D = ModchartMath.processActor(fullPos, left, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
-    zPosLeft.decrementBy(offset);
-    zPosLeft.incrementBy(globalOffset);
-    var zPosRight:Vector3D = ModchartMath.processActor(fullPos, right, rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
-    zPosRight.decrementBy(offset);
-    zPosRight.incrementBy(globalOffset);
-    return [zPosLeft, zPosRight];
+    var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    zPos[0].decrementBy(offset);
+    zPos[0].incrementBy(globalOffset);
+    zPos[1].decrementBy(offset);
+    zPos[1].incrementBy(globalOffset);
+    return zPos;
   }
 
   function updateClipping():Void
@@ -218,12 +217,12 @@ class PolyLine extends FunkinSprite
       uvtDataArray[(i + 1) * 2] = 1;
       uvtDataArray[(i + 1) * 2 + 1] = 0;
       if (a == subdivisions) break;
-      indicesArray.push(i + 1);
-      indicesArray.push(i + 2);
-      indicesArray.push(i + 0);
-      indicesArray.push(i + 1);
-      indicesArray.push(i + 3);
-      indicesArray.push(i + 2);
+      indicesArray[a * 6 + 0] = i + 1;
+      indicesArray[a * 6 + 1] = i + 2;
+      indicesArray[a * 6 + 2] = i + 0;
+      indicesArray[a * 6 + 3] = i + 1;
+      indicesArray[a * 6 + 4] = i + 3;
+      indicesArray[a * 6 + 5] = i + 2;
     }
     setVertices(verticesArray);
     setUVTData(uvtDataArray);

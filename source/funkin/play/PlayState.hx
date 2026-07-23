@@ -998,7 +998,7 @@ class PlayState extends MusicBeatSubState
     refresh();
   }
 
-  function initLuaSystem()
+  function initLuaSystem(isRestart:Bool = false)
   {
     ModchartLuaState.create();
     var folders:Array<String> = [];
@@ -1021,7 +1021,7 @@ class PlayState extends MusicBeatSubState
         }
       }
     }
-    ModchartLuaState.call('onInit', []);
+    ModchartLuaState.call('onInit', [isRestart]);
   }
 
   public function ApplyModifiers(str:String, ?pn:Int)
@@ -1226,7 +1226,7 @@ class PlayState extends MusicBeatSubState
       currentStage?.getBoyfriend()?.initHealthIcon(false);
       currentStage?.getDad()?.initHealthIcon(true);
       ModchartLuaState.stop();
-      initLuaSystem();
+      initLuaSystem(true);
       needsReset = false;
     }
 
@@ -1449,10 +1449,12 @@ class PlayState extends MusicBeatSubState
     {
       case Conversation:
         preparePauseUI();
+        ModchartLuaState.call('onConversation', []);
         openPauseSubState(Conversation, camPause, lostFocus, () -> currentConversation?.pauseMusic());
 
       case Cutscene:
         preparePauseUI();
+        ModchartLuaState.call('onCutscene', []);
         openPauseSubState(Cutscene, camPause, lostFocus, () -> VideoCutscene.pauseVideo());
 
       default: // also known as standard
@@ -1472,6 +1474,7 @@ class PlayState extends MusicBeatSubState
           if (!isSubState && event.gitaroo)
           {
             if (currentStage != null) this.remove(currentStage);
+            ModchartLuaState.call('onPause', []);
             FlxG.switchState(() -> new GitarooPause(lastParams));
           }
           else
@@ -1483,7 +1486,7 @@ class PlayState extends MusicBeatSubState
             {
               boyfriendPos = currentStage.getBoyfriend().getScreenPosition();
             }
-
+            ModchartLuaState.call('onPause', []);
             openPauseSubState(isChartingMode ? Charting : Standard, camPause, lostFocus);
           }
 
@@ -1552,6 +1555,7 @@ class PlayState extends MusicBeatSubState
     });
     FlxTransitionableState.skipNextTransIn = true;
     FlxTransitionableState.skipNextTransOut = true;
+    ModchartLuaState.call('onGameOver', []);
     openSubState(gameOverSubState);
   }
 

@@ -55,7 +55,7 @@ class FunkinActor extends FunkinSprite
     super.destroy();
   }
 
-  function getPos(vec:Vector3D):Vector3D
+  function getPos(w:Float, h:Float):Array<Vector3D>
   {
     var fullPos:Vector3D = pos.add(basePos);
     fullPos.x += pos2.x - origin.x;
@@ -69,10 +69,14 @@ class FunkinActor extends FunkinSprite
     scalePos.y *= baseScale.y * baseZoom.y;
     scalePos.z *= baseScale.z * baseZoom.z;
     var skewPos:Vector3D = new Vector3D(baseSkew.x + SKEW.x, baseSkew.y + SKEW.y);
-    var zPos:Vector3D = ModchartMath.processActor(fullPos, vec, rotation, scalePos, skewPos, originVec, fov, rotationOrder, origin.x * 2
+    var topLeft:Vector3D = new Vector3D(-w / 2, -h / 2, 0, 1);
+    var topRight:Vector3D = new Vector3D(w / 2, -h / 2, 0, 1);
+    var bottomLeft:Vector3D = new Vector3D(-w / 2, h / 2, 0, 1);
+    var bottomRight:Vector3D = new Vector3D(w / 2, h / 2, 0, 1);
+    var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [topLeft, topRight, bottomLeft, bottomRight], rotation, scalePos, skewPos, originVec, fov,
+      rotationOrder, origin.x * 2
       - offset.x
-      + offsetX,
-      origin.y * 2
+      + offsetX, origin.y * 2
       - offset.y
       + offsetY);
     return zPos;
@@ -84,23 +88,12 @@ class FunkinActor extends FunkinSprite
   override public function draw():Void
   {
     if (alpha == 0 || graphic == null || !exists || !visible) return;
-    var lowQuality:Bool = Preferences.framerate < 60;
     if (originVec == null) originVec = new Vector3D(FlxG.width / 2, FlxG.height / 2);
-    var w:Float = _frame.frame.width;
-    var h:Float = _frame.frame.height;
-    var topLeft:Vector3D = new Vector3D(-w / 2, -h / 2, 0, 1);
-    var topRight:Vector3D = new Vector3D(w / 2, -h / 2, 0, 1);
-    var bottomLeft:Vector3D = new Vector3D(-w / 2, h / 2, 0, 1);
-    var bottomRight:Vector3D = new Vector3D(w / 2, h / 2, 0, 1);
-    topLeft = getPos(topLeft);
-    topRight = getPos(topRight);
-    bottomLeft = getPos(bottomLeft);
-    bottomRight = getPos(bottomRight);
-    vertices = new Vector<Float>(8, false, [topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y]);
+    var points:Array<Vector3D> = getPos(_frame.frame.width, _frame.frame.height);
+    vertices = new Vector<Float>(8, false, [points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y]);
     uvtData = new Vector<Float>(8, false,
       [frame.uv.left, frame.uv.top, frame.uv.right, frame.uv.top, frame.uv.left, frame.uv.bottom, frame.uv.right, frame.uv.bottom]);
-    indices = new Vector<Int>(6, true, [0, 1, 2, 1, 2, 3]);
-
+    indices = new Vector<Int>(6, true, [1, 2, 0, 1, 3, 2]);
     for (camera in cameras)
     {
       if (camera.exists && camera != null)

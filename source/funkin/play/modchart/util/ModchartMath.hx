@@ -95,17 +95,22 @@ class ModchartMath
     return new Vector3D(angX, angY, angZ);
   }
 
-  public static function processActor(fullPos:Vector3D, realPos:Vector3D, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
-      fov:Float, rotationOrder:String = 'zyx', offx:Float = 0, offy:Float = 0):Vector3D
+  public static function processActor(fullPos:Vector3D, pos:Array<Vector3D>, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
+      fov:Float, rotationOrder:String = 'zyx', offx:Float = 0, offy:Float = 0):Array<Vector3D>
   {
     var m:Matrix3D = translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
     scaleMatrix(m, scalePos.x, scalePos.y, scalePos.z);
     skewMatrix(m, skewPos.x, skewPos.y);
     m.appendTranslation(offx, offy, 0);
-    var pos:Vector3D = initPerspective(realPos, m, fov, FlxG.width, FlxG.height, ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2),
-      originVec.y);
-    return pos;
+    var output:Array<Vector3D> = [];
+    var vanish:Float = ModchartMath.scale(skewPos.z, 0.1, 1.0, originVec.x, FlxG.width / 2);
+    for (i in pos)
+    {
+      var zPos:Vector3D = initPerspective(i, m.clone(), fov, FlxG.width, FlxG.height, vanish, originVec.y);
+      output.push(zPos);
+    }
+    return output;
   }
 
   public static function initPerspective(vec:Vector3D, m:Matrix3D, fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float, fVanishPointY:Float)

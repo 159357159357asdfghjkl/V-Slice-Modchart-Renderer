@@ -318,16 +318,15 @@ class SustainTrail extends FlxSprite
     var down:Bool = parentStrumline.isDownscroll;
     var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
     var pn:Int = parentStrumline.modNumber;
-    var reversedOff:Float = FlxG.height - parentStrumline.defaultHeight - Constants.STRUMLINE_Y_OFFSET * 2;
     var xoffArray:Array<Float> = parentStrumline.xoffArray;
     var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
     var timeDiff:Float = mods.baseHoldSize;
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
     var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
+      mods.GetYPos(column, yOffset, pn, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
     var difference:Vector3D = parentStrumline.getDifference();
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, down, reversedOff),
+    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, down),
       mods.GetZPos(column, ofs, pn, xoffArray));
     if (mods.getValue('fixeffect') != 0)
     {
@@ -337,11 +336,11 @@ class SustainTrail extends FlxSprite
     }
     var effect:Float = 1 - mods.getValue('straightholds');
     var noteYOffset:Float = mods.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) + ofs;
-    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
-      mods.GetYPos(column, noteYOffset, pn, xoffArray, down, reversedOff), mods.GetZPos(column, noteYOffset, pn, xoffArray));
+    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true), mods.GetYPos(column, noteYOffset, pn, xoffArray, down),
+      mods.GetZPos(column, noteYOffset, pn, xoffArray));
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
     var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset2, pn, xoffArray, down, reversedOff, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
+      mods.GetYPos(column, yOffset2, pn, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
@@ -365,7 +364,7 @@ class SustainTrail extends FlxSprite
     var zoom:Float = mods.GetZoom(column, yOffset, pn);
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, reversedOff, column);
+    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
     var zoom2:Vector3D = parentStrumline.zoom2;
     var zoom1:Vector3D = parentStrumline.zoom;
     var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
@@ -388,7 +387,7 @@ class SustainTrail extends FlxSprite
       offsetX, offsetY);
     zPos[0].decrementBy(offset);
     zPos[1].decrementBy(offset);
-    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, reversedOff, false);
+    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, false);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
     var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);

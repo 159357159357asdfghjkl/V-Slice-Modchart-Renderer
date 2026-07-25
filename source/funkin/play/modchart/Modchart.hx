@@ -1146,8 +1146,7 @@ class Modchart
     return f;
   }
 
-  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, down:Bool, fYReversedOffset:Float, WithReverse:Bool = true,
-      isHoldBody:Bool = false):Float
+  public function GetYPos(iCol:Int, fYOffset:Float, pn:Int, xOffset:Array<Float>, down:Bool, WithReverse:Bool = true, isHoldBody:Bool = false):Float
   {
     var f:Float = fYOffset;
     var time:Float = getTime();
@@ -2124,7 +2123,7 @@ class Modchart
   // it's like Player.cpp
   public var tilt:Float = 0;
 
-  public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, yReversedOffset:Float, iCol:Int):Void
+  public function modifyPos(pos:Vector3D, scale:Vector3D, rotation:Vector3D, skew:Vector3D, xoff:Array<Float>, iCol:Int):Void
   {
     if (getValue('rotationx') != 0 || getValue('rotationy') != 0 || getValue('rotationz') != 0)
     {

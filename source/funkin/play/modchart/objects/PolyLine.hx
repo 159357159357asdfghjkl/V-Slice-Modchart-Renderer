@@ -119,12 +119,6 @@ class PolyLine extends FunkinSprite
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
     var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, isDownscroll),
       mods.GetZPos(column, ofs, pn, xoffArray));
-    if (mods.getValue('fixeffect') != 0)
-    {
-      originVec.incrementBy(strumPos);
-      originVec.x -= xoffArray[column];
-      originVec.y += 2 * Strumline.NOTE_SPACING;
-    }
     var effect:Float = 1 - (mods.getValue('straightholds'));
     var noteYOffset:Float = mods.GetYOffset(conductorInUse, conductorInUse.getTimeWithDelta(), speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),

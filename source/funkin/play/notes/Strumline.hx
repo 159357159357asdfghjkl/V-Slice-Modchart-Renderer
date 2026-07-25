@@ -864,17 +864,7 @@ class Strumline extends FlxSpriteGroup
     var zoom:Float = mods.GetZoom(col, realofs, modNumber);
     var pos:Vector3D = new Vector3D(mods.GetXPos(col, realofs, modNumber, xoffArray, true),
       mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll) + note.yOffset, mods.GetZPos(col, realofs, modNumber, xoffArray));
-    if (mods.getValue('fixeffect') != 0)
-    {
-      var strumPos:Vector3D = new Vector3D(mods.GetXPos(col, c2, modNumber, xoffArray, false), mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll),
-        mods.GetZPos(col, c2, modNumber, xoffArray));
-      var offsetedOrigin:Vector3D = zOrigin.add(strumPos);
-      offsetedOrigin.x -= xoffArray[col];
-      offsetedOrigin.y += 2 * NOTE_SPACING;
-      note.originVec = offsetedOrigin;
-    }
-    else
-      note.originVec = zOrigin;
+    note.originVec = zOrigin;
     var realofs2 = mods.GetYOffset(conductorInUse, note.strumTime + timeDiff, scrollSpeed, col, note.strumTime + timeDiff) + c2;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, realofs2, modNumber, xoffArray, true), mods.GetYPos(col, realofs2, modNumber, xoffArray, isDownscroll),
       mods.GetZPos(col, realofs2, modNumber, xoffArray));
@@ -967,15 +957,7 @@ class Strumline extends FlxSpriteGroup
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
     var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-    if (mods.getValue('fixeffect') != 0)
-    {
-      var offsetedOrigin:Vector3D = zOrigin.add(pos);
-      offsetedOrigin.x -= xoffArray[col];
-      offsetedOrigin.y += 2 * NOTE_SPACING;
-      strumNote.originVec = offsetedOrigin;
-    }
-    else
-      strumNote.originVec = zOrigin;
+    strumNote.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
@@ -1023,15 +1005,7 @@ class Strumline extends FlxSpriteGroup
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
     var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-    if (mods.getValue('fixeffect') != 0)
-    {
-      var offsetedOrigin:Vector3D = zOrigin.add(pos);
-      offsetedOrigin.x -= xoffArray[col];
-      offsetedOrigin.y += 2 * NOTE_SPACING;
-      splash.originVec = offsetedOrigin;
-    }
-    else
-      splash.originVec = zOrigin;
+    splash.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
@@ -1084,15 +1058,7 @@ class Strumline extends FlxSpriteGroup
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
     var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
-    if (mods.getValue('fixeffect') != 0)
-    {
-      var offsetedOrigin:Vector3D = zOrigin.add(pos);
-      offsetedOrigin.x -= xoffArray[col];
-      offsetedOrigin.y += 2 * NOTE_SPACING;
-      glow.originVec = offsetedOrigin;
-    }
-    else
-      glow.originVec = zOrigin;
+    glow.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);

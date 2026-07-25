@@ -967,6 +967,7 @@ class PauseSubState extends MusicBeatSubState
    */
   static function resume(state:PauseSubState):Void
   {
+    funkin.play.modchart.ModchartLuaState.call('onResume', []);
     // Resume a paused video if it exists.
     VideoCutscene.resumeVideo();
     #if FEATURE_MOBILE_ADVERTISEMENTS

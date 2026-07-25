@@ -2694,6 +2694,7 @@ class PlayState extends MusicBeatSubState
      */
   function startSong():Void
   {
+    ModchartLuaState.call('onStartSong', []);
     startingSong = false;
 
     #if mobile
@@ -3662,6 +3663,7 @@ class PlayState extends MusicBeatSubState
      */
   public function endSong(rightGoddamnNow:Bool = false):Void
   {
+    ModchartLuaState.call('onEndSong', []);
     if (FlxG.sound.music != null) FlxG.sound.music.volume = 0;
     if (vocals != null) vocals.volume = 0;
     mayPauseGame = false;

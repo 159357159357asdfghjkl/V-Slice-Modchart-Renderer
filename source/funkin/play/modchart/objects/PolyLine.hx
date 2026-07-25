@@ -191,14 +191,14 @@ class PolyLine extends FunkinSprite
     if (alpha <= 0) return;
     var grain:Float = mods.getValue('arrowpathgranulate');
     if (grain == 0) grain = 4;
-    var roughness:Float = mods.baseHoldSize;
+    var roughness:Float = mods.baseHoldSize * (1 / scrollSpeed);
     var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
     var backLength:Float = parentStrumline.pathSizeBack / scrollSpeed;
     backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
     var frontLength:Float = parentStrumline.pathSizeFront / scrollSpeed;
     frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
     var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
-    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (roughness / 1 + Math.abs(grain)));
+    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (1 / (roughness * Math.abs(grain))));
     var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
     var verticesArray:Array<Float> = [];
     var uvtDataArray:Array<Float> = [];

@@ -449,13 +449,13 @@ class SustainTrail extends FlxSprite
     draw_scale *= 1 + Math.abs(parentStrumline.mods.getValue('mini'));
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
-    var roughness:Float = parentStrumline.mods.baseHoldSize;
+    var roughness:Float = parentStrumline.mods.baseHoldSize * (1 / scrollSpeed);
     var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
     var grain:Float = parentStrumline.mods.getValue('granulate');
     if (Math.abs(grain) <= FlxMath.EPSILON) grain = 4;
     var length:Int = Math.floor((fullSustainLength) / (roughness * grain));
-    if (grain < 0) length = Math.floor((fullSustainLength) / (roughness / Math.abs(grain)));
+    if (grain < 0) length = Math.floor((fullSustainLength) / (1 / (roughness * Math.abs(grain))));
     var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
     if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;

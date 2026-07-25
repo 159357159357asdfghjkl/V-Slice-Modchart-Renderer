@@ -147,117 +147,115 @@ class PolyLine extends FunkinSprite
     {
       offset.x = pos3.x - strumPos.x;
       offset.z = pos3.z - strumPos.z;
-      reversedOff
-      var noteBeat:Float = Conductor.instance.currentBeatTime;
-      var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
-        (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
-      var fullPos:Vector3D = pos;
-      var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
-      var zoom:Float = mods.GetZoom(column, yOffset, pn);
-      var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
-      var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-      mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
-      var zoom2:Vector3D = parentStrumline.zoom2;
-      var zoom1:Vector3D = parentStrumline.zoom;
-      var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
-      if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
-      mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
-        parentStrumline.skew.add(parentStrumline.skew2), newZoom);
-      parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);
-      parentStrumline.getSplineAxisPos('zoom', column, yOffset, 0, spZoom);
-      var realSpZoom:Float = 1 - 0.5 * spZoom.x;
-      parentStrumline.getSplineAxisPos('skew', column, yOffset, 0, spSkew);
-      fullPos.incrementBy(spPos);
-      fullPos.incrementBy(difference);
-      scalePos.scaleBy(realSpZoom);
-      skewPos.x += spSkew.x;
-      left.x = -width / 2;
-      right.x = -left.x;
-      var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
-      zPos[0].decrementBy(offset);
-      zPos[0].incrementBy(globalOffset);
-      zPos[1].decrementBy(offset);
-      zPos[1].incrementBy(globalOffset);
-      return zPos;
     }
-
-    function updateClipping():Void
-    {
-      if (parentStrumline == null) return;
-      var alpha:Float = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
-      alpha = ModchartMath.clamp(alpha, 0, 1) * this.alpha * parentStrumline.alpha;
-      this.colorTransform.alphaMultiplier = alpha;
-      if (alpha <= 0) return;
-      var grain:Float = mods.getValue('arrowpathgranulate');
-      if (grain == 0) grain = 4;
-      var roughness:Float = mods.baseHoldSize * (1 / scrollSpeed);
-      var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
-      var backLength:Float = parentStrumline.pathSizeBack / scrollSpeed;
-      backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
-      var frontLength:Float = parentStrumline.pathSizeFront / scrollSpeed;
-      frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
-      var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
-      if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (1 / (roughness * Math.abs(grain))));
-      var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
-      var verticesArray:Array<Float> = [];
-      var uvtDataArray:Array<Float> = [];
-      var indicesArray:Array<Int> = [];
-      for (a in 0...subdivisions + 1)
-      {
-        var i:Int = a * 2;
-        var time:Float = (backLength + frontLength) / subdivisions * a - backLength;
-        var pos:Array<Vector3D> = getPos(size, time);
-        verticesArray[i * 2] = pos[0].x;
-        verticesArray[i * 2 + 1] = pos[0].y;
-        verticesArray[(i + 1) * 2] = pos[1].x;
-        verticesArray[(i + 1) * 2 + 1] = pos[1].y;
-        uvtDataArray[i * 2] = 0;
-        uvtDataArray[i * 2 + 1] = 1;
-        uvtDataArray[(i + 1) * 2] = 1;
-        uvtDataArray[(i + 1) * 2 + 1] = 0;
-        if (a == subdivisions) break;
-        indicesArray[a * 6 + 0] = i + 1;
-        indicesArray[a * 6 + 1] = i + 2;
-        indicesArray[a * 6 + 2] = i + 0;
-        indicesArray[a * 6 + 3] = i + 1;
-        indicesArray[a * 6 + 4] = i + 3;
-        indicesArray[a * 6 + 5] = i + 2;
-      }
-      setVertices(verticesArray);
-      setUVTData(uvtDataArray);
-      setIndices(indicesArray);
-    }
-
-    override
-    public function update(elapsed:Float):Void
-    {
-      super.update(elapsed);
-      x = y = 0;
-      updateClipping();
-    }
-
-    override
-    public function draw():Void
-    {
-      if (alpha == 0 || graphic == null || !visible || vertices == null || parentStrumline == null || !alive) return;
-
-      for (camera in cameras)
-      {
-        if (camera.exists && camera != null)
-        {
-          if (!camera.visible || camera.alpha == 0) continue;
-
-          getScreenPosition(_point, camera).subtract(offset);
-          #if !flash
-          camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, false, antialiasing, colorTransform, shader);
-          #else
-          camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, false, antialiasing);
-          #end
-        }
-      }
-
-      #if FLX_DEBUG
-      if (FlxG.debugger.drawDebug) drawDebug();
-      #end
-    }
+    var noteBeat:Float = Conductor.instance.currentBeatTime;
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
+      (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
+    var fullPos:Vector3D = pos;
+    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
+    var zoom:Float = mods.GetZoom(column, yOffset, pn);
+    var scalePos:Vector3D = new Vector3D(scale[0] * zoom, scale[1] * zoom, scale[4]);
+    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
+    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
+    var zoom2:Vector3D = parentStrumline.zoom2;
+    var zoom1:Vector3D = parentStrumline.zoom;
+    var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
+    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
+    mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
+      parentStrumline.skew.add(parentStrumline.skew2), newZoom);
+    parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);
+    parentStrumline.getSplineAxisPos('zoom', column, yOffset, 0, spZoom);
+    var realSpZoom:Float = 1 - 0.5 * spZoom.x;
+    parentStrumline.getSplineAxisPos('skew', column, yOffset, 0, spSkew);
+    fullPos.incrementBy(spPos);
+    fullPos.incrementBy(difference);
+    scalePos.scaleBy(realSpZoom);
+    skewPos.x += spSkew.x;
+    left.x = -width / 2;
+    right.x = -left.x;
+    var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    zPos[0].decrementBy(offset);
+    zPos[0].incrementBy(globalOffset);
+    zPos[1].decrementBy(offset);
+    zPos[1].incrementBy(globalOffset);
+    return zPos;
   }
+
+  function updateClipping():Void
+  {
+    if (parentStrumline == null) return;
+    var alpha:Float = mods.getValue('arrowpath${column}') + mods.getValue('arrowpath');
+    alpha = ModchartMath.clamp(alpha, 0, 1) * this.alpha * parentStrumline.alpha;
+    this.colorTransform.alphaMultiplier = alpha;
+    if (alpha <= 0) return;
+    var grain:Float = mods.getValue('arrowpathgranulate');
+    if (grain == 0) grain = 4;
+    var roughness:Float = mods.baseHoldSize * (1 / scrollSpeed);
+    var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
+    var backLength:Float = parentStrumline.pathSizeBack / scrollSpeed;
+    backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));
+    var frontLength:Float = parentStrumline.pathSizeFront / scrollSpeed;
+    frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
+    var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
+    if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (1 / (roughness * Math.abs(grain))));
+    var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
+    var verticesArray:Array<Float> = [];
+    var uvtDataArray:Array<Float> = [];
+    var indicesArray:Array<Int> = [];
+    for (a in 0...subdivisions + 1)
+    {
+      var i:Int = a * 2;
+      var time:Float = (backLength + frontLength) / subdivisions * a - backLength;
+      var pos:Array<Vector3D> = getPos(size, time);
+      verticesArray[i * 2] = pos[0].x;
+      verticesArray[i * 2 + 1] = pos[0].y;
+      verticesArray[(i + 1) * 2] = pos[1].x;
+      verticesArray[(i + 1) * 2 + 1] = pos[1].y;
+      uvtDataArray[i * 2] = 0;
+      uvtDataArray[i * 2 + 1] = 1;
+      uvtDataArray[(i + 1) * 2] = 1;
+      uvtDataArray[(i + 1) * 2 + 1] = 0;
+      if (a == subdivisions) break;
+      indicesArray[a * 6 + 0] = i + 1;
+      indicesArray[a * 6 + 1] = i + 2;
+      indicesArray[a * 6 + 2] = i + 0;
+      indicesArray[a * 6 + 3] = i + 1;
+      indicesArray[a * 6 + 4] = i + 3;
+      indicesArray[a * 6 + 5] = i + 2;
+    }
+    setVertices(verticesArray);
+    setUVTData(uvtDataArray);
+    setIndices(indicesArray);
+  }
+
+  override public function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+    x = y = 0;
+    updateClipping();
+  }
+
+  override public function draw():Void
+  {
+    if (alpha == 0 || graphic == null || !visible || vertices == null || parentStrumline == null || !alive) return;
+
+    for (camera in cameras)
+    {
+      if (camera.exists && camera != null)
+      {
+        if (!camera.visible || camera.alpha == 0) continue;
+
+        getScreenPosition(_point, camera).subtract(offset);
+        #if !flash
+        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, false, antialiasing, colorTransform, shader);
+        #else
+        camera.drawTriangles(graphic, vertices, indices, uvtData, null, _point, blend, false, antialiasing);
+        #end
+      }
+    }
+
+    #if FLX_DEBUG
+    if (FlxG.debugger.drawDebug) drawDebug();
+    #end
+  }
+}

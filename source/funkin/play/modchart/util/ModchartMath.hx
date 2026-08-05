@@ -189,8 +189,20 @@ class ModchartMath
       case 'xzy': [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0, cY * sZ, cZ, cY * sZ * sX - sY * cX, 0, -sY * cZ, 0, -sY * sZ * cX + cY * cX, 0, 0, 0, 0, 1];
       case 'yxz': [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY
           + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY, -sX, 0, 0, 0, 0, 1];
-      case 'yzx': [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY
-          + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY, -sX, 0, 0, 0, 0, 1];
+      case 'yzx': [cX * cY + sX * sY * sZ, -cX * sY + sX * sZ * cY, sX * cZ, 0, cZ * sY, cZ * cY, -sZ, 0, -sX * cY + cX * sY * sZ, sX * sY
+          + cX * sZ * cY, cX * cZ, 0, 0, 0, 0, 1];
+      case 'xyx': [cY, sY * sZ, sY * cZ, 0, -sX * sY, cX * cZ + sX * cY * sZ, -cX * sZ + sX * cY * cZ, 0, -cX * sY, -sX * cZ + cX * cY * sZ, sX * sZ
+          + cX * cY * cZ, 0, 0, 0, 0, 1];
+      case 'xzx': [cZ, -sZ * cY, sZ * sY, 0, cX * sZ, cX * cZ * cY + sX * sY, -cX * cZ * sY + sX * cY, 0, -sX * sZ, -sX * cZ * cY + cX * sY, sX * cZ * sY
+          + cX * cY, 0, 0, 0, 0, 1];
+      case 'yxy': [cY * cZ + sY * cX * sZ, -sY * sX, cY * sZ - sY * cX * cZ, 0, sX * sZ, cX, -sX * cZ, 0, sY * cZ - cY * cX * sZ, cY * sX, sY * sZ
+          + cY * cX * cZ, 0, 0, 0, 0, 1];
+      case 'yzy': [cY * cZ * cX + sY * sX, -cY * sZ, cY * cZ * sX - sY * cX, 0, sZ * cX, cZ, sZ * sX, 0, sY * cZ * cX - cY * sX, -sY * sZ, sY * cZ * sX
+          + cY * cX, 0, 0, 0, 0, 1];
+      case 'zxz': [cZ * cY + sZ * cX * sY, -cZ * sY + sZ * cX * cY, -sZ * sX, 0, -sZ * cY + cZ * cX * sY, sZ * sY
+          + cZ * cX * cY, -cZ * sX, 0, sX * sY, sX * cY, cX, 0, 0, 0, 0, 1];
+      case 'zyz': [cZ * cY * cX + sZ * sX, -cZ * cY * sX + sZ * cX, cZ * sY, 0, -sZ * cY * cX + cZ * sX, sZ * cY * sX
+          + cZ * cX, -sZ * sY, 0, -sY * cX, sY * sX, cY, 0, 0, 0, 0, 1];
       default:
         [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
           -sZ * cY,

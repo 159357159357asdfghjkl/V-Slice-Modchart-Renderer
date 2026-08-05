@@ -33,6 +33,8 @@ Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into assets/scr
 
 ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
 
+I want to say: create a modchart system is easy(optimize is hard), dont consider it too complex
+
 # Getting Started
 
 **PLEASE USE THE LINKS ABOVE IF YOU JUST WANT TO PLAY THE GAME**

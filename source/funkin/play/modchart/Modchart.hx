@@ -7,6 +7,13 @@ import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.Vector3D;
 import funkin.util.GRhythmUtil;
 
+typedef ModEvent =
+{
+  var name:String;
+  var level:Float;
+  var speed:Float;
+}
+
 /**
  * StepMania Port + NotITG Mods
  * orient(7/28/25) / asymptote(8/10/25) / cubic(8/24/25) / straightholds(3/?/25) / sin|cos|tanclip(8/24/25) were made by me
@@ -15,7 +22,7 @@ class Modchart
 {
   // 写在这，提醒一下我自己：更新游戏版本时不要忘记调用这里的update，！！！
   var modList:Map<String, Float> = [];
-  var preModList:Map<String, Array<Float>> = [];
+  var activeEvents:Array<ModEvent> = [];
   var altname:Map<String, String> = new Map<String, String>();
   final ARROW_SIZE:Float = Strumline.NOTE_SPACING;
 
@@ -306,17 +313,14 @@ class Modchart
     for (mod in ZERO)
     {
       modList.set(mod, 0);
-      preModList.set(mod, [0, 0]);
     }
 
     for (mod in ONE)
     {
       modList.set(mod, 1);
-      preModList.set(mod, [1, 0]);
     }
 
     modList.set('cmod', CMOD_DEFAULT); // give a normal speed at fnf
-    preModList.set('cmod', [0, 0]);
 
     altname.set('land', 'brake');
     altname.set('dwiwave', 'expand');
@@ -568,7 +572,8 @@ class Modchart
       }
       if (modList.exists(name))
       {
-        preModList.set(name, [level, speed]);
+        var event:ModEvent = {name: name, level: level, speed: speed};
+        activeEvents.push(event);
       }
     }
   }
@@ -601,19 +606,19 @@ class Modchart
   public function update():Void
   {
     totalElapsed += FlxG.elapsed;
-    for (name => level in preModList)
+    var id:Int = activeEvents.length - 1;
+    while (id >= 0)
     {
-      var state:Array<Float> = preModList.get(name);
-      var level:Float = state[0];
-      var speed:Float = state[1];
+      var event:ModEvent = activeEvents[id];
+      var level:Float = event.level;
+      var speed:Float = event.speed;
+      var name:String = event.name;
+      if (speed < 0) modList.set(name, level);
       var current:Float = getValue(name);
-      if (level == current)
+      if (FlxMath.equal(level - current, 0))
       {
-        continue;
-      }
-      if (speed < 0)
-      {
-        modList.set(name, level);
+        activeEvents.splice(id, 1);
+        id--;
         continue;
       }
       var to_move:Float = FlxG.elapsed * speed;
@@ -622,6 +627,7 @@ class Modchart
       var fToMove:Float = fSign * to_move;
       if (Math.abs(fToMove) > Math.abs(fDelta)) fToMove = fDelta;
       modList.set(name, current + fToMove);
+      id--;
     }
   }
 

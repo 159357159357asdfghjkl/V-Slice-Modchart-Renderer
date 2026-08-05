@@ -1,0 +1,93 @@
+{
+	"timeFormat": "ms",
+	"artist": "Ludicin",
+	"charter": "UntilYouAreGone",
+	"offsets": {
+		"altInstrumentals": {},
+		"instrumental": 0,
+		"vocals": {},
+		"altVocals": {}
+	},
+	"playData": {
+		"stage": "mainStage",
+		"songVariations": [],
+		"noteStyle": "funkin",
+		"previewStart": 0,
+		"difficulties": [
+			"normal"
+		],
+		"album": "Unknown",
+		"previewEnd": 15000,
+		"characters": {
+			"girlfriend": "gf",
+			"opponent": "dad",
+			"player": "bf"
+		},
+		"ratings": {}
+	},
+	"songName": "Bismuth",
+	"timeChanges": [
+		{
+			"d": 4,
+			"n": 4,
+			"t": 0,
+			"bpm": 240
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 106000,
+			"bpm": 220
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 107090.909090909,
+			"bpm": 200
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 108290.909090909,
+			"bpm": 175
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 185090.909090909,
+			"bpm": 155
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 186639.296187684,
+			"bpm": 145
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 188294.468601477,
+			"bpm": 140
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 191723.040030048,
+			"bpm": 125
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 195563.040030048,
+			"bpm": 120
+		},
+		{
+			"d": 4,
+			"n": 4,
+			"t": 203563.040030048,
+			"bpm": 240
+		}
+	],
+	"generatedBy": "Moonchart 0.5.0",
+	"version": "2.2.4"
+}

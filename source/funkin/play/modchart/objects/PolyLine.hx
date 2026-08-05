@@ -184,6 +184,7 @@ class PolyLine extends FunkinSprite
     var grain:Float = mods.getValue('arrowpathgranulate');
     if (grain == 0) grain = 4;
     var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
+    if (scrollSpeed < 0.01) scrollSpeed = 0.01;
     var roughness:Float = mods.baseHoldSize * (1 / scrollSpeed);
     var backLength:Float = parentStrumline.pathSizeBack / scrollSpeed;
     backLength *= (1 + mods.getValue('arrowpathdrawsizeback'));

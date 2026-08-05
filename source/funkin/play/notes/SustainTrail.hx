@@ -433,6 +433,7 @@ class SustainTrail extends FlxSprite
     var drawsize:Float = 1 + parentStrumline.mods.getValue('drawsize');
     var drawsizeback:Float = 1 + parentStrumline.mods.getValue('drawsizeback');
     var scrollSpeed:Float = parentStrumline.scrollSpeed * Constants.PIXELS_PER_MS;
+    if (scrollSpeed < 0.01) scrollSpeed = 0.01;
     var draw_ms_after_targets:Float = -parentStrumline.pathSizeBack * drawsizeback / scrollSpeed;
     var centered_times_boomerang:Float = parentStrumline.mods.getValue('centered') * parentStrumline.mods.getValue('boomerang');
     draw_ms_after_targets -= Std.int(ModchartMath.scale(centered_times_boomerang, 0.0, 1.0, 0.0, -FlxG.height / 2));

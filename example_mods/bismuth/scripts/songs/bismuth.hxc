@@ -1,0 +1,96 @@
+import flixel.tweens.FlxEase;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxTween;
+import funkin.play.PlayState;
+import funkin.play.PlayStatePlaylist;
+import funkin.play.song.Song;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.save.Save;
+import funkin.effects.RetroCameraFade;
+import funkin.Conductor;
+
+class BismuthSong extends Song
+{
+  public function new()
+  {
+    super('bismuth');
+  }
+
+  var cover:FlxSprite;
+
+  function onCreate(event:ScriptEvent)
+  {
+    PlayState.instance.camGame.visible = false;
+    PlayState.instance.healthBar.visible = PlayState.instance.healthBarBG.visible = PlayState.instance.iconP1.visible = PlayState.instance.iconP2.visible = PlayState.instance.scoreText.visible = false;
+    cover = new FlxSprite().loadGraphic(Paths.image('cover'));
+    cover.scale.set(FlxG.width / cover.width, FlxG.height / cover.height);
+    cover.screenCenter(0x11);
+    cover.cameras = [PlayState.instance.camHUD];
+    PlayState.instance.add(cover);
+    cover.zIndex = -10000;
+    cover.alpha = 0;
+  }
+  function onUpdate(event:ScriptEvent)
+  {
+    if (FlxG.keys.justPressed.SHIFT)
+      PlayState.instance.isBotPlayMode = !PlayState.instance.isBotPlayMode;
+
+    if (Conductor.instance.currentBeat == 4)
+      FlxTween.tween(cover, {alpha: 1}, 4, {ease: FlxEase.linear});
+
+    if (Conductor.instance.currentBeat == 632)
+      FlxTween.tween(cover, {alpha: 0}, 5.5, {ease: FlxEase.cubeIn});
+
+    if (Conductor.instance.currentBeat == 650)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.5, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 654)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.6, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 658)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.7, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 662)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.8, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 666)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.8, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 670)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.85, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 674)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.9, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 678)
+    {
+      cover.alpha = 0.5;
+      FlxTween.tween(cover, {alpha: 0}, 0.95, {ease: FlxEase.cubeIn});
+    }
+    if (Conductor.instance.currentBeat == 696)
+      FlxTween.tween(cover, {alpha: 1}, 12, {ease: FlxEase.linear});
+
+    if (Conductor.instance.currentBeat == 1092)
+      cover.alpha = 0.8;
+    if (Conductor.instance.currentBeatTime >= 1092.5)
+      cover.alpha = 0.5;
+    if (Conductor.instance.currentBeat == 1093)
+      cover.visible = false;
+  }
+}

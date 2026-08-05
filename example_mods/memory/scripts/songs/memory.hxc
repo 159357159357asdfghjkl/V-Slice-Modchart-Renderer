@@ -1,0 +1,37 @@
+import flixel.tweens.FlxEase;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxTween;
+import funkin.play.PlayState;
+import funkin.play.PlayStatePlaylist;
+import funkin.play.song.Song;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.save.Save;
+import funkin.effects.RetroCameraFade;
+import funkin.Conductor;
+
+class Memory extends Song
+{
+  public function new()
+  {
+    super('memory');
+  }
+
+  function onCreate(event:ScriptEvent)
+  {
+    PlayState.instance.camGame.visible = false;
+    PlayState.instance.healthBar.visible = PlayState.instance.healthBarBG.visible = PlayState.instance.iconP1.visible = PlayState.instance.iconP2.visible = PlayState.instance.scoreText.visible = false;
+    var cover:FlxSprite = new FlxSprite();
+    cover.makeGraphic(FlxG.width, FlxG.height, 0xffffffff);
+    cover.screenCenter(17);
+    cover.cameras = [PlayState.instance.camHUD];
+    PlayState.instance.add(cover);
+    cover.zIndex = -10000;
+  }
+  function onUpdate(event:ScriptEvent)
+  {
+    if (FlxG.keys.justPressed.SHIFT)
+      PlayState.instance.isBotPlayMode = !PlayState.instance.isBotPlayMode;
+  }
+}

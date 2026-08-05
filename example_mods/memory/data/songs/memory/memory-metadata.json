@@ -1,0 +1,35 @@
+{
+ "version": "2.2.4",
+ "songName": "memory",
+ "artist": "edogha",
+ "charter": "UntilYouAreGone",
+ "offsets": { },
+ "playData": {
+  "difficulties": [
+   "normal"
+  ],
+  "characters": {
+   "player": "bf",
+   "girlfriend": "gf",
+   "opponent": "dad",
+   "opponentVocals": [
+    "dad"
+   ],
+   "playerVocals": [
+    "bf"
+   ]
+  },
+  "stage": "mainStage",
+  "noteStyle": "funkin",
+  "album": "Unknown"
+ },
+ "generatedBy": "Friday Night Funkin' - v0.8.3",
+ "timeChanges": [
+  {
+   "t": 0,
+   "b": 0,
+   "bpm": 126,
+   "bt": [4, 4, 4, 4]
+  }
+ ]
+}

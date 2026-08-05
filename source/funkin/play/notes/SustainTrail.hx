@@ -355,8 +355,7 @@ class SustainTrail extends FlxSprite
       mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
     var fullPos:Vector3D = pos.clone();
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
-    var zoom:Float = mods.GetZoom(column, yOffset, pn);
-    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0] * zoom, this.scale.y * scale[1] * zoom, scale[4]);
+    var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0], this.scale.y * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
     var zoom2:Vector3D = parentStrumline.zoom2;

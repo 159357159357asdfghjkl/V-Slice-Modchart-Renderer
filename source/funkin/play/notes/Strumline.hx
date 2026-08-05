@@ -861,7 +861,6 @@ class Strumline extends FlxSpriteGroup
     var c2:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$col')) * Strumline.NOTE_SPACING;
     var realofs:Float = mods.GetYOffset(conductorInUse, note.strumTime, scrollSpeed, col, note.strumTime) + c2;
     var scale:Array<Float> = mods.GetScale(col, realofs, modNumber, false, true);
-    var zoom:Float = mods.GetZoom(col, realofs, modNumber);
     var pos:Vector3D = new Vector3D(mods.GetXPos(col, realofs, modNumber, xoffArray, true),
       mods.GetYPos(col, realofs, modNumber, xoffArray, isDownscroll) + note.yOffset, mods.GetZPos(col, realofs, modNumber, xoffArray));
     note.originVec = zOrigin;
@@ -870,7 +869,7 @@ class Strumline extends FlxSpriteGroup
       mods.GetZPos(col, realofs2, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
     var noteBeat:Float = Conductor.instance.getTimeInSteps(note.strumTime) / Constants.STEPS_PER_BEAT;
-    var scalePos:Vector3D = new Vector3D(note.scale.x * scale[0] * zoom, note.scale.y * scale[1] * zoom, scale[4] * zoom);
+    var scalePos:Vector3D = new Vector3D(note.scale.x * scale[0], note.scale.y * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     var rotation:Vector3D = new Vector3D(mods.GetRotationX(col, realofs, note.holdNoteSprite != null, angles.x),
       mods.GetRotationY(col, realofs, note.holdNoteSprite != null, angles.y), mods.GetRotationZ(col, realofs, noteBeat, note.holdNoteSprite != null, angles.z));
@@ -955,13 +954,12 @@ class Strumline extends FlxSpriteGroup
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
     var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll);
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
-    var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
     strumNote.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
-    var scalePos:Vector3D = new Vector3D(strumNote.scale.x * scale[0] * zoom, strumNote.scale.y * scale[1] * zoom, scale[4] * zoom);
+    var scalePos:Vector3D = new Vector3D(strumNote.scale.x * scale[0], strumNote.scale.y * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
       mods.ReceptorGetRotationZ(col, angles.z));
@@ -1003,13 +1001,12 @@ class Strumline extends FlxSpriteGroup
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
     var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll);
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
-    var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
     splash.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
-    var scalePos:Vector3D = new Vector3D(splash.scale.x * scale[0] * zoom, splash.scale.y * scale[1] * zoom, scale[4] * zoom);
+    var scalePos:Vector3D = new Vector3D(splash.scale.x * scale[0], splash.scale.y * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
       mods.ReceptorGetRotationZ(col, angles.z));
@@ -1056,13 +1053,12 @@ class Strumline extends FlxSpriteGroup
     var xpos:Float = mods.GetXPos(col, c2, modNumber, xoffArray, false);
     var ypos:Float = mods.GetYPos(col, c2, modNumber, xoffArray, isDownscroll);
     var scale:Array<Float> = mods.GetScale(col, c2, modNumber);
-    var zoom:Float = mods.GetZoom(col, c2, modNumber);
     var pos:Vector3D = new Vector3D(xpos, ypos, zpos);
     glow.originVec = zOrigin;
     var pos2:Vector3D = new Vector3D(mods.GetXPos(col, c2 + timeDiff, modNumber, xoffArray, true),
       mods.GetYPos(col, c2 + timeDiff, modNumber, xoffArray, isDownscroll), mods.GetZPos(col, c2 + timeDiff, modNumber, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos2);
-    var scalePos:Vector3D = new Vector3D(glow.scale.x * scale[0] * zoom, glow.scale.x * scale[1] * zoom, scale[4] * zoom);
+    var scalePos:Vector3D = new Vector3D(glow.scale.x * scale[0], glow.scale.x * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     var rotation:Vector3D = new Vector3D(mods.ReceptorGetRotationX(col, angles.x), mods.ReceptorGetRotationY(col, angles.y),
       mods.ReceptorGetRotationZ(col, angles.z));

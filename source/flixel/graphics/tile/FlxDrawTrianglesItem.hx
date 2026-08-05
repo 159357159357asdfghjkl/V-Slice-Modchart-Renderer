@@ -296,8 +296,8 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 
         for (_ in 0...indicesLength)
         {
-          var curIndice:Int = indices[_];
-          var transform:ColorTransform = transform != null ? transform[curIndice] : null;
+          var curIndex:Int = indices[_];
+          var transform:ColorTransform = transform != null ? transform[curIndex] : null;
           if (transform != null)
           {
             colorMultipliers.push(transform.redMultiplier);

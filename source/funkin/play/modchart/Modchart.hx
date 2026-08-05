@@ -2031,11 +2031,6 @@ class Modchart
         }
       }
     }
-    return [x, y, skewx, skewy, z];
-  }
-
-  public function GetZoom(iCol:Int, fYOffset:Float, pn:Int):Float
-  {
     var fZoom:Float = 1;
     var fPulseInner:Float = 1.0;
 
@@ -2086,7 +2081,10 @@ class Modchart
       var fTinyPercent = Math.pow(0.5, getValue('tiny$iCol'));
       fZoom *= fTinyPercent;
     }
-    return fZoom;
+    x *= fZoom;
+    y *= fZoom;
+    z *= fZoom;
+    return [x, y, skewx, skewy, z];
   }
 
   // for spiralholds

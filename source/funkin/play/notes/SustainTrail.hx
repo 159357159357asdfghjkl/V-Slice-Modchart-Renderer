@@ -405,6 +405,23 @@ class SustainTrail extends FlxSprite
       updateClippingOld(songTime);
   }
 
+  function longHoldsOffsetedYPos(dry0:Float, dry1:Float, value:Float, noteY:Array<Float>, i:Float):Array<Float>
+  {
+    if (i == 0 || noteY.length < 0) return [dry0, dry1, 0];
+    var p:Array<Float> = [value * dry0, value * dry1, 0];
+    if (p[0] < noteY[0])
+    {
+      p[0] = noteY[0];
+      p[2] += 1;
+    }
+    if (p[1] < noteY[1])
+    {
+      p[1] = noteY[1];
+      p[2] += 1;
+    }
+    return p;
+  }
+
   public var transforms:Array<ColorTransform> = [];
 
   // recognize multiple hold parts
@@ -445,6 +462,7 @@ class SustainTrail extends FlxSprite
     var roughness:Float = parentStrumline.mods.baseHoldSize * (1 / scrollSpeed);
     var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
+    var noteY:Array<Float> = [];
     var grain:Float = parentStrumline.mods.getValue('granulate');
     if (Math.abs(grain) <= FlxMath.EPSILON) grain = 4;
     var length:Int = Math.floor((fullSustainLength) / (roughness * grain));
@@ -473,10 +491,17 @@ class SustainTrail extends FlxSprite
       }
       var a:Int = trueIndex * 2;
       var pos:Array<Vector3D> = getPos(graphicWidth, time);
+      if (a == 0) noteY = [pos[0].y, pos[1].y];
+      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, trueIndex);
+      if (ypos[2] > 2)
+      {
+        if (i == length) drawTail = false;
+        continue;
+      }
       verticesArray[a * 2] = pos[0].x + graphicWidth / 2;
-      verticesArray[a * 2 + 1] = pos[0].y * (i == 0 ? 1 : longHolds);
+      verticesArray[a * 2 + 1] = ypos[0];
       verticesArray[(a + 1) * 2] = pos[1].x + graphicWidth / 2;
-      verticesArray[(a + 1) * 2 + 1] = pos[1].y * (i == 0 ? 1 : longHolds);
+      verticesArray[(a + 1) * 2 + 1] = ypos[1];
 
       transforms[trueIndex * 2] = getShader(pos[2], pos[3]);
       transforms[trueIndex * 2 + 1] = getShader(pos[2], pos[3]);
@@ -531,16 +556,22 @@ class SustainTrail extends FlxSprite
       var time:Float = strumTime + fullSustainLength + capHeight;
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos:Array<Vector3D> = getPos(graphicWidth, time);
-      verticesArray[bottom * 2] = pos[0].x + graphicWidth / 2;
-      verticesArray[bottom * 2 + 1] = pos[0].y;
-      verticesArray[(bottom + 1) * 2] = pos[1].x + graphicWidth / 2;
-      verticesArray[(bottom + 1) * 2 + 1] = pos[1].y;
-      transforms[bottom] = getShader(pos[2], pos[3]);
-      transforms[bottom + 1] = getShader(pos[2], pos[3]);
-      uvtDataArray[bottom * 2] = uvtDataArray[next * 2];
-      uvtDataArray[bottom * 2 + 1] = bottomClip;
-      uvtDataArray[(bottom + 1) * 2] = uvtDataArray[(next + 1) * 2];
-      uvtDataArray[(bottom + 1) * 2 + 1] = uvtDataArray[bottom * 2 + 1];
+      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, trueIndex);
+      if (ypos[2] < 2)
+      {
+        verticesArray[bottom * 2] = pos[0].x + graphicWidth / 2;
+        verticesArray[bottom * 2 + 1] = ypos[0];
+        verticesArray[(bottom + 1) * 2] = pos[1].x + graphicWidth / 2;
+        verticesArray[(bottom + 1) * 2 + 1] = ypos[1];
+        transforms[bottom] = getShader(pos[2], pos[3]);
+        transforms[bottom + 1] = getShader(pos[2], pos[3]);
+        uvtDataArray[bottom * 2] = uvtDataArray[next * 2];
+        uvtDataArray[bottom * 2 + 1] = bottomClip;
+        uvtDataArray[(bottom + 1) * 2] = uvtDataArray[(next + 1) * 2];
+        uvtDataArray[(bottom + 1) * 2 + 1] = uvtDataArray[bottom * 2 + 1];
+      }
+      else
+        indicesArray.splice(-6, 6);
     }
     else
     {

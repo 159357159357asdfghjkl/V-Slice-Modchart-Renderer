@@ -126,21 +126,21 @@ class ModchartMath
     return Std.int((f + fRoundInterval / 2) / fRoundInterval) * fRoundInterval;
   }
 
-  inline public static function fastSin(x:Float, clipValue:Float = 1):Float
+  inline public static function fastSin(x:Float, clipValue:Float = 0):Float
   {
     if (clipValue < 0) return __fastSinNoClip(x);
     if (clipValue > 1) return -clipValue;
     return clamp(__fastSinNoClip(x), -(1 - clipValue), 1 - clipValue);
   }
 
-  inline public static function fastCos(x:Float, clipValue:Float = 1):Float
+  inline public static function fastCos(x:Float, clipValue:Float = 0):Float
   {
     if (clipValue < 0) return __fastCosNoClip(x);
     if (clipValue > 1) return -clipValue;
     return clamp(__fastCosNoClip(x), -(1 - clipValue), 1 - clipValue);
   }
 
-  inline public static function fastCsc(x:Float, clipValue:Float = 1):Float
+  inline public static function fastCsc(x:Float, clipValue:Float = 0):Float
   {
     if (clipValue <= 0) return __fastCscNoClip(x);
     if (clipValue >= 1) return 0;

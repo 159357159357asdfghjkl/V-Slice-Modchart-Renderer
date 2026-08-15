@@ -1283,7 +1283,7 @@ class Strumline extends FlxSpriteGroup
     {
       note.alpha = 0.5;
       note.desaturate();
-      note.isBad == true;
+      note.isBad = true;
     }
 
     if (note.holdNoteSprite != null)

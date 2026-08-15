@@ -81,6 +81,31 @@ class ModchartLuaState
           .split("/")[0].trim();
       return '';
     });
+    Lua_helper.add_callback(L, "getProperty", function(variable:String):Dynamic
+    {
+      var split:Array<String> = variable.split('.');
+      var instance:Dynamic = PlayState.instance;
+      for (i in 0...split.length)
+      {
+        var field:String = split[i];
+        instance = Reflect.getProperty(instance, field);
+      }
+      return instance;
+    });
+    Lua_helper.add_callback(L, "setProperty", function(variable:String, value:Dynamic):Bool
+    {
+      var split:Array<String> = variable.split('.');
+      if (split.length == 0) return false;
+      var instance:Dynamic = PlayState.instance;
+      for (i in 0...split.length - 1)
+      {
+        var field:String = split[i];
+        instance = Reflect.getProperty(instance, field);
+        if (instance == null) return false;
+      }
+      Reflect.setProperty(instance, split[split.length - 1], value);
+      return true;
+    });
     setOrUpdateVariables();
     setVar('ARROW_SIZE', Strumline.NOTE_SPACING);
     final cutoutSize:Float = funkin.ui.FullScreenScaleMode.gameCutoutSize.x / 2.5;
@@ -110,6 +135,11 @@ class ModchartLuaState
 
     Convert.toLua(L, data);
     Lua.setglobal(L, variable);
+  }
+
+  static function testluafn(l:State):Int
+  {
+    return 1;
   }
 
   public static function run(script:String)

@@ -3,8 +3,6 @@ package funkin.play.modchart.util;
 import openfl.geom.Vector3D;
 import openfl.geom.Matrix3D;
 import openfl.Vector;
-import funkin.play.notes.Strumline;
-import openfl.Lib;
 import flixel.math.FlxMath;
 
 /**
@@ -12,14 +10,10 @@ import flixel.math.FlxMath;
 **/
 class ModchartMath
 {
-  public static var ARROW_SIZE:Float = Strumline.NOTE_SPACING;
   public static final rad:Float = Math.PI / 180.0;
   public static final deg:Float = 180.0 / Math.PI;
 
   public static final ROWS_PER_BEAT:Int = 48;
-  public static final BEATS_PER_MEASURE:Int = 4;
-
-  public static final ROWS_PER_MEASURE:Int = ROWS_PER_BEAT * BEATS_PER_MEASURE;
 
   public static final MAX_NOTE_ROW:Int = 1 << 30;
 
@@ -162,9 +156,9 @@ class ModchartMath
 
   public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Void
   {
-    rX *= Math.PI / 180;
-    rY *= Math.PI / 180;
-    rZ *= Math.PI / 180;
+    rX *= rad;
+    rY *= rad;
+    rZ *= rad;
 
     var cX:Float = __fastCosNoClip(rX);
     var sX:Float = __fastSinNoClip(rX);
@@ -217,9 +211,9 @@ class ModchartMath
 
   public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
   {
-    rX *= Math.PI / 180;
-    rY *= Math.PI / 180;
-    rZ *= Math.PI / 180;
+    rX *= rad;
+    rY *= rad;
+    rZ *= rad;
 
     var cX:Float = __fastCosNoClip(rX);
     var sX:Float = __fastSinNoClip(rX);
@@ -316,7 +310,7 @@ class ModchartMath
     else
     {
       clamp(fovDegrees, 0.1, 179.9);
-      var fovRadians:Float = fovDegrees / 180 * Math.PI;
+      var fovRadians:Float = fovDegrees * rad;
       var theta:Float = fovRadians / 2;
       var fDistCameraFromImage:Float = fWidth / 2 / Math.tan(theta);
       fVanishPointX = scale(fVanishPointX, 0, fWidth, fWidth, 0);

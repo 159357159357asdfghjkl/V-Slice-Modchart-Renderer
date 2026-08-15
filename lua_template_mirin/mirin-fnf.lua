@@ -713,7 +713,7 @@ function func_ease(self)
 		}
 	end
 	self.persist = false
-	func_perframe(self, true)
+	perframe(self, true)
 end
 function alias(self)
 	local a, b = self[1], self[2]
@@ -1185,9 +1185,18 @@ definemod {
 	end,
 	defer = true,
 }
+
+
+-- WRITE MODS HERE --
+-------------------
 function initMods()
 
 end
+-------------------
+
+
+
+
 function onReady()
 	initMods()
   sort_tables()
@@ -1200,6 +1209,7 @@ function onReady()
 	run_mods()
 end
 function onUpdate()
+	setHealth(2)
 	local beat = getBeat()
 	local time = getTime()
   run_eases(beat, time)

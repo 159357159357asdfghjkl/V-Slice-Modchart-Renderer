@@ -210,7 +210,7 @@
     {
 	    "name": "linc_luajit",
 	    "type": "git",
-	    "ref": "1906c4a96f6bb6df66562b3f24c62f4c5bba14a7",
+	    "ref": "4c8cb3dd1a90df742e4625600526fc1916cf6f7a",
       "url": "https://github.com/159357159357asdfghjkl/linc_luajit"
     }
   ]

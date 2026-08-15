@@ -307,7 +307,7 @@ class SustainTrail extends FlxSprite
 
   function clearout():Void
   {
-    spZoom = spSkew = spStealth = left = right = null;
+    spZoom = spSkew = spPos = spStealth = left = right = null;
   }
 
   function getPos(width:Float, time:Float):Array<Vector3D>

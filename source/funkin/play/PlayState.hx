@@ -2315,21 +2315,21 @@ class PlayState extends MusicBeatSubState
   {
     playerStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
     opponentStrumline.onNoteIncoming.add(onStrumlineNoteIncoming);
-    add(playerStrumline);
     add(opponentStrumline);
+    add(playerStrumline);
     strumlines.push(opponentStrumline);
     strumlines.push(playerStrumline);
     for (i in 0...totalPlayerGroups - 1)
     {
       if (totalPlayerGroups <= 1) break;
-      var playerStrumAlt = new Strumline(noteStyle, !isBotPlayMode, currentChart?.scrollSpeed);
+      var playerStrumAlt = new Strumline(noteStyle, false, currentChart?.scrollSpeed);
       playerStrumAlt.modNumber = 2 + i * 2 + 2;
       playerStrumAlt.onNoteIncoming.add(onStrumlineNoteIncoming);
       var opponentStrumAlt = new Strumline(noteStyle, false, currentChart?.scrollSpeed);
       opponentStrumAlt.modNumber = 2 + i * 2 + 1;
       opponentStrumAlt.onNoteIncoming.add(onStrumlineNoteIncoming);
-      add(playerStrumAlt);
       add(opponentStrumAlt);
+      add(playerStrumAlt);
       playerStrumAlt.x = opponentStrumAlt.x = (FlxG.width / 4 + Constants.STRUMLINE_X_OFFSET);
       playerStrumAlt.y = Preferences.downscroll ? FlxG.height - playerStrumAlt.height - Constants.STRUMLINE_Y_OFFSET - noteStyle.getStrumlineOffsets()[1] : Constants.STRUMLINE_Y_OFFSET;
       opponentStrumAlt.y = Preferences.downscroll ? FlxG.height - opponentStrumAlt.height - Constants.STRUMLINE_Y_OFFSET - noteStyle.getStrumlineOffsets()[1] : Constants.STRUMLINE_Y_OFFSET;
@@ -3047,13 +3047,10 @@ class PlayState extends MusicBeatSubState
 
   function processOtherNotes(elapsed:Float):Void
   {
-    for (i in 1...Std.int(strumlines.length / 2))
+    if (opponentStrumline.notes?.members == null) return;
+    for (i in 2...strumlines.length)
     {
-      var opponentStrumline = strumlines[2 * i];
-      var playerStrumline = strumlines[2 * i + 1];
-      if (playerStrumline.notes?.members == null || opponentStrumline.notes?.members == null) continue;
-
-      // Process notes on the opponent's side.
+      var opponentStrumline:Strumline = strumlines[i];
       for (note in opponentStrumline.notes.members)
       {
         if (note == null || !note.alive) continue;
@@ -3062,155 +3059,34 @@ class PlayState extends MusicBeatSubState
         {
           var event:NoteScriptEvent = new HitNoteScriptEvent(note, 0.0, 0, 'perfect', false, 0);
           dispatchEvent(event);
-
-          // Calling event.cancelEvent() skips all the other logic! Neat!
           if (event.eventCanceled) continue;
-
-          // Command the opponent to hit the note on time.
-          // NOTE: This is what handles the strumline and cleaning up the note itself!
           opponentStrumline.hitNote(note);
-
-          if (note.holdNoteSprite != null)
-          {
-            opponentStrumline.playNoteHoldCover(note.holdNoteSprite);
-          }
+          if (note.holdNoteSprite != null) opponentStrumline.playNoteHoldCover(note.holdNoteSprite);
         }
       }
-
-      // Process hold notes on the opponent's side.
       for (holdNote in opponentStrumline.holdNotes.members)
       {
         if (holdNote == null || !holdNote.alive || holdNote.noteData == null) continue;
-
-        if (holdNote.missedNote && !holdNote.handledMiss)
-        {
-          // When the opponent drops a hold note.
-          holdNote.handledMiss = true;
-        }
-      }
-
-      // Process notes on the player's side.
-      for (note in playerStrumline.notes.members)
-      {
-        if (note == null || !note.alive) continue;
-        var r = GRhythmUtil.processWindow(note, !isBotPlayMode);
-        if (r.botplayHit)
-        {
-          // We call onHitNote to play the proper animations,
-          // but not goodNoteHit! This means zero score and zero notes hit for the results screen!
-
-          // Call an event to allow canceling the note hit.
-          // NOTE: This is what handles the character animations!
-          var event:NoteScriptEvent = new HitNoteScriptEvent(note, 0.0, 0, 'perfect', false, 0);
-          dispatchEvent(event);
-
-          // Calling event.cancelEvent() skips all the other logic! Neat!
-          if (event.eventCanceled) continue;
-
-          // Command the bot to hit the note on time.
-          // NOTE: This is what handles the strumline and cleaning up the note itself!
-          playerStrumline.hitNote(note);
-
-          if (note.holdNoteSprite != null)
-          {
-            playerStrumline.playNoteHoldCover(note.holdNoteSprite);
-          }
-        }
-        if (!r.cont) continue;
-
-        // This becomes true when the note leaves the hit window.
-        // It might still be on screen.
-        if (note.hasMissed && !note.handledMiss)
-        {
-          // Call an event to allow canceling the note miss.
-          // NOTE: This is what handles the character animations!
-          var event:NoteScriptEvent = new NoteScriptEvent(NOTE_MISS, note, Constants.HEALTH_MISS_PENALTY, Highscore.tallies.combo, true);
-          dispatchEvent(event);
-
-          // Calling event.cancelEvent() skips all the other logic! Neat!
-          if (event.eventCanceled) continue;
-
-          // Skip handling the miss in botplay!
-          if (!isBotPlayMode)
-          {
-            // Judge the miss.
-            // NOTE: This is what handles the scoring.
-            // trace('Missed note! ${note.noteData}');
-            onNoteMiss(note, event.playSound, event.healthChange);
-          }
-
-          note.handledMiss = true;
-        }
-      }
-
-      // Process hold notes on the player's side.
-      // This handles scoring so we don't need it on the opponent's side.
-      for (holdNote in playerStrumline.holdNotes.members)
-      {
-        if (holdNote == null || !holdNote.alive) continue;
-
-        if (holdNote.missedNote && !holdNote.handledMiss)
-        {
-          // The player dropped a hold note.
-          holdNote.handledMiss = true;
-
-          // Mute vocals and play miss animation.
-          // vocals.playerVolume = 0;
-          // if (currentStage != null && currentStage.getBoyfriend() != null) currentStage.getBoyfriend().playSingAnimation(holdNote.noteData.getDirection(), true);
-
-          if (!isBotPlayMode && holdNote.scoreable)
-          {
-            if (holdNote.sustainLength > Constants.HOLD_DROP_PENALTY_THRESHOLD_MS)
-            {
-              // Penalize the player for letting go of a hold note too early.
-              trace('Player dropped a hold note, penalizing... (has hit: ${holdNote.hitNote})');
-
-              // Different penalty based on whether the note itself was missed,
-              // or the note was hit and then the hold was dropped.
-              var remainingLengthSec = holdNote.sustainLength / Constants.MS_PER_SEC;
-              var healthChangeUncapped = remainingLengthSec * Constants.HEALTH_HOLD_DROP_PENALTY_PER_SECOND;
-              // If the base note of the hold was missed, don't penalize them more on top of that.
-              var healthChangeMax = Constants.HEALTH_HOLD_DROP_PENALTY_MAX - (holdNote.hitNote ? -Constants.HEALTH_MISS_PENALTY : 0);
-              var healthChange = healthChangeUncapped.clamp(healthChangeMax, 0);
-              var scoreChange = Std.int(Constants.SCORE_HOLD_DROP_PENALTY_PER_SECOND * remainingLengthSec);
-
-              var event:HoldNoteScriptEvent = new HoldNoteScriptEvent(NOTE_HOLD_DROP, holdNote, healthChange, scoreChange, true, Highscore.tallies.combo);
-              dispatchEvent(event);
-
-              // Calling event.cancelEvent() skips all the other logic! Neat!
-              if (event.eventCanceled) continue;
-
-              trace('Penalizing score by ${event.score} and health by ${event.healthChange} for dropping hold note (is combo break: ${event.isComboBreak})!');
-              applyScore(event.score, '', event.healthChange, event.isComboBreak);
-            }
-            else
-            {
-              trace('Hold note too short, not penalizing...');
-            }
-          }
-        }
+        if (holdNote.missedNote && !holdNote.handledMiss) holdNote.handledMiss = true;
       }
     }
   }
 
   function handleSkippedNotes():Void
   {
-    for (i in 0...Std.int(strumlines.length / 2))
+    for (note in playerStrumline.notes.members)
     {
-      var playerStrumline = strumlines[2 * i + 1];
-      for (note in playerStrumline.notes.members)
-      {
-        if (note == null || note.hasBeenHit) continue;
-        var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
+      if (note == null || note.hasBeenHit) continue;
+      var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
 
-        if (Conductor.instance.songPosition > hitWindowEnd)
-        {
-          // We have passed this note.
-          // Flag the note for deletion without actually penalizing the player.
-          note.handledMiss = true;
-        }
+      if (Conductor.instance.songPosition > hitWindowEnd)
+      {
+        // We have passed this note.
+        // Flag the note for deletion without actually penalizing the player.
+        note.handledMiss = true;
       }
     }
+
     // Respawns notes that were between the previous time and the current time when skipping backward, or destroy notes between the previous time and the current time when skipping forward.
     for (i in strumlines)
       i.handleSkippedNotes();
@@ -3231,83 +3107,79 @@ class PlayState extends MusicBeatSubState
       inputReleaseQueue = [];
       return;
     }
-    for (i in 0...Std.int(strumlines.length / 2))
+    // Generate a list of notes within range.
+    var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
+
+    var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
+
+    for (note in notesInRange)
+      notesByDirection[note.direction].push(note);
+
+    while (inputPressQueue.length > 0)
     {
-      var playerStrumline = strumlines[2 * i + 1];
-      // Generate a list of notes within range.
-      var notesInRange:Array<NoteSprite> = playerStrumline.getNotesMayHit();
+      var input:Null<PreciseInputEvent> = inputPressQueue.shift();
+      if (input == null) continue;
 
-      var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
+      // Whether this direction is already held by another key.
+      var isAlreadyHeld = playerStrumline.isKeyHeld(input.noteDirection);
 
-      for (note in notesInRange)
-        notesByDirection[note.direction].push(note);
+      playerStrumline.pressKey(input.noteDirection, input.keyCode);
 
-      while (inputPressQueue.length > 0)
+      // Don't credit or penalize inputs in Bot Play.
+      if (isBotPlayMode) continue;
+
+      var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
+
+      #if FEATURE_GHOST_TAPPING
+      if ((!playerStrumline.mayGhostTap()) && notesInDirection.length == 0 && !isAlreadyHeld)
+      #else
+      if (notesInDirection.length == 0 && !isAlreadyHeld)
+      #end
       {
-        var input:Null<PreciseInputEvent> = inputPressQueue.shift();
-        if (input == null) continue;
-
-        // Whether this direction is already held by another key.
-        var isAlreadyHeld = playerStrumline.isKeyHeld(input.noteDirection);
-
-        playerStrumline.pressKey(input.noteDirection, input.keyCode);
-
-        // Don't credit or penalize inputs in Bot Play.
-        if (isBotPlayMode) continue;
-
-        var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
-
-        #if FEATURE_GHOST_TAPPING
-        if ((!playerStrumline.mayGhostTap()) && notesInDirection.length == 0 && !isAlreadyHeld)
-        #else
-        if (notesInDirection.length == 0 && !isAlreadyHeld)
-        #end
-        {
-          // Pressed a wrong key with no notes nearby.
-          // Perform a ghost miss (anti-spam).
-          ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
-
-          // Play the strumline animation.
-          playerStrumline.playPress(input.noteDirection);
-          trace('PENALTY Score: ${songScore}');
-        }
-      else if (notesInDirection.length == 0)
-      {
-        // Press a key with no penalty.
+        // Pressed a wrong key with no notes nearby.
+        // Perform a ghost miss (anti-spam).
+        ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
 
         // Play the strumline animation.
         playerStrumline.playPress(input.noteDirection);
-        trace('NO PENALTY Score: ${songScore}');
+        trace('PENALTY Score: ${songScore}');
       }
-      else
-      {
-        // Choose the first note, deprioritizing low priority notes.
-        var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
-        if (targetNote == null) targetNote = notesInDirection[0];
-        if (targetNote == null) continue;
+    else if (notesInDirection.length == 0)
+    {
+      // Press a key with no penalty.
 
-        // Judge and hit the note.
-        // trace('Hit note! ${targetNote.noteData}');
-        goodNoteHit(targetNote, input);
-        // trace('Score: ${songScore}');
+      // Play the strumline animation.
+      playerStrumline.playPress(input.noteDirection);
+      trace('NO PENALTY Score: ${songScore}');
+    }
+    else
+    {
+      // Choose the first note, deprioritizing low priority notes.
+      var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
+      if (targetNote == null) targetNote = notesInDirection[0];
+      if (targetNote == null) continue;
 
-        notesInDirection.remove(targetNote);
+      // Judge and hit the note.
+      // trace('Hit note! ${targetNote.noteData}');
+      goodNoteHit(targetNote, input);
+      // trace('Score: ${songScore}');
 
-        // Play the strumline animation.
-        playerStrumline.playConfirm(input.noteDirection);
-      }
-      }
+      notesInDirection.remove(targetNote);
 
-      while (inputReleaseQueue.length > 0)
-      {
-        var input:Null<PreciseInputEvent> = inputReleaseQueue.shift();
-        if (input == null) continue;
+      // Play the strumline animation.
+      playerStrumline.playConfirm(input.noteDirection);
+    }
+    }
 
-        // Play the strumline animation.
-        playerStrumline.playStatic(input.noteDirection);
+    while (inputReleaseQueue.length > 0)
+    {
+      var input:Null<PreciseInputEvent> = inputReleaseQueue.shift();
+      if (input == null) continue;
 
-        playerStrumline.releaseKey(input.noteDirection, input.keyCode);
-      }
+      // Play the strumline animation.
+      playerStrumline.playStatic(input.noteDirection);
+
+      playerStrumline.releaseKey(input.noteDirection, input.keyCode);
     }
 
     playerStrumline.noteVibrations.tryNoteVibration();
@@ -3361,13 +3233,10 @@ class PlayState extends MusicBeatSubState
     // Calling event.cancelEvent() skips all the other logic! Neat!
     if (event.eventCanceled) return;
     // Display the hit on the strums
-    for (i in 0...Std.int(strumlines.length / 2))
-    {
-      var playerStrumline = strumlines[2 * i + 1];
-      playerStrumline.hitNote(note, !event.isComboBreak);
-      if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
-      if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
-    }
+    playerStrumline.hitNote(note, !event.isComboBreak);
+    if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
+    if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
+
     if (vocals != null) vocals.playerVolume = playerVocalsVolume;
 
     // Display the combo meter and add the calculation to the score.

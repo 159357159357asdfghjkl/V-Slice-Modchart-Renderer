@@ -413,7 +413,7 @@ class Modchart
     altname.set('stealthgr', 'stealthglowred');
     altname.set('stealthgg', 'stealthglowgreen');
     altname.set('stealthgb', 'stealthglowblue');
-    altname.set('ztest', 'zbuffer');
+    altname.set('ztest', 'zbuffer'); // no zbuffer
 
     for (i in 0...Strumline.KEY_COUNT)
     {
@@ -638,10 +638,9 @@ class Modchart
     return 4 * (NeedZBuffer() ? 0.25 : 1);
   }
 
-  public var scrollSpeed:Float = 1;
-
   public function GetYOffset(conductor:Conductor, time:Float, speed:Float, iCol:Int, parentTime:Float):Float
   {
+    var scrollSpeed:Float = 1;
     var curTime:Float = getTime();
     scrollSpeed = getValue('xmod');
     if (getValue('mmod') != 0) scrollSpeed = getValue('mmod') / Conductor.instance.bpm;

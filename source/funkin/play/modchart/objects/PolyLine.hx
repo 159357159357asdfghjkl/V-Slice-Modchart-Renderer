@@ -48,6 +48,7 @@ class PolyLine extends FunkinSprite
     vertices = null;
     uvtData = null;
     indices = null;
+    clearout();
     super.destroy();
   }
 
@@ -104,6 +105,11 @@ class PolyLine extends FunkinSprite
   var left:Vector3D = new Vector3D(1, 0, 0, 1);
   var right:Vector3D = new Vector3D(1, 0, 0, 1);
   var globalOffset:Vector3D = new Vector3D(Strumline.NOTE_SPACING / 2 - 1, Strumline.NOTE_SPACING * 0.75 - 1);
+
+  function clearout():Void
+  {
+    spZoom = spSkew = spPos = left = right = globalOffset = null;
+  }
 
   function getPos(width:Float, time:Float):Array<Vector3D>
   {

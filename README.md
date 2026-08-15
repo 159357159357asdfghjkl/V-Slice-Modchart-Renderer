@@ -33,6 +33,52 @@ Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into "assets/sc
 
 ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
 
+```lua
+	-- avg4k style
+	local function activateMod(name, beat, len, easestr, value)
+		ease{beat,len,_G[easestr],value,name}
+	end
+	local function activateModMap(name, beat, len, easestr, value, dir)
+		ease{beat,len,_G[easestr],value,name..dir}
+	end
+
+  -- trollengine/nightmarevision style
+  local function queueSet(step,name,value,player)
+    set{step/4,value/100,name,plr=player}
+  end
+
+  local function queueSetP(step,name,value,player)
+    queueSet(step,name,value*100,player)
+  end
+
+  local function queueEase(step,endstep,name,value,ease,player,startval)
+    local e
+    if type(ease) == 'string' then
+      e = _G[ease]
+    elseif type(ease) == 'function' then
+      e = ease
+    else
+      e = linear
+    end
+    if startval and type(startval) == 'number' then
+      set{step/4,startval,name}
+    end
+    ease{step/4,endstep/4,e,value/100,name,plr=player,m='e'}
+  end
+
+  local function queueEaseP(step,endstep,name,value,ease,player,startval)
+    queueEase(step,endstep,name,value*100,ease,player,startval)
+  end
+
+  local function queueFunc(step,endstep,callback)
+    perframe{step/4,endstep/4,callback,mode='e'}
+  end
+
+  local function queueFuncOnce(step,callback)
+    func_function{step/4,callback}
+  end
+```
+
 # Getting Started
 
 **PLEASE USE THE LINKS ABOVE IF YOU JUST WANT TO PLAY THE GAME**
@@ -77,6 +123,3 @@ Full credits can be found in-game, or in the `credits.json` file which is locate
 - [Tom Fulp](https://twitter.com/tomfulp) - For being a great guy and for Newgrounds
 - [JohnnyUtah](https://twitter.com/JohnnyUtahNG/) - Voice of Tankman
 - [L0Litsmonica](https://twitter.com/L0Litsmonica) - Voice of Mommy Mearest
-
-
-## 真我教皇，真源嗣

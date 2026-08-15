@@ -617,7 +617,7 @@ function reset(self)
 	ease(self)
 	return reset
 end
-function func(self)
+function func_function(self)
 	if type(self[2]) == 'string' then
 		local args, syms = {}, {}
 		for i = 1, #self - 2 do

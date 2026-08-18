@@ -33,13 +33,6 @@ class Modchart
       return ModchartMath.fastTan(angle, getValue('tanclip'));
   }
 
-  function selectETanType(angle:Float, is_cosec:Float)
-  {
-    if (is_cosec != 0) return ModchartMath.weierstrassCsc(angle);
-    else
-      return ModchartMath.weierstrassTan(angle);
-  }
-
   var dim_x:Int = 0;
   var dim_y:Int = 1;
   var dim_z:Int = 2;

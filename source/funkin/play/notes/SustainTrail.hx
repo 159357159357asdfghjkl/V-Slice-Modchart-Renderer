@@ -405,16 +405,17 @@ class SustainTrail extends FlxSprite
       updateClippingOld(songTime);
   }
 
-  function longHoldsOffsetedYPos(dry0:Float, dry1:Float, value:Float, noteY:Array<Float>, i:Float):Array<Float>
+  function longHoldsOffsetedYPos(dry0:Float, dry1:Float, value:Float, noteY:Array<Float>, reverse:Int, trueIndex:Int):Array<Float>
   {
-    if (i == 0 || noteY.length < 0) return [dry0, dry1, 0];
+    if (trueIndex == 0 || noteY.length < 0) return [dry0, dry1, 0];
+
     var p:Array<Float> = [value * dry0, value * dry1, 0];
-    if (p[0] < noteY[0])
+    if (p[0] * reverse < noteY[0] * reverse)
     {
       p[0] = noteY[0];
       p[2] += 1;
     }
-    if (p[1] < noteY[1])
+    if (p[1] * reverse < noteY[1] * reverse)
     {
       p[1] = noteY[1];
       p[2] += 1;
@@ -460,6 +461,8 @@ class SustainTrail extends FlxSprite
     draw_ms_after_targets *= draw_scale;
     draw_ms_before_targets *= draw_scale;
     var roughness:Float = parentStrumline.mods.baseHoldSize * (1 / scrollSpeed);
+    var column:Int = noteData?.getDirection() ?? noteDirection % Strumline.KEY_COUNT;
+    var reverse_mult:Int = parentStrumline.mods.GetReversePercentForColumn(column) > 0.5 ? -1 : 1;
     var longHolds:Float = 1 + parentStrumline.mods.getValue('longholds');
     if (longHolds < 0) longHolds = 0;
     var noteY:Array<Float> = [];
@@ -492,7 +495,7 @@ class SustainTrail extends FlxSprite
       var a:Int = trueIndex * 2;
       var pos:Array<Vector3D> = getPos(graphicWidth, time);
       if (a == 0) noteY = [pos[0].y, pos[1].y];
-      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, trueIndex);
+      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, reverse_mult, trueIndex);
       if (ypos[2] > 2)
       {
         if (i == length) drawTail = false;
@@ -556,7 +559,7 @@ class SustainTrail extends FlxSprite
       var time:Float = strumTime + fullSustainLength + capHeight;
       if (hitNote && !missedNote && Conductor.instance.getTimeWithDelta() >= time) time = Conductor.instance.getTimeWithDelta();
       var pos:Array<Vector3D> = getPos(graphicWidth, time);
-      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, trueIndex);
+      var ypos:Array<Float> = longHoldsOffsetedYPos(pos[0].y, pos[1].y, longHolds, noteY, reverse_mult, trueIndex);
       if (ypos[2] < 2)
       {
         verticesArray[bottom * 2] = pos[0].x + graphicWidth / 2;

@@ -14,7 +14,7 @@ class FunkinActor extends FunkinSprite
 {
   public var SKEW(default, null):FlxPoint = FlxPoint.get();
   public var pos:Vector3D = new Vector3D();
-  public var rotation:Vector3D = new Vector3D();
+  public var rotation:Vector3D = new Vector3D(); // in degrees
   public var SCALE:Vector3D = new Vector3D(1, 1);
   public var originVec:Vector3D;
   public var diffuse:Vector3D = new Vector3D(1, 1, 1, 1);

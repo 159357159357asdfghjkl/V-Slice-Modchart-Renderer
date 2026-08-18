@@ -209,26 +209,24 @@ class ModchartMath
     a.prepend(mat);
   }
 
-  public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Vector3D
+  // angles: ZYX
+  public static function rotateVec3(v:Vector3D, rX:Float, rY:Float, rZ:Float):Void
   {
     rX *= rad;
     rY *= rad;
     rZ *= rad;
-
     var cX:Float = __fastCosNoClip(rX);
     var sX:Float = __fastSinNoClip(rX);
     var cY:Float = __fastCosNoClip(rY);
     var sY:Float = __fastSinNoClip(rY);
     var cZ:Float = __fastCosNoClip(rZ);
     var sZ:Float = __fastSinNoClip(rZ);
-
-    return new Vector3D(cZ * cY * v.x
-      + -sZ * cY * v.y + -sY * v.z, (cZ * sY * sX + sZ * cX) * v.x
-      + (-sZ * sY * sX + cZ * cX) * v.y
-      + cY * sX * v.z,
-      (cZ * sY * cX + sZ * -sX) * v.x
-      + (-sZ * sY * cX + cZ * -sX) * v.y
-      + cY * cX * v.z, v.w);
+    var vX:Float = v.x;
+    var vY:Float = v.y;
+    var vZ:Float = v.z;
+    v.x = cZ * cY * vX + -sZ * cY * vY + -sY * vZ;
+    v.y = (cZ * sY * sX + sZ * cX) * vX + (-sZ * sY * sX + cZ * cX) * vY + cY * sX * vZ;
+    v.z = (cZ * sY * cX + sZ * -sX) * vX + (-sZ * sY * cX + cZ * -sX) * vY + cY * cX * vZ;
   }
 
   public static function translateMatrix(x:Float, y:Float, z:Float):Matrix3D
@@ -261,35 +259,12 @@ class ModchartMath
     return new Vector3D(sx * v.x, sy * v.y, sz * v.z, v.w);
   }
 
-  inline public static function weierstrassSin(x:Float):Float
-  {
-    return __fastSinNoClip(Math.PI * x) + 0.5 * __fastSinNoClip(Math.PI * 7 * x) + 0.25 * __fastSinNoClip(Math.PI * 49 * x)
-      + 0.125 * __fastSinNoClip(Math.PI * 343 * x);
-  }
-
-  inline public static function weierstrassCos(x:Float):Float
-  {
-    return weierstrassSin(x + Math.PI / 2);
-  }
-
-  inline public static function weierstrassTan(x:Float):Float
-  {
-    return weierstrassSin(x) / weierstrassCos(x);
-  }
-
-  inline public static function weierstrassCsc(x:Float):Float
-  {
-    return 1 / weierstrassSin(x);
-  }
-
   public static function getCurrentAccuracy(sicks:Null<Int>, goods:Null<Int>, bads:Null<Int>, shits:Null<Int>, misses:Null<Int>):Float
   {
     if (sicks == null && goods == null && bads == null && shits == null && misses == null || sicks == 0 && goods == 0 && bads == 0 && shits == 0 && misses == 0)
       return 0;
     return FlxMath.roundDecimal((sicks * 100 + goods * 65) / (sicks + goods + bads + shits + misses), 2);
   }
-
-  public static inline function sigmoid(x:Float):Float return 1.0 / (1.0 + Math.exp(-x));
 
   @:noCompletion private static function __loadPerspective(fovDegrees:Float, fWidth:Float, fHeight:Float, fVanishPointX:Float,
       fVanishPointY:Float):Array<Matrix3D>

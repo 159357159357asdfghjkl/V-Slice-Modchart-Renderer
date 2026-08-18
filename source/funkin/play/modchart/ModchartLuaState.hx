@@ -21,6 +21,7 @@ class ModchartLuaState
     L = LuaL.newstate();
     LuaL.openlibs(L);
     Lua.init_callbacks(L);
+
     Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int)
     {
       PlayState.instance.ApplyModifiers(str, pn);

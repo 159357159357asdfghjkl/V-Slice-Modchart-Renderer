@@ -90,6 +90,7 @@ class ModchartLuaState
       {
         var field:String = split[i];
         instance = Reflect.getProperty(instance, field);
+        if (instance == null) return 0;
       }
       return instance;
     });

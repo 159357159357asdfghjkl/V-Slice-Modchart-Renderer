@@ -84,7 +84,7 @@ class Modchart
     return Conductor.instance.getTimeInSteps(getTime() * 1000) / Constants.STEPS_PER_BEAT;
   }
 
-  static private final CMOD_DEFAULT:Float = 3750 / 7;
+  static private final CMOD_DEFAULT:Float = 535.714285714;
 
   public static final MAX_SPLINE_POINT_COUNT:Int = 40; // index 40 and 41 is special, i'll do it someday
 
@@ -1545,9 +1545,12 @@ class Modchart
     }
     if (getValue('orienty') != 0)
     {
-      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * (travelDir - getValue('orientyoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
-      fRotation += value * getValue('orienty');
+      if (Math.abs(travelDir) > 0)
+      {
+        var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+        var value:Float = (ModchartMath.deg * (travelDir - getValue('orientyoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
+        fRotation += value * getValue('orienty');
+      }
     }
 
     var luaEffects:Dynamic = ModchartLuaState.call('GetRotationY', [iCol, fYOffset, travelDir]);
@@ -1638,9 +1641,12 @@ class Modchart
     }
     if (getValue('orienty') != 0)
     {
-      var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
-      var value:Float = (ModchartMath.deg * (travelDir - getValue('orientyoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
-      fRotation += value * getValue('orienty');
+      if (Math.abs(travelDir) > 0)
+      {
+        var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
+        var value:Float = (ModchartMath.deg * (travelDir - getValue('orientyoffset')) - 90 * (getValue('noreorienty') == 0 ? reorient : 1));
+        fRotation += value * getValue('orienty');
+      }
     }
 
     var luaEffects:Dynamic = ModchartLuaState.call('ReceptorGetRotationY', [iCol, travelDir]);
@@ -1779,7 +1785,7 @@ class Modchart
       fVisibleAdjust += ModchartMath.scale(f, 0, 1, -1, 0);
     }
 
-    var luaEffects:Dynamic = ModchartLuaState.call('ArrowGetPercentVisible', [iCol, fYPos]);
+    var luaEffects:Dynamic = ModchartLuaState.call('ArrowGetPercentRGB', [iCol, fYPos, color]);
     if (Std.isOfType(luaEffects, Float)) fVisibleAdjust += luaEffects;
 
     var alpha:Float = ModchartMath.clamp(1 + fVisibleAdjust, 0, 1);

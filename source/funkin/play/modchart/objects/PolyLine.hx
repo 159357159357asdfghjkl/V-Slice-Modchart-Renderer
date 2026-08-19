@@ -159,7 +159,6 @@ class PolyLine extends FunkinSprite
     var zoom2:Vector3D = parentStrumline.zoom2;
     var zoom1:Vector3D = parentStrumline.zoom;
     var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
-    if (mods.getValue('spiralholds') != 0) rotation.z += angles.z * ModchartMath.deg - 90;
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);

@@ -90,7 +90,7 @@ class Modchart
 
   function initDefaultMods()
   {
-    var ZERO:Array<String> = ['boost', 'brake', 'wave', 'waveoffset', 'waveperiod', 'boomerang', 'expand', 'expandperiod', 'drunk', 'drunkspeed', 'drunkoffset', 'drunkperiod', 'drunkspacing', 'tandrunk', 'tandrunkspeed', 'tandrunkoffset', 'tandrunkperiod', 'tandrunkspacing', 'drunkz', 'drunkzspeed', 'drunkzoffset', 'drunkzperiod', 'drunkzspacing', 'tandrunkz', 'tandrunkzspeed', 'tandrunkzoffset', 'tandrunkzperiod', 'tandrunkzspacing', 'tanexpand', 'tanexpandperiod', 'tipsy', 'tipsyspeed', 'tipsyoffset', 'tipsyspacing', 'tantipsy', 'tantipsyspeed', 'tantipsyoffset', 'tantipsyspacing', 'tornado', 'tornadooffset', 'tornadoperiod', 'tantornado', 'tantornadooffset', 'tantornadoperiod', 'tornadoz', 'tornadozoffset', 'tornadozperiod', 'tantornadoz', 'tantornadozoffset', 'tantornadozperiod', 'movex', 'movey', 'movez', 'randomspeed', 'reverse', 'split', 'divide', 'alternate', 'cross', 'centered', 'swap', 'attenuatex', 'attenuatexoffset', 'attenuatey', 'attenuateyoffset', 'attenuatez', 'attenuatezoffset', 'beat', 'beatoffset', 'beatmult', 'beatperiod', 'beaty', 'beatyoffset', 'beatymult', 'beatyperiod', 'beatz', 'beatzoffset', 'beatzmult', 'beatzperiod', 'bumpyx', 'bumpyxoffset', 'bumpyxperiod', 'tanbumpyx', 'tanbumpyxoffset', 'tanbumpyxperiod', 'bumpyy', 'bumpyyoffset', 'bumpyyperiod', 'tanbumpyy', 'tanbumpyyoffset', 'tanbumpyyperiod', 'bumpy', 'bumpyoffset', 'bumpyperiod', 'tanbumpy', 'tanbumpyoffset', 'tanbumpyperiod', 'flip', 'invert', 'zigzag', 'zigzagoffset', 'zigzagperiod', 'zigzagz', 'zigzagzoffset', 'zigzagzperiod', 'sawtooth', 'sawtoothoffset', 'sawtoothperiod', 'sawtoothz', 'sawtoothzoffset', 'sawtoothzperiod', 'parabolax', 'parabolaxoffset', 'parabolay', 'parabolayoffset', 'parabolaz', 'parabolazoffset', 'digital', 'digitalsteps', 'digitaloffset', 'digitalperiod', 'tandigital', 'tandigitalsteps', 'tandigitaloffset', 'tandigitalperiod', 'digitalz', 'digitalzsteps', 'digitalzoffset', 'digitalzperiod', 'tandigitalz', 'tandigitalzsteps', 'tandigitalzoffset', 'tandigitalzperiod', 'square', 'squareoffset', 'squareperiod', 'squarez', 'squarezoffset', 'squarezperiod', 'bounce', 'bounceoffset', 'bounceperiod', 'bouncez', 'bouncezoffset', 'bouncezperiod', 'xmode', 'xmode2', 'tiny', 'tipsyx', 'tipsyxspeed', 'tipsyxoffset', 'tipsyxspacing', 'tantipsyx', 'tantipsyxspeed', 'tantipsyxoffset', 'tantipsyxspacing', 'tipsyz', 'tipsyzspeed', 'tipsyzoffset', 'tipsyzspacing', 'tantipsyz', 'tantipsyzspeed', 'tantipsyzoffset', 'tantipsyzspacing', 'drunky', 'drunkyspeed', 'drunkyoffset', 'drunkyperiod', 'drunkyspacing', 'tandrunky', 'tandrunkyspeed', 'tandrunkyoffset', 'tandrunkyperiod', 'tandrunkyspacing', 'vibratex', 'vibratey', 'vibratez', 'pulse', 'pulseinner', 'pulseouter', 'pulseoffset', 'pulseperiod', 'shrinkmult', 'shrinklinear', 'noteskewx', 'noteskewy', 'noteskew', 'tinyx', 'tinyy', 'tinyz', 'confusionx', 'confusionxoffset', 'confusiony', 'confusionyoffset', 'confusion', 'confusionoffset', 'dizzy', 'twirl', 'roll', 'stealth', 'hidden', 'hiddenoffset', 'sudden', 'suddenoffset', 'blink', 'vanish', 'dark', 'cosecant', 'dizzyholds', 'rotationx', 'rotationy', 'vanishoffset', 'vanishsize', 'rotationz', 'skewx', 'skewy', 'spiralx', 'spiralxoffset', 'spiralxperiod', 'spiraly', 'spiralyoffset', 'spiralyperiod', 'spiralz', 'spiralzoffset', 'spiralzperiod', 'granulate', 'straightholds', 'arrowpath', 'arrowpathgranulate', 'arrowpathsize', 'arrowpathdrawsize', 'arrowpathdrawsizeback', 'mini', 'drawsize', 'drawsizeback', 'holdtinyx', 'tanpulse', 'tanpulseinner', 'tanpulseouter', 'tanpulseoffset', 'tanpulseperiod', 'shrinklinearx', 'shrinklineary', 'shrinklinearz', 'shrinkmultx', 'shrinkmulty', 'shrinkmultz', 'tapstealth', 'holdstealth', 'orient', 'orientoffset', 'noreorient', 'orienty', 'orientyoffset', 'noreorienty', 'orientx', 'orientxoffset', 'noreorientx', 'variableboomerang', 'reversetype', 'holdheadstealth', 'asymptote', 'asymptotescale', 'asymptoteoffset', 'cubicx', 'cubicxoffset', 'cubicy', 'cubicyoffset', 'cubicz', 'cubiczoffset', 'x', 'y', 'z', 'noteskewtype', 'longholds', 'spiralholds', 'sinclip', 'cosclip', 'tanclip', 'digitalperiod2', 'digitalyperiod2', 'digitalzperiod2', 'tandigitalperiod2', 'tandigitalyperiod2', 'tandigitalzperiod2', 'squareperiod2', 'squarezperiod2', 'overhead', 'incoming', 'space', 'hallway', 'distant', 'mmod', 'stealthred', 'stealthgreen', 'stealthblue', 'suddenred', 'suddengreen', 'suddenblue', 'suddenredoffset', 'suddengreenoffset', 'suddenblueoffset', 'hiddenred', 'hiddengreen', 'hiddenblue', 'hiddenredoffset', 'hiddengreenoffset', 'hiddenblueoffset', 'blinkred', 'blinkgreen', 'blinkblue', 'centeredpath', 'zbuffer', 'modtimermult', 'modtimeroffset'];
+    var ZERO:Array<String> = ['boost', 'brake', 'wave', 'waveoffset', 'waveperiod', 'boomerang', 'expand', 'expandperiod', 'drunk', 'drunkspeed', 'drunkoffset', 'drunkperiod', 'drunkspacing', 'tandrunk', 'tandrunkspeed', 'tandrunkoffset', 'tandrunkperiod', 'tandrunkspacing', 'drunkz', 'drunkzspeed', 'drunkzoffset', 'drunkzperiod', 'drunkzspacing', 'tandrunkz', 'tandrunkzspeed', 'tandrunkzoffset', 'tandrunkzperiod', 'tandrunkzspacing', 'tanexpand', 'tanexpandperiod', 'tipsy', 'tipsyspeed', 'tipsyoffset', 'tipsyspacing', 'tantipsy', 'tantipsyspeed', 'tantipsyoffset', 'tantipsyspacing', 'tornado', 'tornadooffset', 'tornadoperiod', 'tantornado', 'tantornadooffset', 'tantornadoperiod', 'tornadoz', 'tornadozoffset', 'tornadozperiod', 'tantornadoz', 'tantornadozoffset', 'tantornadozperiod', 'movex', 'movey', 'movez', 'randomspeed', 'reverse', 'split', 'divide', 'alternate', 'cross', 'centered', 'swap', 'attenuatex', 'attenuatexoffset', 'attenuatey', 'attenuateyoffset', 'attenuatez', 'attenuatezoffset', 'beat', 'beatoffset', 'beatmult', 'beatperiod', 'beaty', 'beatyoffset', 'beatymult', 'beatyperiod', 'beatz', 'beatzoffset', 'beatzmult', 'beatzperiod', 'bumpyx', 'bumpyxoffset', 'bumpyxperiod', 'tanbumpyx', 'tanbumpyxoffset', 'tanbumpyxperiod', 'bumpyy', 'bumpyyoffset', 'bumpyyperiod', 'tanbumpyy', 'tanbumpyyoffset', 'tanbumpyyperiod', 'bumpy', 'bumpyoffset', 'bumpyperiod', 'tanbumpy', 'tanbumpyoffset', 'tanbumpyperiod', 'flip', 'invert', 'zigzag', 'zigzagoffset', 'zigzagperiod', 'zigzagz', 'zigzagzoffset', 'zigzagzperiod', 'sawtooth', 'sawtoothoffset', 'sawtoothperiod', 'sawtoothz', 'sawtoothzoffset', 'sawtoothzperiod', 'parabolax', 'parabolaxoffset', 'parabolay', 'parabolayoffset', 'parabolaz', 'parabolazoffset', 'digital', 'digitalsteps', 'digitaloffset', 'digitalperiod', 'tandigital', 'tandigitalsteps', 'tandigitaloffset', 'tandigitalperiod', 'digitalz', 'digitalzsteps', 'digitalzoffset', 'digitalzperiod', 'tandigitalz', 'tandigitalzsteps', 'tandigitalzoffset', 'tandigitalzperiod', 'square', 'squareoffset', 'squareperiod', 'squarez', 'squarezoffset', 'squarezperiod', 'bounce', 'bounceoffset', 'bounceperiod', 'bouncez', 'bouncezoffset', 'bouncezperiod', 'xmode', 'xmode2', 'tiny', 'tipsyx', 'tipsyxspeed', 'tipsyxoffset', 'tipsyxspacing', 'tantipsyx', 'tantipsyxspeed', 'tantipsyxoffset', 'tantipsyxspacing', 'tipsyz', 'tipsyzspeed', 'tipsyzoffset', 'tipsyzspacing', 'tantipsyz', 'tantipsyzspeed', 'tantipsyzoffset', 'tantipsyzspacing', 'drunky', 'drunkyspeed', 'drunkyoffset', 'drunkyperiod', 'drunkyspacing', 'tandrunky', 'tandrunkyspeed', 'tandrunkyoffset', 'tandrunkyperiod', 'tandrunkyspacing', 'vibratex', 'vibratey', 'vibratez', 'pulse', 'pulseinner', 'pulseouter', 'pulseoffset', 'pulseperiod', 'shrinkmult', 'shrinklinear', 'noteskewx', 'noteskewy', 'noteskew', 'tinyx', 'tinyy', 'tinyz', 'confusionx', 'confusionxoffset', 'confusiony', 'confusionyoffset', 'confusion', 'confusionoffset', 'dizzy', 'twirl', 'roll', 'stealth', 'hidden', 'hiddenoffset', 'sudden', 'suddenoffset', 'blink', 'vanish', 'dark', 'cosecant', 'dizzyholds', 'rotationx', 'rotationy', 'vanishoffset', 'vanishsize', 'rotationz', 'skewx', 'skewy', 'spiralx', 'spiralxoffset', 'spiralxperiod', 'spiraly', 'spiralyoffset', 'spiralyperiod', 'spiralz', 'spiralzoffset', 'spiralzperiod', 'granulate', 'straightholds', 'arrowpath', 'arrowpathgranulate', 'arrowpathsize', 'arrowpathdrawsize', 'arrowpathdrawsizeback', 'mini', 'drawsize', 'drawsizeback', 'holdtinyx', 'tanpulse', 'tanpulseinner', 'tanpulseouter', 'tanpulseoffset', 'tanpulseperiod', 'shrinklinearx', 'shrinklineary', 'shrinklinearz', 'shrinkmultx', 'shrinkmulty', 'shrinkmultz', 'tapstealth', 'holdstealth', 'orient', 'orientoffset', 'noreorient', 'orienty', 'orientyoffset', 'noreorienty', 'orientx', 'orientxoffset', 'noreorientx', 'variableboomerang', 'reversetype', 'holdheadstealth', 'asymptote', 'asymptotescale', 'asymptoteoffset', 'cubicx', 'cubicxoffset', 'cubicy', 'cubicyoffset', 'cubicz', 'cubiczoffset', 'x', 'y', 'z', 'noteskewtype', 'longholds', 'spiralholds', 'sinclip', 'cosclip', 'tanclip', 'digitalperiod2', 'digitalyperiod2', 'digitalzperiod2', 'tandigitalperiod2', 'tandigitalyperiod2', 'tandigitalzperiod2', 'squareperiod2', 'squarezperiod2', 'overhead', 'incoming', 'space', 'hallway', 'distant', 'mmod', 'stealthred', 'stealthgreen', 'stealthblue', 'suddenred', 'suddengreen', 'suddenblue', 'suddenredoffset', 'suddengreenoffset', 'suddenblueoffset', 'hiddenred', 'hiddengreen', 'hiddenblue', 'hiddenredoffset', 'hiddengreenoffset', 'hiddenblueoffset', 'blinkred', 'blinkgreen', 'blinkblue', 'centeredpath', 'zbuffer', 'modtimermult', 'modtimeroffset', 'beatcap', 'beatcapy', 'beatcapz'];
     var ONE:Array<String> = ['xmod', 'zoom', 'zoomx', 'zoomy', 'zoomz', 'stealthtype', 'stealthpastreceptors', 'scale', 'scalex', 'scaley', 'scalez', 'scrollspeedmult', 'stealthglowred', 'stealthglowgreen', 'stealthglowblue', 'modtimer'];
 
     var axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth'];
@@ -406,6 +406,8 @@ class Modchart
     altname.set('stealthgr', 'stealthglowred');
     altname.set('stealthgg', 'stealthglowgreen');
     altname.set('stealthgb', 'stealthglowblue');
+    altname.set('beatzcap', 'beatcapz');
+    altname.set('beatycap', 'beatcapy');
     altname.set('ztest', 'zbuffer'); // no zbuffer
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -785,10 +787,17 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
+        var division:Int = 1;
+        if (getValue('beatcap') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
         var beatFactor:Float = 0;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatoffset')) * (getValue('beatmult') + 1));
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatoffset')) * (getValue('beatmult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         if (fBeat < 0) break;
         fBeat -= ModchartMath.trunc(fBeat);
@@ -816,9 +825,16 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatoffset$iCol')) * (getValue('beatmult$iCol') + 1));
+        var division:Int = 1;
+        if (getValue('beatcap') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatoffset$iCol')) * (getValue('beatmult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1094,9 +1110,16 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatyoffset')) * (getValue('beatymult') + 1));
+        var division:Int = 1;
+        if (getValue('beatcapy') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatyoffset')) * (getValue('beatymult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1125,9 +1148,16 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatyoffset$iCol')) * (getValue('beatymult$iCol') + 1));
+        var division:Int = 1;
+        if (getValue('beatcapy') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatyoffset$iCol')) * (getValue('beatymult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1296,9 +1326,16 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatzoffset')) * (getValue('beatzmult') + 1));
+        var division:Int = 1;
+        if (getValue('beatcapz') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatzoffset')) * (getValue('beatzmult') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;
@@ -1327,9 +1364,16 @@ class Modchart
     {
       do
       {
-        var fAccelTime:Float = 0.2;
-        var fTotalTime:Float = 0.5;
-        var fBeat:Float = ((getBeat() + fAccelTime + getValue('beatzoffset$iCol')) * (getValue('beatzmult$iCol') + 1));
+        var division:Int = 1;
+        if (getValue('beatcapz') == 0)
+        {
+          var bpm:Float = Conductor.instance.bpm;
+          while (bpm / division >= 300)
+            division++;
+        }
+        var fAccelTime:Float = 0.2 / division;
+        var fTotalTime:Float = 0.5 / division;
+        var fBeat:Float = ((getBeat() / division + fAccelTime + getValue('beatzoffset$iCol')) * (getValue('beatzmult$iCol') + 1));
         var bEvenBeat:Bool = (Std.int(fBeat) % 2) != 0;
         var beatFactor:Float = 0;
         if (fBeat < 0) break;

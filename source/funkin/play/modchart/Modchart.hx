@@ -1470,7 +1470,7 @@ class Modchart
   {
     var fRotation:Float = 0;
     var beat:Float = getBeat();
-    if (!isHoldHead)
+    if ((getValue('dizzyholds') != 0 || !isHoldHead) && !isHoldBody)
     {
       if (getValue('confusion$iCol') != 0) fRotation += getValue('confusion$iCol') * 180.0 / Math.PI;
 
@@ -1486,24 +1486,24 @@ class Modchart
         fConfRotation *= -180 / Math.PI;
         fRotation += fConfRotation;
       }
+      if (getValue('dizzy') != 0)
+      {
+        var fDizzyRotation = noteBeat - beat;
+        fDizzyRotation *= getValue('dizzy');
+        fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
+        fDizzyRotation *= 180 / Math.PI;
+        fRotation += fDizzyRotation;
+      }
+      if (getValue('dizzy$iCol') != 0)
+      {
+        var fDizzyRotation = noteBeat - beat;
+        fDizzyRotation *= getValue('dizzy$iCol');
+        fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
+        fDizzyRotation *= 180 / Math.PI;
+        fRotation += fDizzyRotation;
+      }
     }
-    if (getValue('dizzy') != 0 && (getValue('dizzyholds') != 0 || !isHoldHead))
-    {
-      var fDizzyRotation = noteBeat - beat;
-      fDizzyRotation *= getValue('dizzy');
-      fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
-      fDizzyRotation *= 180 / Math.PI;
-      fRotation += fDizzyRotation;
-    }
-    if (getValue('dizzy$iCol') != 0 && (getValue('dizzyholds') != 0 || !isHoldHead) && !isHoldBody)
-    {
-      var fDizzyRotation = noteBeat - beat;
-      fDizzyRotation *= getValue('dizzy$iCol');
-      fDizzyRotation = ModchartMath.mod(fDizzyRotation, 2 * Math.PI);
-      fDizzyRotation *= 180 / Math.PI;
-      fRotation += fDizzyRotation;
-    }
-    if (getValue('orient') != 0 && !isHoldBody) // orient: use two points to get theta
+    if (getValue('orient') != 0 && !isHoldBody)
     {
       var reorient:Float = (GetReversePercentForColumn(iCol) > 0.5 ? -1 : 1);
       var value:Float = (ModchartMath.deg * (travelDir - getValue('orientoffset')) - 90 * (getValue('noreorient') == 0 ? reorient : 1));
@@ -1516,11 +1516,11 @@ class Modchart
     return fRotation;
   }
 
-  public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
+  public function GetRotationX(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float, isHoldBody:Bool = false):Float
   {
     var fRotation:Float = 0;
     var beat:Float = getBeat();
-    if (!isHoldHead)
+    if ((getValue('dizzyholds') != 0 || !isHoldHead) && !isHoldBody)
     {
       if (getValue('confusionx$iCol') != 0) fRotation += getValue('confusionx$iCol') * 180.0 / Math.PI;
 
@@ -1536,14 +1536,14 @@ class Modchart
         fConfRotation *= -180 / Math.PI;
         fRotation += fConfRotation;
       }
-    }
-    if (getValue('roll') != 0)
-    {
-      fRotation += getValue('roll') * fYOffset / 2;
-    }
-    if (getValue('roll$iCol') != 0)
-    {
-      fRotation += getValue('roll$iCol') * fYOffset / 2;
+      if (getValue('roll') != 0)
+      {
+        fRotation += getValue('roll') * fYOffset / 2;
+      }
+      if (getValue('roll$iCol') != 0)
+      {
+        fRotation += getValue('roll$iCol') * fYOffset / 2;
+      }
     }
     if (getValue('orientx') != 0)
     {
@@ -1558,11 +1558,11 @@ class Modchart
     return fRotation;
   }
 
-  public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float):Float
+  public function GetRotationY(iCol:Int, fYOffset:Float, isHoldHead:Bool = false, travelDir:Float, isHoldBody:Bool = false):Float
   {
     var fRotation:Float = 0;
     var beat:Float = getBeat();
-    if (!isHoldHead)
+    if ((getValue('dizzyholds') != 0 || !isHoldHead) && !isHoldBody)
     {
       if (getValue('confusiony$iCol') != 0) fRotation += getValue('confusiony$iCol') * 180.0 / Math.PI;
 

@@ -351,7 +351,7 @@ class SustainTrail extends FlxSprite
       offset.z = pos3.z - strumPos.z;
     }
     var noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
+    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x, true), mods.GetRotationY(column, yOffset, true, angles.y, true),
       mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
     var fullPos:Vector3D = pos.clone();
     var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
@@ -470,8 +470,8 @@ class SustainTrail extends FlxSprite
     if (Math.abs(grain) <= FlxMath.EPSILON) grain = 4;
     var length:Int = Math.floor((fullSustainLength) / (roughness * grain));
     if (grain < 0) length = Math.floor((fullSustainLength) / (1 / (roughness * Math.abs(grain))));
-    var spiralHolds:Float = parentStrumline.mods.getValue('spiralholds');
-    if (spiralHolds > 0 && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
+    if (parentStrumline.mods.getValue('spiralholds') > 0
+      && !parentStrumline.mods.NeedZBuffer()) length = Std.int(fullSustainLength / Strumline.NOTE_SPACING);
     if (length < 2) length = 2;
     var drawTail:Bool = true;
     var trueIndex:Int = 0;

@@ -408,6 +408,7 @@ class Modchart
     altname.set('stealthgb', 'stealthglowblue');
     altname.set('beatzcap', 'beatcapz');
     altname.set('beatycap', 'beatcapy');
+    altname.set('skewtype', 'noteskewtype');
     altname.set('ztest', 'zbuffer'); // no zbuffer
 
     for (i in 0...Strumline.KEY_COUNT)
@@ -1904,8 +1905,10 @@ class Modchart
         {
           if (iCol == 0 || iCol == 3)
           {
-            skewx *= -1;
-            skewy *= -1;
+            // 100% noteskewx + 100% noteskewtype = [0, 3]: -100% noteskewy [1, 2]: 100% noteskewx
+            var prevSkewX:Float = skewx;
+            skewx = -skewy;
+            skewy = -prevSkewX;
           }
         }
       }

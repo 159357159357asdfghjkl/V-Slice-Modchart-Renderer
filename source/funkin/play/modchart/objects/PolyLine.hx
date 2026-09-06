@@ -120,19 +120,19 @@ class PolyLine extends FunkinSprite
     var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var difference:Vector3D = parentStrumline.getDifference();
-    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false), mods.GetYPos(column, yOffset, pn, xoffArray, isDownscroll),
-      mods.GetZPos(column, yOffset, pn, xoffArray));
+    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false), mods.GetYPos(column, yOffset, xoffArray, isDownscroll),
+      mods.GetZPos(column, yOffset, xoffArray));
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, isDownscroll),
-      mods.GetZPos(column, ofs, pn, xoffArray));
+    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, xoffArray, isDownscroll),
+      mods.GetZPos(column, ofs, xoffArray));
     var effect:Float = 1 - (mods.getValue('straightholds'));
     var noteYOffset:Float = mods.GetYOffset(conductorInUse, conductorInUse.getTimeWithDelta(), speed, column, conductorInUse.getTimeWithDelta()) + ofs;
-    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true),
-      mods.GetYPos(column, noteYOffset, pn, xoffArray, isDownscroll), mods.GetZPos(column, noteYOffset, pn, xoffArray));
+    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true), mods.GetYPos(column, noteYOffset, xoffArray, isDownscroll),
+      mods.GetZPos(column, noteYOffset, xoffArray));
     var timeDiff:Float = mods.baseHoldSize;
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
-    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false), mods.GetYPos(column, yOffset2, pn, xoffArray, isDownscroll),
-      mods.GetZPos(column, yOffset2, pn, xoffArray));
+    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false), mods.GetYPos(column, yOffset2, xoffArray, isDownscroll),
+      mods.GetZPos(column, yOffset2, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
@@ -152,7 +152,7 @@ class PolyLine extends FunkinSprite
     var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
       (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
     var fullPos:Vector3D = pos;
-    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
+    var scale:Array<Float> = mods.GetScale(column, yOffset);
     var scalePos:Vector3D = new Vector3D(scale[0], scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);

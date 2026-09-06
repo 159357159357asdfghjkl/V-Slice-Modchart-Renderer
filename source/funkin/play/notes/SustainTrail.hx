@@ -323,18 +323,18 @@ class SustainTrail extends FlxSprite
     var timeDiff:Float = mods.baseHoldSize;
     var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, strumTime) + ofs;
     var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset, pn, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset, pn, xoffArray));
+      mods.GetYPos(column, yOffset, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset, xoffArray));
     var difference:Vector3D = parentStrumline.getDifference();
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, pn, xoffArray, down),
-      mods.GetZPos(column, ofs, pn, xoffArray));
+    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, xoffArray, down),
+      mods.GetZPos(column, ofs, xoffArray));
     var effect:Float = 1 - mods.getValue('straightholds');
     var noteYOffset:Float = mods.GetYOffset(conductorInUse, strumTime, speed, column, strumTime) + ofs;
-    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true), mods.GetYPos(column, noteYOffset, pn, xoffArray, down),
-      mods.GetZPos(column, noteYOffset, pn, xoffArray));
+    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true), mods.GetYPos(column, noteYOffset, xoffArray, down),
+      mods.GetZPos(column, noteYOffset, xoffArray));
     var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
     var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false, true),
-      mods.GetYPos(column, yOffset2, pn, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, pn, xoffArray));
+      mods.GetYPos(column, yOffset2, xoffArray, down, true, true) + this.yOffset, mods.GetZPos(column, yOffset2, xoffArray));
     var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
     var pos2:Vector3D = notePos.clone();
     var pos3:Vector3D = strumPos.clone();
@@ -354,7 +354,7 @@ class SustainTrail extends FlxSprite
     var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x, true), mods.GetRotationY(column, yOffset, true, angles.y, true),
       mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z, true));
     var fullPos:Vector3D = pos.clone();
-    var scale:Array<Float> = mods.GetScale(column, yOffset, pn);
+    var scale:Array<Float> = mods.GetScale(column, yOffset);
     var scalePos:Vector3D = new Vector3D(this.scale.x * scale[0], this.scale.y * scale[1], scale[4]);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
@@ -380,7 +380,7 @@ class SustainTrail extends FlxSprite
       offsetX, offsetY);
     zPos[0].decrementBy(offset);
     zPos[1].decrementBy(offset);
-    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, pn, xoffArray, down, false);
+    var yposWithoutReverse:Float = mods.GetYPos(column, yOffset, xoffArray, down, false);
     var none:Bool = mods.ArrowGetPercentVisible(yposWithoutReverse, column, yOffset, false, true) >= 1.0;
     var splineStealth:Float = realSpStealth > 0.5 ? 1.0 : 0.0;
     var alpha:Float = mods.GetAlpha(yposWithoutReverse, column, yOffset, false, true);

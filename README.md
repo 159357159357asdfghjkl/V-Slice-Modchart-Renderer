@@ -33,6 +33,11 @@ Use lua_templete_mirin/mirin-fnf.lua to write mods, put the file into "assets/sc
 
 ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it doesn't have depth test, so I can't simulate those mods, all 3D effects you see in this tool are fake!
 
+
+## MY SANDBOX
+
+-- 1. Use other modchart stuff's functions
+
 ```lua
 	-- avg4k style
 	local function activateMod(name, beat, len, easestr, value)
@@ -78,6 +83,93 @@ ZBuffer, ReceptorZBuffer, ArrowCull are 3D stuff, Flixel is a 2D engine, it does
     func_function{step/4,callback}
   end
 ```
+
+-- 2. Make modifier yourself
+
+```lua
+local arrow_size = 112
+moddata = {
+	curve = {
+		magnitude = 0,
+		offset = 0,
+		period = 0
+	} -- example : bouncez
+}
+function GetXPos(col, yoff, xoff)
+	return getPos(col, yoff, xoff).x
+end
+function GetYPos(col, yoff, xoff)
+	return getPos(col, yoff, xoff).y
+end
+function GetZPos(col, yoff, xoff)
+	return getPos(col, yoff, xoff).z
+end
+function GetScaleX(col, yoff)
+	return getScale(col, yoff).x - 1
+end
+function GetScaleY(col, yoff)
+	return getScale(col, yoff).y - 1
+end
+function GetScaleZ(col, yoff)
+	return getScale(col, yoff).z - 1
+end
+function getPos(col, yoff, xoff)
+	local pos = {x = 0, y = 0, z = 0}
+  if moddata.curve.magnitude ~= 0 then
+    pos.x = pos.x + math.abs(math.sin(((yoff + moddata.curve.offset) / (90 + (moddata.curve.period * 90))))) * moddata.curve.magnitude * 0.5 * arrow_size
+  end
+	return pos
+end
+function getScale(col, yoff)
+	local scale = {x = 1, y = 1, z = 1}
+	return scale
+end
+
+function initDefines()
+	for name, mods in pairs(moddata) do
+		for subname, value in pairs(mods) do
+			local rs = subname
+			if rs == 'magnitude' then
+				rs = ''
+			end
+			definemod{name..rs,function(a)
+				moddata[name][subname] = a
+			end}
+		end
+	end
+end
+
+-- fnf mirin template's callback
+function initMods()
+  initDefines()
+
+  -- now the modifiers have been registered, write modchart here
+end
+```
+
+-- 3. Make transient effect
+
+```lua
+  -- ported from corruption mod, as an example
+  local a = 1
+	local function trigchaotic(t,typ)
+		if typ == 0 then
+			set{t,11.25*a,'confusionoffset',100,'bumpyperiod',75*a,'bumpy',-500*a,'tipsyz',100*a,'drunk',0.7,'xmod'}
+			ease{t,1,outQuad,0,'confusionoffset',0,'bumpy',0,'tipsyz',0,'drunk',0.9,'xmod'}
+		elseif typ == 1 then
+			set{t,35*a,'confusionoffset',50*a,'bounce',200*a,'bumpy',100,'tipsy',150*a,'drunk',0.75,'xmod'}
+			ease{t,1,outQuad,0,'confusionoffset',0,'bounce',0,'tipsy',0,'drunk',0.9,'xmod',0,'bumpy'}
+		elseif typ == 2 then
+			set{t,22.5*a,'confusionoffset',200,'zigzag',500,'tipsyz',300,'tipsy',30*a,'drunk',0.75,'xmod'}
+			ease{t,1,outQuad,0,'confusionoffset',0,'zigzag',0,'tipsyz',0,'tipsy',0,'drunk',0.9,'xmod'}
+		elseif typ == 3 then
+			set{t,35*a,'confusionoffset',100,'boost',300,'tipsyz',30,'drunk',0.75,'xmod'}
+			ease{t,1,outQuad,0,'confusionoffset',0,'boost',0,'tipsyz',0,'drunk',0.9,'xmod'}
+		end
+		a = a * -1
+	end
+```
+
 
 # Getting Started
 

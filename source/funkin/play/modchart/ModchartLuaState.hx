@@ -21,6 +21,7 @@ class ModchartLuaState
     L = LuaL.newstate();
     LuaL.openlibs(L);
     Lua.init_callbacks(L);
+    funnythingnotitgdid();
 
     Lua_helper.add_callback(L, "ApplyModifiers", function(str:String, ?pn:Int)
     {
@@ -139,9 +140,24 @@ class ModchartLuaState
     Lua.setglobal(L, variable);
   }
 
-  static function testluafn(l:State):Int
+  static function funnythingnotitgdid():Void
   {
-    return 1;
+    Lua.getglobal(L, 'math');
+    if (Lua.istable(L, -1) == 0)
+    {
+      Lua.pop(L, 1);
+      return;
+    }
+    Lua.getfield(L, -1, 'deg');
+    if (Lua.isfunction(L, -1))
+    {
+      Lua.setfield(L, -2, 'dog');
+    }
+    else
+    {
+      Lua.pop(L, 1);
+    }
+    Lua.pop(L, 1);
   }
 
   public static function run(script:String)

@@ -452,6 +452,12 @@ class Modchart
   }
 
   // example: fromString('*-1 100 drunk, *3 200 bumpy');
+  final mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/; // xmod
+  final cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/; // cmod
+  final mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/; // mmod
+  final centeredReg:EReg = ~/^centered(\d+)$/; // centeredpath alias
+  final axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth']; // spline axis
+
   public function fromString(mod:String):Void
   {
     if (!Preferences.modchart) return;
@@ -483,11 +489,7 @@ class Modchart
         }
       }
       sBit = asParts[asParts.length - 1].trim().toLowerCase();
-      var mult:EReg = ~/^([0-9]+(\.[0-9]+)?)x$/; // xmod
-      var cReg:EReg = ~/^c([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/; // cmod
-      var mReg:EReg = ~/^m([+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)$/; // mmod
-      var centeredReg:EReg = ~/^centered(\d+)$/; // centeredpath alias
-      var axis:Array<String> = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'zoom', 'skew', 'stealth']; // spline axis
+
       var name:String = sBit;
       if (altname.exists(name))
       {

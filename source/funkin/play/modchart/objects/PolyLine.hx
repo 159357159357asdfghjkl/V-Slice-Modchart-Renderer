@@ -100,7 +100,6 @@ class PolyLine extends FunkinSprite
   public var rotationOrder:String = 'zyx';
 
   var spPos:Vector3D = new Vector3D();
-  var spZoom:Vector3D = new Vector3D();
   var spSkew:Vector3D = new Vector3D();
   var left:Vector3D = new Vector3D(1, 0, 0, 1);
   var right:Vector3D = new Vector3D(1, 0, 0, 1);
@@ -108,7 +107,7 @@ class PolyLine extends FunkinSprite
 
   function clearout():Void
   {
-    spZoom = spSkew = spPos = left = right = globalOffset = null;
+    spSkew = spPos = left = right = globalOffset = null;
   }
 
   function getPos(width:Float, time:Float):Array<Vector3D>
@@ -153,7 +152,7 @@ class PolyLine extends FunkinSprite
       (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
     var fullPos:Vector3D = pos;
     var scale:Array<Float> = mods.GetScale(column, yOffset);
-    var scalePos:Vector3D = new Vector3D(scale[0], scale[1], scale[4]);
+    var scalePos:Vector3D = new Vector3D(1, 1, 1);
     var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
     mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
     var zoom2:Vector3D = parentStrumline.zoom2;
@@ -162,22 +161,23 @@ class PolyLine extends FunkinSprite
     mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
       parentStrumline.skew.add(parentStrumline.skew2), newZoom);
     parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);
-    parentStrumline.getSplineAxisPos('zoom', column, yOffset, 0, spZoom);
-    var realSpZoom:Float = 1 - 0.5 * spZoom.x;
     parentStrumline.getSplineAxisPos('skew', column, yOffset, 0, spSkew);
     fullPos.incrementBy(spPos);
     fullPos.incrementBy(difference);
-    scalePos.scaleBy(realSpZoom);
     skewPos.x += spSkew.x;
     left.x = -width / 2;
     right.x = -left.x;
     var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
-    zPos[0].decrementBy(offset);
-    zPos[0].incrementBy(globalOffset);
-    zPos[1].decrementBy(offset);
-    zPos[1].incrementBy(globalOffset);
+    for (i in 0...2)
+    {
+      zPos[i].decrementBy(offset);
+      zPos[i].incrementBy(globalOffset);
+    }
     return zPos;
   }
+
+  var lastSubdivision:Int = -2000;
+  var subdivisionChanged:Bool = false;
 
   function updateClipping():Void
   {
@@ -197,6 +197,8 @@ class PolyLine extends FunkinSprite
     frontLength *= (1 + mods.getValue('arrowpathdrawsize'));
     var subdivisions:Int = Math.round((backLength + frontLength) / (roughness * grain));
     if (grain < 0) subdivisions = Math.round((backLength + frontLength) / (1 / (roughness * Math.abs(grain))));
+    if (subdivisions != lastSubdivision) subdivisionChanged = true;
+    lastSubdivision = subdivisions;
     var size:Float = 1 + mods.getValue('arrowpathsize') + mods.getValue('arrowpathsize$column');
     var verticesArray:Array<Float> = [];
     var uvtDataArray:Array<Float> = [];
@@ -210,21 +212,28 @@ class PolyLine extends FunkinSprite
       verticesArray[i * 2 + 1] = pos[0].y;
       verticesArray[(i + 1) * 2] = pos[1].x;
       verticesArray[(i + 1) * 2 + 1] = pos[1].y;
-      uvtDataArray[i * 2] = 0;
-      uvtDataArray[i * 2 + 1] = 1;
-      uvtDataArray[(i + 1) * 2] = 1;
-      uvtDataArray[(i + 1) * 2 + 1] = 0;
-      if (a == subdivisions) break;
-      indicesArray[a * 6 + 0] = i + 1;
-      indicesArray[a * 6 + 1] = i + 2;
-      indicesArray[a * 6 + 2] = i + 0;
-      indicesArray[a * 6 + 3] = i + 1;
-      indicesArray[a * 6 + 4] = i + 3;
-      indicesArray[a * 6 + 5] = i + 2;
+      if (subdivisionChanged)
+      {
+        uvtDataArray[i * 2] = 0;
+        uvtDataArray[i * 2 + 1] = 1;
+        uvtDataArray[(i + 1) * 2] = 1;
+        uvtDataArray[(i + 1) * 2 + 1] = 0;
+        if (a == subdivisions) break;
+        indicesArray[a * 6 + 0] = i + 1;
+        indicesArray[a * 6 + 1] = i + 2;
+        indicesArray[a * 6 + 2] = i + 0;
+        indicesArray[a * 6 + 3] = i + 1;
+        indicesArray[a * 6 + 4] = i + 3;
+        indicesArray[a * 6 + 5] = i + 2;
+      }
     }
     setVertices(verticesArray);
-    setUVTData(uvtDataArray);
-    setIndices(indicesArray);
+    if (subdivisionChanged)
+    {
+      setUVTData(uvtDataArray);
+      setIndices(indicesArray);
+    }
+    subdivisionChanged = false;
   }
 
   override public function update(elapsed:Float):Void

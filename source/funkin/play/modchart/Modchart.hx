@@ -2121,11 +2121,8 @@ class Modchart
     // pos.z *= inputZoom.z;
   }
 
-  public var opened:Bool = false;
-
   public function new()
   {
     initDefaultMods();
-    opened = true;
   }
 }

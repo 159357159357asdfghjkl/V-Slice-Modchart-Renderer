@@ -9,6 +9,7 @@ import openfl.geom.Vector3D;
 import funkin.graphics.FunkinSprite;
 import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.ColorTransform;
+import funkin.play.modchart.util.ModchartMath.RotateIndex;
 
 class FunkinActor extends FunkinSprite
 {
@@ -20,7 +21,7 @@ class FunkinActor extends FunkinSprite
   public var diffuse:Vector3D = new Vector3D(1, 1, 1, 1);
   public var glow:Vector3D = new Vector3D(1, 1, 1, 0);
   public var _skew:Float = 0;
-  public var rotationOrder:String = 'zyx';
+  public var rotationOrder:RotateIndex = ZYX;
   public var basePos:Vector3D = new Vector3D(); // for scripting
   public var baseRotation:Vector3D = new Vector3D(); // for scripting
   public var baseSkew:Vector3D = new Vector3D(); // for scripting

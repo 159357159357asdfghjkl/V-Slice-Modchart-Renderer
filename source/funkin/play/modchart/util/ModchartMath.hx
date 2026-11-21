@@ -90,7 +90,7 @@ class ModchartMath
   }
 
   public static function processActor(fullPos:Vector3D, pos:Array<Vector3D>, rotation:Vector3D, scalePos:Vector3D, skewPos:Vector3D, originVec:Vector3D,
-      fov:Float, rotationOrder:String = 'zyx', offx:Float = 0, offy:Float = 0):Array<Vector3D>
+      fov:Float, rotationOrder:RotateIndex = ZYX, offx:Float = 0, offy:Float = 0):Array<Vector3D>
   {
     var m:Matrix3D = translateMatrix(fullPos.x, fullPos.y, fullPos.z);
     rotateMatrix(m, rotation.x, rotation.y, rotation.z, rotationOrder);
@@ -154,7 +154,7 @@ class ModchartMath
     return clamp(__fastTanNoClip(x), -(1 - clipValue) * 10, (1 - clipValue) * 10);
   }
 
-  public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:String = 'zyx'):Void
+  public static function rotateMatrix(a:Matrix3D, rX:Float, rY:Float, rZ:Float, order:RotateIndex = ZYX):Void
   {
     rX *= rad;
     rY *= rad;
@@ -169,33 +169,33 @@ class ModchartMath
 
     var mat:Matrix3D = new Matrix3D(new Vector<Float>( switch (order)
     {
-      case 'zyx': [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
+      case ZYX: [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
           -sZ * cY,
           -sZ * sY * sX
           + cZ * cX,
           -sZ * sY * cX
           + cZ * -sX, 0,
           -sY, cY * sX, cY * cX, 0, 0, 0, 0, 1];
-      case 'xyz': [cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0, sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX
+      case XYZ: [cZ * cY, -cZ * sY * cX + sZ * sX, cZ * sY * sX + sZ * cX, 0, sZ * cY, -sZ * sY * cX - cZ * sX, sZ * sY * sX
           - cZ * cX, 0, -sY, cY * cX, cY * sX, 0, 0, 0, 0, 1];
-      case 'zxy': [cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0, cX * sZ, cX * cZ, -sX, 0, -sY * cZ + cY * sX * sZ, sY * sZ
+      case ZXY: [cY * cZ + sY * sX * sZ, -cY * sZ + sY * sX * cZ, sY * cX, 0, cX * sZ, cX * cZ, -sX, 0, -sY * cZ + cY * sX * sZ, sY * sZ
           + cY * sX * cZ, cY * cX, 0, 0, 0, 0, 1];
-      case 'xzy': [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0, cY * sZ, cZ, cY * sZ * sX - sY * cX, 0, -sY * cZ, 0, -sY * sZ * cX + cY * cX, 0, 0, 0, 0, 1];
-      case 'yxz': [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY
-          + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY, -sX, 0, 0, 0, 0, 1];
-      case 'yzx': [cX * cY + sX * sY * sZ, -cX * sY + sX * sZ * cY, sX * cZ, 0, cZ * sY, cZ * cY, -sZ, 0, -sX * cY + cX * sY * sZ, sX * sY
+      case XZY: [cY * cZ, -sZ, cY * sZ * cX + sY * sX, 0, cY * sZ, cZ, cY * sZ * sX - sY * cX, 0, -sY * cZ, 0, -sY * sZ * cX + cY * cX, 0, 0, 0, 0, 1];
+      case YXZ: [cZ * cY - sZ * sX * sY, -cZ * sY - sZ * sX * cY, -sZ * cX, 0, sZ * cY + cZ * sX * sY, -sZ * sY + cZ * sX * cY, cZ * cX, 0, cX * sY, cX * cY,
+          -sX, 0, 0, 0, 0, 1];
+      case YZX: [cX * cY + sX * sY * sZ, -cX * sY + sX * sZ * cY, sX * cZ, 0, cZ * sY, cZ * cY, -sZ, 0, -sX * cY + cX * sY * sZ, sX * sY
           + cX * sZ * cY, cX * cZ, 0, 0, 0, 0, 1];
-      case 'xyx': [cY, sY * sZ, sY * cZ, 0, -sX * sY, cX * cZ + sX * cY * sZ, -cX * sZ + sX * cY * cZ, 0, -cX * sY, -sX * cZ + cX * cY * sZ, sX * sZ
+      case XYX: [cY, sY * sZ, sY * cZ, 0, -sX * sY, cX * cZ + sX * cY * sZ, -cX * sZ + sX * cY * cZ, 0, -cX * sY, -sX * cZ + cX * cY * sZ, sX * sZ
           + cX * cY * cZ, 0, 0, 0, 0, 1];
-      case 'xzx': [cZ, -sZ * cY, sZ * sY, 0, cX * sZ, cX * cZ * cY + sX * sY, -cX * cZ * sY + sX * cY, 0, -sX * sZ, -sX * cZ * cY + cX * sY, sX * cZ * sY
+      case XZX: [cZ, -sZ * cY, sZ * sY, 0, cX * sZ, cX * cZ * cY + sX * sY, -cX * cZ * sY + sX * cY, 0, -sX * sZ, -sX * cZ * cY + cX * sY, sX * cZ * sY
           + cX * cY, 0, 0, 0, 0, 1];
-      case 'yxy': [cY * cZ + sY * cX * sZ, -sY * sX, cY * sZ - sY * cX * cZ, 0, sX * sZ, cX, -sX * cZ, 0, sY * cZ - cY * cX * sZ, cY * sX, sY * sZ
+      case YXY: [cY * cZ + sY * cX * sZ, -sY * sX, cY * sZ - sY * cX * cZ, 0, sX * sZ, cX, -sX * cZ, 0, sY * cZ - cY * cX * sZ, cY * sX, sY * sZ
           + cY * cX * cZ, 0, 0, 0, 0, 1];
-      case 'yzy': [cY * cZ * cX + sY * sX, -cY * sZ, cY * cZ * sX - sY * cX, 0, sZ * cX, cZ, sZ * sX, 0, sY * cZ * cX - cY * sX, -sY * sZ, sY * cZ * sX
+      case YZY: [cY * cZ * cX + sY * sX, -cY * sZ, cY * cZ * sX - sY * cX, 0, sZ * cX, cZ, sZ * sX, 0, sY * cZ * cX - cY * sX, -sY * sZ, sY * cZ * sX
           + cY * cX, 0, 0, 0, 0, 1];
-      case 'zxz': [cZ * cY + sZ * cX * sY, -cZ * sY + sZ * cX * cY, -sZ * sX, 0, -sZ * cY + cZ * cX * sY, sZ * sY
+      case ZXZ: [cZ * cY + sZ * cX * sY, -cZ * sY + sZ * cX * cY, -sZ * sX, 0, -sZ * cY + cZ * cX * sY, sZ * sY
           + cZ * cX * cY, -cZ * sX, 0, sX * sY, sX * cY, cX, 0, 0, 0, 0, 1];
-      case 'zyz': [cZ * cY * cX + sZ * sX, -cZ * cY * sX + sZ * cX, cZ * sY, 0, -sZ * cY * cX + cZ * sX, sZ * cY * sX
+      case ZYZ: [cZ * cY * cX + sZ * sX, -cZ * cY * sX + sZ * cX, cZ * sY, 0, -sZ * cY * cX + cZ * sX, sZ * cY * sX
           + cZ * cX, -sZ * sY, 0, -sY * cX, sY * sX, cY, 0, 0, 0, 0, 1];
       default:
         [cZ * cY, cZ * sY * sX + sZ * cX, cZ * sY * cX + sZ * -sX, 0,
@@ -332,4 +332,20 @@ class ModchartMath
   @:noCompletion inline private static function __fastTanNoClip(a:Float) return __fastSinNoClip(a) / __fastCosNoClip(a);
 
   @:noCompletion inline private static function __fastCscNoClip(a:Float) return 1 / __fastSinNoClip(a);
+}
+
+enum abstract RotateIndex(Int) from Int to Int
+{
+  var ZYX = 321;
+  var XYZ = 123;
+  var ZXY = 312;
+  var XZY = 132;
+  var YXZ = 213;
+  var YZX = 231;
+  var XYX = 121;
+  var XZX = 131;
+  var YZY = 232;
+  var YXY = 212;
+  var ZXZ = 313;
+  var ZYZ = 323;
 }

@@ -11,6 +11,7 @@ import openfl.geom.Vector3D;
 import openfl.geom.ColorTransform;
 import funkin.play.modchart.util.ModchartMath;
 import funkin.play.modchart.Modchart;
+import funkin.play.modchart.util.ModchartMath.RotateIndex;
 
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
@@ -116,7 +117,7 @@ class SustainTrail extends FlxSprite
 
   public var offsetX:Float;
   public var offsetY:Float;
-  public var rotationOrder:String = 'zyx';
+  public var rotationOrder:RotateIndex = ZYX;
   public var fov:Float = 45;
   public var useNew:Bool = false;
 

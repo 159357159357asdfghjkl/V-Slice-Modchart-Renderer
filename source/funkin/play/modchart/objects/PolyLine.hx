@@ -14,6 +14,7 @@ import funkin.play.modchart.util.ModchartMath;
 import openfl.geom.ColorTransform;
 import funkin.play.notes.Strumline;
 import funkin.play.modchart.Modchart;
+import funkin.play.modchart.util.ModchartMath.RotateIndex;
 
 /**
   a class to simulate notitg's arrowpath
@@ -48,7 +49,10 @@ class PolyLine extends FunkinSprite
     vertices = null;
     uvtData = null;
     indices = null;
-    clearout();
+    rotCache = skewCache = scaleCache = null;
+    spPos = null;
+    left = right = null;
+    globalOffset = null;
     super.destroy();
   }
 
@@ -97,82 +101,38 @@ class PolyLine extends FunkinSprite
     }
   }
 
-  public var rotationOrder:String = 'zyx';
+  public var rotationOrder:RotateIndex = ZYX;
 
+  var rotCache:Vector3D = new Vector3D();
+  var scaleCache:Vector3D = new Vector3D(1, 1, 1);
+  var skewCache:Vector3D = new Vector3D();
   var spPos:Vector3D = new Vector3D();
-  var spSkew:Vector3D = new Vector3D();
   var left:Vector3D = new Vector3D(1, 0, 0, 1);
   var right:Vector3D = new Vector3D(1, 0, 0, 1);
   var globalOffset:Vector3D = new Vector3D(Strumline.NOTE_SPACING / 2 - 1, Strumline.NOTE_SPACING * 0.75 - 1);
-
-  function clearout():Void
-  {
-    spSkew = spPos = left = right = globalOffset = null;
-  }
 
   function getPos(width:Float, time:Float):Array<Vector3D>
   {
     var conductorInUse:Conductor = parentStrumline.conductorInUse;
     time += conductorInUse.getTimeWithDelta();
-    var speed:Float = parentStrumline.scrollSpeed;
-    var isDownscroll:Bool = parentStrumline.isDownscroll;
     var ofs:Float = (mods.getValue('centeredpath') + mods.getValue('centeredpath$column')) * Strumline.NOTE_SPACING;
-    var yOffset:Float = mods.GetYOffset(conductorInUse, time, speed, column, conductorInUse.getTimeWithDelta()) + ofs;
+    var yOffset:Float = mods.GetYOffset(conductorInUse, time, parentStrumline.scrollSpeed, column, conductorInUse.getTimeWithDelta()) + ofs;
     var difference:Vector3D = parentStrumline.getDifference();
-    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false), mods.GetYPos(column, yOffset, xoffArray, isDownscroll),
-      mods.GetZPos(column, yOffset, xoffArray));
+    var pos:Vector3D = new Vector3D(mods.GetXPos(column, yOffset, pn, xoffArray, false),
+      mods.GetYPos(column, yOffset, xoffArray, parentStrumline.isDownscroll), mods.GetZPos(column, yOffset, xoffArray));
     var originVec:Vector3D = new Vector3D(difference.x, FlxG.height / 2);
-    var strumPos:Vector3D = new Vector3D(mods.GetXPos(column, ofs, pn, xoffArray, false), mods.GetYPos(column, ofs, xoffArray, isDownscroll),
-      mods.GetZPos(column, ofs, xoffArray));
-    var effect:Float = 1 - (mods.getValue('straightholds'));
-    var noteYOffset:Float = mods.GetYOffset(conductorInUse, conductorInUse.getTimeWithDelta(), speed, column, conductorInUse.getTimeWithDelta()) + ofs;
-    var notePos:Vector3D = new Vector3D(mods.GetXPos(column, noteYOffset, pn, xoffArray, true), mods.GetYPos(column, noteYOffset, xoffArray, isDownscroll),
-      mods.GetZPos(column, noteYOffset, xoffArray));
-    var timeDiff:Float = mods.baseHoldSize;
-    var yOffset2:Float = mods.GetYOffset(conductorInUse, time + timeDiff, speed, column, conductorInUse.getTimeWithDelta() + timeDiff) + ofs;
-    var pos4:Vector3D = new Vector3D(mods.GetXPos(column, yOffset2, pn, xoffArray, false), mods.GetYPos(column, yOffset2, xoffArray, isDownscroll),
-      mods.GetZPos(column, yOffset2, xoffArray));
-    var angles:Vector3D = ModchartMath.getDirectionsBetweenTwoVectors(pos, pos4);
-    var pos2:Vector3D = notePos.clone();
-    var pos3:Vector3D = strumPos.clone();
-    pos2.x *= effect;
-    pos2.z *= effect;
-    pos3.x *= effect;
-    pos3.z *= effect;
-    pos.x *= effect;
-    pos.z *= effect;
-    var offset:Vector3D = new Vector3D(pos2.x - notePos.x, 0, pos2.z - notePos.z);
-    if (yOffset <= 0)
-    {
-      offset.x = pos3.x - strumPos.x;
-      offset.z = pos3.z - strumPos.z;
-    }
-    var noteBeat:Float = Conductor.instance.currentBeatTime;
-    var rotation:Vector3D = new Vector3D(mods.GetRotationX(column, yOffset, true, angles.x), mods.GetRotationY(column, yOffset, true, angles.y),
-      (mods.GetRotationZ(column, yOffset, noteBeat, true, angles.z)));
-    var fullPos:Vector3D = pos;
-    var scale:Array<Float> = mods.GetScale(column, yOffset);
-    var scalePos:Vector3D = new Vector3D(1, 1, 1);
-    var skewPos:Vector3D = new Vector3D(scale[2], scale[3]);
-    mods.modifyPos(fullPos, scalePos, rotation, skewPos, xoffArray, column);
-    var zoom2:Vector3D = parentStrumline.zoom2;
-    var zoom1:Vector3D = parentStrumline.zoom;
-    var newZoom:Vector3D = new Vector3D(zoom1.x * zoom2.x, zoom1.y * zoom2.y, zoom1.z * zoom2.z);
-    mods.modifyPosByValue(fullPos, scalePos, rotation, skewPos, column, parentStrumline.rotation.add(parentStrumline.rotation2),
-      parentStrumline.skew.add(parentStrumline.skew2), newZoom);
+    mods.modifyPos(pos, scaleCache, rotCache, skewCache, xoffArray, column);
+    mods.modifyPosByValue(pos, scaleCache, rotCache, skewCache, column, new Vector3D(0, 0, 0), new Vector3D(0, 0, 0), new Vector3D(1, 1, 1));
     parentStrumline.getSplineAxisPos('pos', column, yOffset, 0, spPos);
-    parentStrumline.getSplineAxisPos('skew', column, yOffset, 0, spSkew);
-    fullPos.incrementBy(spPos);
-    fullPos.incrementBy(difference);
-    skewPos.x += spSkew.x;
+    pos.incrementBy(spPos);
+    pos.incrementBy(difference);
     left.x = -width / 2;
     right.x = -left.x;
-    var zPos:Array<Vector3D> = ModchartMath.processActor(fullPos, [left, right], rotation, scalePos, skewPos, originVec, parentStrumline.fov, rotationOrder);
+    var zPos:Array<Vector3D> = ModchartMath.processActor(pos, [left, right], new Vector3D(0, 0, 0), new Vector3D(1, 1, 1), new Vector3D(0, 0, skewCache.z),
+      originVec, parentStrumline.fov, rotationOrder);
+    skewCache.z = 0;
     for (i in 0...2)
-    {
-      zPos[i].decrementBy(offset);
       zPos[i].incrementBy(globalOffset);
-    }
     return zPos;
   }
 
